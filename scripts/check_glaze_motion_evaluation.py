@@ -85,7 +85,7 @@ def main() -> None:
         token_text,
         (
             f'const val TargetVersion = "{SOURCE_GLAZE_VERSION}"',
-            f'const val SourceRevision = "{GLAZE_SOURCE_REVISION}"',
+            'const val SourceRevision = AcceptedReleaseSource',
             "enum class Appearance { LIGHT, DARK, DEEP_DARK }",
             "const val GeneralInteractionFloorDp = 48f",
             "const val TouchAssistanceInteractionFloorDp = 56f",
