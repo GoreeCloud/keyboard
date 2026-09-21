@@ -1,5 +1,6 @@
 package com.goreecloud.keyboard
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Canvas
@@ -11,6 +12,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.view.accessibility.AccessibilityManager
 import androidx.core.view.ViewCompat
 import kotlin.math.max
 
@@ -79,6 +81,8 @@ class KeyboardView @JvmOverloads constructor(
     }
     private val alternatePopupPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val alternateSelectedPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val accessibilityManager =
+        context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
 
     private val hitKeys = mutableListOf<HitKey>()
     private val hitSuggestions = mutableListOf<HitSuggestion>()
@@ -151,10 +155,11 @@ class KeyboardView @JvmOverloads constructor(
         hitEmojiSearchResults.clear()
 
         val rows = currentRows()
+        val presentation = currentGlazeV16Presentation()
         val density = resources.displayMetrics.density
         val horizontalPadding = GlazeKeyboardTokens.Space2Dp * density
         val gap = GlazeKeyboardTokens.Space1Dp * density
-        val topArea = GlazeKeyboardTokens.SuggestionStripHeightDp * density
+        val topArea = presentation.suggestionStripHeightDp * density
         val keyboardTop = topArea + GlazeKeyboardTokens.Space2Dp * density
         val rowHeight = max(1f, (height - keyboardTop - gap * 5) / rows.size)
         val keyRadius = GlazeKeyboardTokens.RadiusMediumDp * density
@@ -254,6 +259,15 @@ class KeyboardView @JvmOverloads constructor(
             pressed.right == bounds.right &&
             pressed.bottom == bounds.bottom
     }
+
+    private fun currentGlazeV16Presentation(): GlazeKeyboardV16PresentationPolicy.Resolved =
+        GlazeKeyboardV16PresentationPolicy.resolve(
+            GlazeKeyboardV16PresentationPolicy.Signals(
+                fontScale = resources.configuration.fontScale,
+                animationsEnabled = ValueAnimator.areAnimatorsEnabled(),
+                touchExplorationEnabled = accessibilityManager?.isTouchExplorationEnabled == true,
+            ),
+        )
 
     private fun applyCurrentAppearance() {
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
@@ -364,7 +378,7 @@ class KeyboardView @JvmOverloads constructor(
 
     private fun drawAlternatePopup(canvas: Canvas, popup: AlternatePopup) {
         val density = resources.displayMetrics.density
-        val cell = GlazeKeyboardTokens.GeneralInteractionFloorDp * density
+        val cell = currentGlazeV16Presentation().interactionFloorDp * density
         val gap = GlazeKeyboardTokens.Space1Dp * density
         val layout = runCatching {
             AlternatePopupLayout.calculate(
