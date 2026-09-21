@@ -206,6 +206,8 @@ conformance:
     - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; the explicit user file flow is only one-field portability.
     - GoreeCloud Mesh registration, capability publication, and runtime acceptance are not established.
     - GoreeCloud Sync change tracking, authorized replication, conflict reconciliation, offline resume, background synchronization, and cross-device continuity are not established.
-    - Manager platform visibility and administrative integration acceptance are not established.\n    - GoreeCloud Policy runtime evaluation, enforcement coordination, explanation, freshness, exception, and evidence integration/acceptance are not established.\n    - GoreeCloud Observability privacy-safe health, performance/latency, power, event, dependency-health, provenance/freshness, alerting, collection-gap, and representative-device runtime acceptance are not established.
+    - Manager platform visibility and administrative integration acceptance are not established.
+    - GoreeCloud Policy runtime evaluation, enforcement coordination, explanation, freshness, exception, and evidence integration/acceptance are not established.
+    - GoreeCloud Observability privacy-safe health, performance/latency, power, event, dependency-health, provenance/freshness, alerting, collection-gap, and representative-device runtime acceptance are not established.
     - Current portability covers only one explicit emoji-category preference and does not include product-wide Keyboard state.
     - Production signing, distribution, representative-device acceptance, release approval, and Stable qualification remain outstanding.
