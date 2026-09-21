@@ -1,10 +1,10 @@
-schema_version: "0.2"
+schema_version: "0.4"
 
 component:
   type: application
   id: goreecloud-keyboard
   product_name: GoreeCloud Keyboard
-  repository: GoreeCloud/goreecloud-keyboard
+  repository: GoreeCloud/keyboard
 
 lifecycle: development
 version: "0.1.0-dev"
@@ -68,7 +68,7 @@ platform_systems:
     notes: A one-field portable preference format, category-only local export/apply seams, and explicit user-controlled Storage Access Framework transfer exist, including import preview/Apply, export review/freeze, and minimized reviewed-export lifecycle restoration, but complete approved backup/restore scope, clean-target recovery, automatic continuity, and accepted Everkeep integration do not.
   glaze_ui:
     result: applicable-migration-required
-    version: "1.2.0"
+    version: "1.6.0"
     evidence:
       - android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardTokens.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardAtmosphere.kt
@@ -77,7 +77,7 @@ platform_systems:
       - android/app/src/test/kotlin/com/goreecloud/keyboard/GlazeKeyboardTokensTest.kt
       - scripts/check_glaze_motion_evaluation.py
       - docs/glaze-ui-adoption.md
-    notes: Repository-local Development source currently contains a V1.2-targeted Frosted Neutral material mapping, but V1.2 is not the governed Stable consumer baseline for applications. Current governed Stable consumer authority remains GLAZE UI V1.1 / 1.1.0, whose known immutable import-closure defect still requires a corrected governed Stable release. Keyboard therefore remains migration-required until source authority is reconciled to the governed consumer line and fresh rendered, accessibility, adaptive, representative-device, Human Visual Excellence, release, and production acceptance is completed.
+    notes: Current Official Stable GLAZE UI authority is V1.6 / 1.6.0 at exact release source a7180679ea851389e0f3004515f9a25f420e716d. Keyboard's implemented repository-local presentation mapping still targets V1.2 / 1.2.0 source semantics at f285b9145e27e6e7027b075c37299d101945c272, so Keyboard remains applicable-migration-required. This declaration does not relabel the V1.2 implementation as migrated or establish application conformance. Fresh V1.6 source adoption plus whole-application rendered, interaction, accessibility, adaptive/form-factor, representative-device, Human Visual Excellence, rollback, release, and production acceptance remain required.
   mesh:
     result: applicable-blocked
     version: null
@@ -93,6 +93,23 @@ platform_systems:
     evidence:
       - SPECIFICATIONS.md
     notes: Core typing and the local category-only transfer flow require no GoreeCloud account, but accepted Identity integration for any future account-backed personalization or synchronization is not established.
+
+  policy:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - README.md
+      - SPECIFICATIONS.md
+      - goreecloud.platform.yaml
+    notes: GoreeCloud Policy is applicable to Keyboard policy representation, administrative restrictions, privacy/security decisions, sensitive-input constraints, portability limits, and evidence boundaries, but no accepted Keyboard runtime Policy evaluation, distribution, enforcement-coordination, explanation, freshness, exception, or production acceptance exists.
+  observability:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - README.md
+      - SPECIFICATIONS.md
+      - goreecloud.platform.yaml
+    notes: Keyboard has local Development behavior and CI evidence, but accepted GoreeCloud Observability health, metrics, diagnostics, performance, dependency-health, provenance/freshness, alerting, collection-gap, and representative-device runtime acceptance are not established. Sensitive typed text, editor content, clipboard payloads, and suggestion history must not become observability payloads.
 
 health:
   health_endpoint: null
@@ -131,11 +148,11 @@ external_dependencies:
     version_constraint: ">=26"
 
 compatibility:
-  platform_contract: "0.2"
-  glaze_ui_required: "1.1.0"
+  platform_contract: "0.4"
+  glaze_ui_required: "1.6.0"
   requires:
-    - goreecloud-platform-contract==0.2
-    - glaze-ui==1.1.0
+    - goreecloud-platform-contract==0.4
+    - glaze-ui==1.6.0
     - android-api>=26
   provides:
     - goreecloud-keyboard-preferences/1
@@ -165,12 +182,14 @@ conformance:
     - docs/development/portable-preference-import-preview.md
     - docs/development/portable-preference-export-review.md
   blockers:
-    - Repository-local Development source currently carries a V1.2-targeted Glaze material mapping, while the governed Stable application baseline remains V1.1 / 1.1.0; the known immutable 1.1.0 defect requires a corrected governed Stable release, explicit Keyboard source-authority reconciliation/re-pin, and complete application-specific rendered/accessibility/adaptive/representative-device/Human Visual Excellence acceptance.
+    - Keyboard still implements a repository-local GLAZE UI V1.2 / 1.2.0 presentation mapping while current Official Stable authority is V1.6 / 1.6.0 at a7180679ea851389e0f3004515f9a25f420e716d. V1.6 source migration and fresh whole-application rendered, interaction, accessibility, adaptive/form-factor, representative-device, Human Visual Excellence, rollback, release, and production acceptance remain incomplete.
     - GoreeCloud Identity integration and acceptance are not established for any future identity-aware capability.
     - Wardveil Security integration and acceptance are not established.
     - Privacy Shield integration and acceptance are not established for this highly sensitive input surface.
     - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; the explicit user file flow is only one-field portability.
     - GoreeCloud Mesh registration, capability publication, and runtime acceptance are not established.
     - Manager platform visibility and administrative integration acceptance are not established.
+    - GoreeCloud Policy runtime evaluation, enforcement-coordination, explanation, freshness, exception, and evidence integration/acceptance are not established.
+    - GoreeCloud Observability health, metrics, diagnostics, performance, dependency-health, provenance/freshness, alerting, collection-gap, and representative-device runtime acceptance are not established.
     - Current portability covers only one explicit emoji-category preference and does not include product-wide Keyboard state.
     - Production signing, distribution, representative-device acceptance, release approval, and Stable qualification remain outstanding.
