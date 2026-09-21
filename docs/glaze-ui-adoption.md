@@ -83,6 +83,8 @@ The existing one-field `goreecloud-keyboard-preferences/1` portability boundary 
 - Android manifest — no network permission.
 - Android CI — repository Glaze/Motion governance, editor-privacy and accessibility source guards, JVM tests, debug assembly, and native emulator interaction validation.
 
+- Touch Assistance runtime sizing now applies the 56 dp floor to suggestion-strip and alternate-popup targets and requests a 308 dp preferred four-row IME height; Android/system constraints can still reduce available height, so representative-device verification remains required.
+
 ## Acceptance still required
 
 This source mapping still does not establish:
