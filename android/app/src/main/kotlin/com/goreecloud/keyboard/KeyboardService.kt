@@ -1,8 +1,10 @@
 package com.goreecloud.keyboard
 
+import android.animation.ValueAnimator
 import android.inputmethodservice.InputMethodService
 import android.view.KeyEvent
 import android.view.View
+import android.view.accessibility.AccessibilityManager
 import android.view.inputmethod.EditorInfo
 
 class KeyboardService : InputMethodService(), KeyboardView.Listener {
@@ -30,6 +32,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             view.listener = this
             view.setLayer(KeyboardLayer.LETTERS)
             view.setShifted(shifted)
+            view.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
             updateSuggestions()
         }
     }
@@ -49,6 +52,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         beginEditorSession(info)
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setShifted(false)
+        keyboardView?.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
         updateSuggestions()
     }
 
@@ -252,6 +256,16 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             dictionary = bootstrapDictionary
         ).toList()
         keyboardView?.setSuggestions(presentedSuggestions)
+    }
+
+    private fun currentGlazeV16PresentationSignals(): GlazeKeyboardV16PresentationSignals {
+        val accessibilityManager =
+            getSystemService(ACCESSIBILITY_SERVICE) as? AccessibilityManager
+        return GlazeKeyboardV16PresentationSignals(
+            fontScale = resources.configuration.fontScale,
+            animationsEnabled = ValueAnimator.areAnimatorsEnabled(),
+            touchExplorationEnabled = accessibilityManager?.isTouchExplorationEnabled == true,
+        )
     }
 
     private companion object {

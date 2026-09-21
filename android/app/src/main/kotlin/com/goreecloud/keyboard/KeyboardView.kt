@@ -97,6 +97,7 @@ class KeyboardView @JvmOverloads constructor(
     private var pressedKeyBounds: RectF? = null
     private var pendingAlternateHit: HitKey? = null
     private var alternatePopup: AlternatePopup? = null
+    private var glazeV16PresentationContext = GlazeKeyboardV16PresentationContext()
 
     init {
         isClickable = true
@@ -131,6 +132,13 @@ class KeyboardView @JvmOverloads constructor(
 
     fun setSuggestions(values: List<String>) {
         suggestions = values.take(3)
+        invalidateStructure()
+    }
+
+    internal fun setGlazeV16PresentationSignals(signals: GlazeKeyboardV16PresentationSignals) {
+        val resolved = GlazeKeyboardV16AndroidPresentationContext.resolve(signals)
+        if (resolved == glazeV16PresentationContext) return
+        glazeV16PresentationContext = resolved
         invalidateStructure()
     }
 
@@ -364,7 +372,8 @@ class KeyboardView @JvmOverloads constructor(
 
     private fun drawAlternatePopup(canvas: Canvas, popup: AlternatePopup) {
         val density = resources.displayMetrics.density
-        val cell = GlazeKeyboardTokens.GeneralInteractionFloorDp * density
+        val cell = GlazeKeyboardV16PresentationPolicy
+            .interactionFloorDp(glazeV16PresentationContext) * density
         val gap = GlazeKeyboardTokens.Space1Dp * density
         val layout = runCatching {
             AlternatePopupLayout.calculate(
