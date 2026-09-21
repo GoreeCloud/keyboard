@@ -134,7 +134,7 @@ def main() -> None:
             "goreecloud-platform-contract==0.4",
             f"glaze-ui=={GOVERNED_GLAZE_BASELINE}",
             "conformance:\n  status: nonconformant",
-            f"current Official Stable authority is V1.6 / {GOVERNED_GLAZE_BASELINE}",
+            f"Current Official Stable GLAZE UI authority is V1.6 / {GOVERNED_GLAZE_BASELINE}",
         ),
     )
 
