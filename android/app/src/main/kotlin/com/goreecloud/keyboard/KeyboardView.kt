@@ -144,7 +144,10 @@ class KeyboardView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val preferredHeight = (300f * resources.displayMetrics.density).toInt()
+        val density = resources.displayMetrics.density
+        val preferredHeightDp = GlazeKeyboardV16PresentationPolicy
+            .preferredImeHeightDp(glazeV16PresentationContext)
+        val preferredHeight = (preferredHeightDp * density).toInt()
         val height = resolveSize(preferredHeight, heightMeasureSpec)
         setMeasuredDimension(width, height)
     }
@@ -162,7 +165,8 @@ class KeyboardView @JvmOverloads constructor(
         val density = resources.displayMetrics.density
         val horizontalPadding = GlazeKeyboardTokens.Space2Dp * density
         val gap = GlazeKeyboardTokens.Space1Dp * density
-        val topArea = GlazeKeyboardTokens.SuggestionStripHeightDp * density
+        val topArea = GlazeKeyboardV16PresentationPolicy
+            .interactionFloorDp(glazeV16PresentationContext) * density
         val keyboardTop = topArea + GlazeKeyboardTokens.Space2Dp * density
         val rowHeight = max(1f, (height - keyboardTop - gap * 5) / rows.size)
         val keyRadius = GlazeKeyboardTokens.RadiusMediumDp * density
