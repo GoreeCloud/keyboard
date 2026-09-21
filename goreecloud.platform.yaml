@@ -1,10 +1,10 @@
-schema_version: "0.2"
+schema_version: "0.4"
 
 component:
   type: application
   id: goreecloud-keyboard
   product_name: GoreeCloud Keyboard
-  repository: GoreeCloud/goreecloud-keyboard
+  repository: GoreeCloud/keyboard
 
 lifecycle: development
 version: "0.1.0-dev"
@@ -22,7 +22,8 @@ platform_systems:
     version: null
     evidence:
       - README.md
-    notes: Keyboard is a first-party GoreeCloud application, but canonical Mesh registration and accepted Manager platform visibility are not established.
+      - SPECIFICATIONS.md
+    notes: Keyboard is a first-party GoreeCloud application, but accepted Manager platform visibility and administrative integration are not established.
   privacy_shield:
     result: applicable-blocked
     version: null
@@ -40,7 +41,7 @@ platform_systems:
       - docs/development/portable-preference-user-transfer.md
       - docs/development/portable-preference-import-preview.md
       - docs/development/portable-preference-export-review.md
-    notes: Typed content is highly sensitive. Current source keeps password/sensitive editor handling fail-closed, suppresses local composing/suggestion handling when a host text editor requests no suggestions, keeps inactive/no-editor state sensitive and suggestions-suppressed, treats missing EditorInfo the same way rather than granting ordinary-field behavior, applies current editor policy only from Android's editor-session start/view-start callbacks, and returns to the fail-closed transient policy while clearing composing state and visible candidates at editor-session/view teardown. Explicit user file-transfer scope remains one emoji-category choice, imports preview before any write, exports are reviewed and frozen before destination selection, and only that reviewed category is preserved across ordinary Activity recreation while the document picker owns the flow. Accepted Privacy Shield integration and production privacy validation are not established.
+    notes: Typed content is highly sensitive. Current source keeps password/sensitive editor handling fail-closed, honors host no-suggestions and no-personalized-learning requests, clears transient editor/suggestion state at authoritative lifecycle boundaries, keeps no-active-editor state conservative, has no Android network permission, and limits explicit user file transfer to the one-field emoji-category portability format. Accepted Privacy Shield integration and production privacy validation are not established.
   wardveil_security:
     result: applicable-blocked
     version: null
@@ -49,12 +50,10 @@ platform_systems:
       - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardService.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/InputPrivacyClassifier.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicy.kt
-      - android/app/src/test/kotlin/com/goreecloud/keyboard/InputPrivacyClassifierTest.kt
-      - android/app/src/test/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicyTest.kt
       - scripts/check_editor_privacy_lifecycle.py
       - docs/development/portable-preference-import-preview.md
       - docs/development/portable-preference-export-review.md
-    notes: Keyboard has local sensitive-editor safeguards, host no-suggestions suppression, fail-closed inactive and missing-editor-metadata handling, authoritative editor-session start/finish policy reset with a fail-closed source guard, no Android network permission, bounded explicit file transfer, preview-before-write import behavior, and review-before-destination export behavior with fail-closed restoration of the reviewed category after Activity recreation, but accepted Wardveil Security integration and validation are not established.
+    notes: Keyboard has local sensitive-editor safeguards, fail-closed editor lifecycle behavior, no Android network permission, bounded explicit file transfer, preview-before-write import, and review-before-destination export, but accepted Wardveil Security integration and production validation are not established.
   everkeep:
     result: applicable-blocked
     version: null
@@ -65,10 +64,10 @@ platform_systems:
       - docs/development/portable-preference-user-transfer.md
       - docs/development/portable-preference-import-preview.md
       - docs/development/portable-preference-export-review.md
-    notes: A one-field portable preference format, category-only local export/apply seams, and explicit user-controlled Storage Access Framework transfer exist, including import preview/Apply, export review/freeze, and minimized reviewed-export lifecycle restoration, but complete approved backup/restore scope, clean-target recovery, automatic continuity, and accepted Everkeep integration do not.
+    notes: A one-field portable preference format, category-only local export/apply seams, explicit user-controlled Storage Access Framework transfer, import preview/Apply, export review/freeze, and minimized reviewed-export lifecycle restoration exist, but complete approved backup/restore scope, clean-target recovery, automatic continuity, and accepted Everkeep integration do not.
   glaze_ui:
     result: applicable-migration-required
-    version: "1.2.0"
+    version: "1.6.0"
     evidence:
       - android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardTokens.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardAtmosphere.kt
@@ -77,12 +76,12 @@ platform_systems:
       - android/app/src/test/kotlin/com/goreecloud/keyboard/GlazeKeyboardTokensTest.kt
       - scripts/check_glaze_motion_evaluation.py
       - docs/glaze-ui-adoption.md
-    notes: Repository-local Development source currently contains a V1.2-targeted Frosted Neutral material mapping, but V1.2 is not the governed Stable consumer baseline for applications. Current governed Stable consumer authority remains GLAZE UI V1.1 / 1.1.0, whose known immutable import-closure defect still requires a corrected governed Stable release. Keyboard therefore remains migration-required until source authority is reconciled to the governed consumer line and fresh rendered, accessibility, adaptive, representative-device, Human Visual Excellence, release, and production acceptance is completed.
+    notes: Current Official Stable GLAZE UI authority is V1.6 / 1.6.0 at exact release source a7180679ea851389e0f3004515f9a25f420e716d. Keyboard's implemented repository-local native presentation still maps historical V1.2 / 1.2.0 source semantics at f285b9145e27e6e7027b075c37299d101945c272, so Keyboard remains applicable-migration-required. This declaration does not relabel the V1.2 implementation as V1.6-migrated or establish downstream conformance. Fresh V1.6 source adoption plus whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain required.
   mesh:
     result: applicable-blocked
     version: null
     evidence: []
-    notes: Current local typing does not depend on Mesh, but canonical GoreeCloud Mesh registration, capability publication, producer evidence, and runtime acceptance are not established for Keyboard.
+    notes: Current local typing does not depend on Mesh, but accepted GoreeCloud Mesh registration, capability publication, producer evidence, and runtime integration are not established for Keyboard.
     capabilities: []
     dependencies: []
     published_events: []
@@ -93,6 +92,22 @@ platform_systems:
     evidence:
       - SPECIFICATIONS.md
     notes: Core typing and the local category-only transfer flow require no GoreeCloud account, but accepted Identity integration for any future account-backed personalization or synchronization is not established.
+  policy:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - README.md
+      - SPECIFICATIONS.md
+      - goreecloud.platform.yaml
+    notes: GoreeCloud Policy is applicable to Keyboard privacy/security decisions, administrative restrictions, editor-state handling, data-retention boundaries, and evidence rules, but no accepted Keyboard runtime Policy evaluation, distribution, enforcement-coordination, explanation, freshness, exception, or production acceptance exists.
+  observability:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - README.md
+      - SPECIFICATIONS.md
+      - goreecloud.platform.yaml
+    notes: Keyboard has local Development behavior and CI evidence, but accepted GoreeCloud Observability health, latency, input-performance, diagnostics, dependency-health, provenance/freshness, collection-gap, privacy-safe telemetry, and representative-device runtime acceptance are not established.
 
 health:
   health_endpoint: null
@@ -131,11 +146,11 @@ external_dependencies:
     version_constraint: ">=26"
 
 compatibility:
-  platform_contract: "0.2"
-  glaze_ui_required: "1.1.0"
+  platform_contract: "0.4"
+  glaze_ui_required: "1.6.0"
   requires:
-    - goreecloud-platform-contract==0.2
-    - glaze-ui==1.1.0
+    - goreecloud-platform-contract==0.4
+    - glaze-ui==1.6.0
     - android-api>=26
   provides:
     - goreecloud-keyboard-preferences/1
@@ -153,8 +168,7 @@ conformance:
     - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardService.kt
     - android/app/src/main/kotlin/com/goreecloud/keyboard/InputPrivacyClassifier.kt
     - android/app/src/main/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicy.kt
-    - android/app/src/test/kotlin/com/goreecloud/keyboard/InputPrivacyClassifierTest.kt
-    - android/app/src/test/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicyTest.kt
+    - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardAccessibilityDelegate.kt
     - docs/glaze-ui-adoption.md
     - scripts/check_glaze_motion_evaluation.py
     - scripts/check_editor_privacy_lifecycle.py
@@ -165,12 +179,15 @@ conformance:
     - docs/development/portable-preference-import-preview.md
     - docs/development/portable-preference-export-review.md
   blockers:
-    - Repository-local Development source currently carries a V1.2-targeted Glaze material mapping, while the governed Stable application baseline remains V1.1 / 1.1.0; the known immutable 1.1.0 defect requires a corrected governed Stable release, explicit Keyboard source-authority reconciliation/re-pin, and complete application-specific rendered/accessibility/adaptive/representative-device/Human Visual Excellence acceptance.
-    - GoreeCloud Identity integration and acceptance are not established for any future identity-aware capability.
-    - Wardveil Security integration and acceptance are not established.
+    - Keyboard still implements a repository-local GLAZE UI V1.2 / 1.2.0 native presentation mapping at exact historical source f285b9145e27e6e7027b075c37299d101945c272 while current Official Stable authority is V1.6 / 1.6.0 at a7180679ea851389e0f3004515f9a25f420e716d. V1.6 source migration and fresh whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain incomplete.
     - Privacy Shield integration and acceptance are not established for this highly sensitive input surface.
-    - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; the explicit user file flow is only one-field portability.
+    - Wardveil Security integration and acceptance are not established.
+    - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; explicit user file transfer is only one-field portability.
+    - GoreeCloud Identity integration and acceptance are not established for future identity-aware capabilities.
     - GoreeCloud Mesh registration, capability publication, and runtime acceptance are not established.
     - Manager platform visibility and administrative integration acceptance are not established.
+    - GoreeCloud Policy runtime evaluation, enforcement-coordination, explanation, freshness, exception, and evidence integration/acceptance are not established.
+    - GoreeCloud Observability health, latency, diagnostics, performance, dependency-health, provenance/freshness, collection-gap, privacy-safe telemetry, and representative-device runtime acceptance are not established.
     - Current portability covers only one explicit emoji-category preference and does not include product-wide Keyboard state.
-    - Production signing, distribution, representative-device acceptance, release approval, and Stable qualification remain outstanding.
+    - Representative physical-device typing, IME ergonomics, latency, accessibility, host-app compatibility, and form-factor acceptance remain incomplete.
+    - Production signing, distribution, release approval, Release Candidate qualification, and Stable qualification remain outstanding.
