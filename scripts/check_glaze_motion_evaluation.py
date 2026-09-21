@@ -144,10 +144,6 @@ def main() -> None:
         (
             'const val StableVersion = "1.6.0"',
             'const val StableSourceRevision = "a7180679ea851389e0f3004515f9a25f420e716d"',
-            "ValueAnimator",
-        ) if False else (
-            'const val StableVersion = "1.6.0"',
-            'const val StableSourceRevision = "a7180679ea851389e0f3004515f9a25f420e716d"',
             "LargeTextFontScale = 1.30f",
             "ExtraLargeTextFontScale = 1.60f",
             "touchExplorationEnabled",
