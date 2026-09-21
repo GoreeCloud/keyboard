@@ -2,14 +2,14 @@
 
 Status: **Migration in progress / Development**  
 Repository-local source target: **GLAZE UI V1.2 (`1.2.0`)**  
-Governed Stable consumer baseline: **GLAZE UI V1.1 (`1.1.0`)**  
-Canonical repository: `GoreeCloud/goreecloud-glaze-ui`  
+Current Official Stable consumer authority: **GLAZE UI V1.6 (`1.6.0`)**  
+Canonical repository: `GoreeCloud/glaze-ui`  
 Reviewed V1.2 source reference: `f285b9145e27e6e7027b075c37299d101945c272`  
 Production eligible on the Glaze UI gate: **no**
 
 ## Scope
 
-This repository currently carries a Development source/material mapping derived from GLAZE UI V1.2 / `1.2.0`. That mapping is **not** a governed Stable application-consumer authority. Current governed Stable consumer authority remains GLAZE UI V1.1 / `1.1.0`; the immutable `1.1.0` source has a known import-closure defect and requires a corrected governed Stable release before downstream conformance can be established. Keyboard therefore remains `applicable-migration-required` even though its local source tokens currently model V1.2 Frosted Neutral material and interaction states.
+This repository currently carries a Development source/material mapping derived from GLAZE UI V1.2 / `1.2.0`. That mapping is **not** a governed Stable application-consumer authority. Current Official Stable consumer authority is GLAZE UI V1.6 / `1.6.0` at exact release source `a7180679ea851389e0f3004515f9a25f420e716d`. Keyboard remains `applicable-migration-required` because its local source tokens still model V1.2 Frosted Neutral material and interaction states; the V1.2 implementation must not be relabeled as V1.6 conformance.
 
 The repository-local mapping covers applicable V1.2 foundation, Frosted Neutral material, appearance, geometry, target-size, interaction-state, and bounded native accessibility behavior in GoreeCloud Keyboard's first-party Android surface. It does **not** establish complete V1.2 consumer conformance, governed release adoption, production acceptance, representative-device acceptance, signed release, Release Candidate entry, or Stable qualification.
 
@@ -38,7 +38,7 @@ The native surface remains first-party `KeyboardView`; no web runtime, remote UI
 
 ## Governance and presentation boundary
 
-Repository-local V1.2 source values may be used as Development implementation evidence, but they cannot be represented as the current Stable consumer contract or as accepted downstream conformance. `goreecloud.platform.yaml` therefore keeps `platform_systems.glaze_ui.result` as `applicable-migration-required`, records the local source version separately, and requires governed consumer baseline `1.1.0` in `compatibility.glaze_ui_required` until GoreeCloud governance publishes a different Stable consumer authority.
+Repository-local V1.2 source values may be used as Development implementation evidence, but they cannot be represented as the current Stable consumer contract or as accepted downstream conformance. `goreecloud.platform.yaml` therefore keeps `platform_systems.glaze_ui.result` as `applicable-migration-required`, declares current required consumer authority `1.6.0` in `compatibility.glaze_ui_required`, and documents the existing V1.2 source separately as migration evidence.
 
 Keyboard follows the mapped material and interaction hierarchy while retaining the principle: **Solid where users read or make explicit critical decisions. Glazed where users interact with transient navigation, command, search, control, or feedback chrome.** For an IME, key labels, suggestion content, selection/focus indication, and sensitive-input behavior are higher priority than optical effects.
 
