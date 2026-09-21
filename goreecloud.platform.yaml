@@ -179,7 +179,7 @@ conformance:
     - docs/development/portable-preference-import-preview.md
     - docs/development/portable-preference-export-review.md
   blockers:
-    - Keyboard now has a bounded GLAZE UI V1.6 / 1.6.0 source baseline pinned to accepted release source a7180679ea851389e0f3004515f9a25f420e716d, but complete consumer migration and acceptance remain incomplete: inherited fallback palette review, whole-keyboard rendered/accessibility/adaptive/form-factor coverage, representative-device performance, Human Visual Excellence, rollback, release, and production acceptance are still required.
+    - Keyboard now has a bounded GLAZE UI V1.6 / 1.6.0 source baseline pinned to accepted release source a7180679ea851389e0f3004515f9a25f420e716d, but complete consumer migration and acceptance remain incomplete; inherited fallback palette review, whole-keyboard rendered/accessibility/adaptive/form-factor coverage, representative-device performance, Human Visual Excellence, rollback, release, and production acceptance are still required.
     - Privacy Shield integration and acceptance are not established for this highly sensitive input surface.
     - Wardveil Security integration and acceptance are not established.
     - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; explicit user file transfer is only one-field portability.
