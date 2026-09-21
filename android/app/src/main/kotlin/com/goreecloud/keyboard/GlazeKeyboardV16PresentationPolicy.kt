@@ -67,6 +67,26 @@ internal object GlazeKeyboardV16PresentationPolicy {
         )
     }
 
+    fun verticalGapDp(
+        totalHeightDp: Float,
+        rowCount: Int,
+        context: GlazeKeyboardV16PresentationContext,
+    ): Float {
+        if (rowCount <= 0 || totalHeightDp <= 0f) return 0f
+        val interactionFloorDp = interactionFloorDp(context)
+        val availableAfterTopDp = (
+            totalHeightDp -
+                interactionFloorDp -
+                GlazeKeyboardTokens.Space2Dp
+            ).coerceAtLeast(0f)
+        val remainingForGapsDp = (
+            availableAfterTopDp -
+                interactionFloorDp * rowCount
+            ).coerceAtLeast(0f)
+        return (remainingForGapsDp / VerticalGapCount)
+            .coerceAtMost(GlazeKeyboardTokens.Space1Dp)
+    }
+
     fun motionMode(context: GlazeKeyboardV16PresentationContext): GlazeKeyboardV16MotionMode =
         if (context.reducedMotion) GlazeKeyboardV16MotionMode.MINIMAL
         else GlazeKeyboardV16MotionMode.STANDARD
