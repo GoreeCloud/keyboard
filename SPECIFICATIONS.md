@@ -23,7 +23,7 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - Bounded Unicode-aware backspace for common emoji modifiers, ZWJ-linked emoji, regional-indicator flags, keycaps, variation selectors, combining marks, and CRLF. Ambiguous truncated ordinary-field look-behind fails closed; sensitive editors retain one-code-point deletion without text look-behind.
 - No Android network permission in the current application foundation.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category, with strict validation/checksum integrity, explicit user-controlled Storage Access Framework import/export, preview-before-write import, review/freeze-before-destination export, and no generic preference serialization.
-- GLAZE UI V1.2 (`1.2.0`) Development source/material mapping pinned to exact Stable release authority `f285b9145e27e6e7027b075c37299d101945c272`.
+- Repository-local GLAZE UI V1.2 (`1.2.0`) Development source/material mapping retained at `f285b9145e27e6e7027b075c37299d101945c272`; current Official Stable consumer authority is V1.6 (`1.6.0`) at `a7180679ea851389e0f3004515f9a25f420e716d`, so migration remains required.
 - V1.2 Frosted Neutral key material is consumed by the native `KeyboardView`; neutral glass is the material and color remains an accent rather than a default substrate tint.
 - V1.2 Light/Dark/Deep Dark source palettes, 4/8 dp spacing, 12 dp control radius, 48/56 dp target floors, optical geometry references, and pressed/selected/focus state calibration are repository-local and unit-tested. Runtime appearance selection remains Light/Dark from Android night mode only.
 - A V1.2 non-semantic atmosphere/material boundary prohibits chromatic, brand, or semantic color from defining the keyboard substrate and enables no editor/content sampling, remote color derivation, persistent sample history, semantic inference, telemetry, network lookup, or animated atmosphere.
@@ -98,7 +98,7 @@ Keyboard may publish minimized operational/version/capability state to Manager w
 
 ## GLAZE UI / Design Center
 
-GLAZE UI V1.2 (`1.2.0`) is the current Stable GoreeCloud design-system target. This repository maps the applicable V1.2 foundation and Frosted Neutral material contract to the native Android keyboard at exact Stable release commit `f285b9145e27e6e7027b075c37299d101945c272`. GLAZE UI V1.1 / `1.1.0` remains the prior known-good Stable rollback anchor; earlier evidence is not inherited as V1.2 consumer acceptance.
+Current Official Stable GoreeCloud design-system authority is GLAZE UI V1.6 (`1.6.0`) at exact release source `a7180679ea851389e0f3004515f9a25f420e716d`. This repository still implements a V1.2 (`1.2.0`) Development source/material mapping derived from `f285b9145e27e6e7027b075c37299d101945c272`; that mapping is retained as implementation evidence, not current consumer conformance. Keyboard therefore remains migration-required until its native presentation source is reconciled to V1.6 and fresh acceptance is completed.
 
 The governing V1.2 material rule is **Neutral glass is the material. Color is an accent.** `KeyboardView` now consumes neutral V1.2 base-glass surfaces for Light/Dark runtime rendering. Deep Dark is source-defined but not automatically selected from ordinary Android dark mode. The source also records V1.2 state calibration for pressed/selected/focus behavior without representing that source map as complete rendered conformance.
 
