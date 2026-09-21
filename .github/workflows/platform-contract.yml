@@ -20,8 +20,11 @@ concurrency:
   group: platform-contract-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Contract 0.4 is the accepted central nine-system implementation. This validates the exact
+# Keyboard declaration only; it does not manufacture runtime platform-system acceptance,
+# production eligibility, or Stable qualification.
 jobs:
   validate:
-    uses: GoreeCloud/GoreeCloud/.github/workflows/reusable-platform-manifest.yml@5bb49dd878b90f140c7af4be1f7b1af0fddbe93c
+    uses: GoreeCloud/GoreeCloud/.github/workflows/reusable-platform-manifest.yml@6cb150d512647a0401b4da9e4741d7591693dee0
     with:
       manifest-path: goreecloud.platform.yaml
