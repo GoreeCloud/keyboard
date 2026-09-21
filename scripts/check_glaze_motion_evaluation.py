@@ -114,7 +114,7 @@ def main() -> None:
             "const val PersistentSampleHistoryAllowed = false",
             "const val SemanticInferenceAllowed = false",
             "const val AnimatedAtmosphereEnabled = false",
-            "No editor/content",
+            "editor/content state",
         ),
     )
 
