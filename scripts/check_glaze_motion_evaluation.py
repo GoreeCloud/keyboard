@@ -22,13 +22,15 @@ MOTION_GLAZE_REVISION = "84cb3db4884042f0fa25ed6d475a127fb110f596"
 GLAZE_VERSION = "1.5.0"
 GLAZE_SOURCE_REVISION = "b7fa8164bfdeaa1dc0acb21b770e7601120da04e"
 GLAZE_REVIEWED_ANCHOR = "ee1032a0822ab8e103f8afe48e5c1859fde65cc9"
+GLAZE_REQUIRED_VERSION = "1.6.0"
+GLAZE_REQUIRED_SOURCE_REVISION = "a7180679ea851389e0f3004515f9a25f420e716d"
 OPTICAL_BASELINE_VERSION = "1.4.1"
 OPTICAL_BASELINE_REVISION = "4fab9da0fad2e5c974e0e66ec88632c61745751c"
 MARKER = "GlazeMotionExperimental"
 
 
 def fail(message: str) -> None:
-    raise SystemExit("Keyboard GLAZE UI V1.5 / Motion boundary failed: " + message)
+    raise SystemExit("Keyboard GLAZE UI V1.5 implementation / V1.6 target / Motion boundary failed: " + message)
 
 
 def require_all(label: str, text: str, markers: tuple[str, ...]) -> None:
@@ -90,10 +92,11 @@ def main() -> None:
         "Glaze adoption record",
         adoption_text,
         (
-            "# GLAZE UI V1.5 Development Mapping — GoreeCloud Keyboard",
+            "# GLAZE UI V1.5 Implemented Mapping / V1.6 Migration Requirement — GoreeCloud Keyboard",
             "Status: **Migration in progress / Development**",
-            f"Current Stable target: **GLAZE UI V1.5 (`{GLAZE_VERSION}`)**",
-            f"Exact Stable merged source authority: `{GLAZE_SOURCE_REVISION}`",
+            f"Current Stable target: **GLAZE UI V1.6 (`{GLAZE_REQUIRED_VERSION}`)**",
+            f"Exact current Stable release source authority: `{GLAZE_REQUIRED_SOURCE_REVISION}`",
+            f"Implemented Development mapping: **GLAZE UI V1.5 (`{GLAZE_VERSION}`)** at `{GLAZE_SOURCE_REVISION}`",
             f"Reviewed V1.5 implementation anchor: `{GLAZE_REVIEWED_ANCHOR}`",
             f"Inherited optical/material baseline: **GLAZE UI V1.4.1 (`{OPTICAL_BASELINE_VERSION}`)** at `{OPTICAL_BASELINE_REVISION}`",
             "Production eligible on the Glaze UI gate: **no**",
@@ -232,22 +235,27 @@ def main() -> None:
     )
 
     require_all(
-        "Platform Contract v0.3",
+        "Platform Contract v0.4",
         platform_text,
         (
-            'schema_version: "0.3"',
+            'schema_version: "0.4"',
             "  id: goreecloud-keyboard",
-            f'  glaze_ui:\n    result: applicable-migration-required\n    version: "{GLAZE_VERSION}"',
-            '  platform_contract: "0.3"',
-            f'  glaze_ui_required: "{GLAZE_VERSION}"',
-            "goreecloud-platform-contract==0.3",
-            f"glaze-ui=={GLAZE_VERSION}",
+            "  repository: GoreeCloud/keyboard",
+            f'  glaze_ui:\n    result: applicable-migration-required\n    version: "{GLAZE_REQUIRED_VERSION}"',
+            "  policy:",
+            "  observability:",
+            '  platform_contract: "0.4"',
+            f'  glaze_ui_required: "{GLAZE_REQUIRED_VERSION}"',
+            "goreecloud-platform-contract==0.4",
+            f"glaze-ui=={GLAZE_REQUIRED_VERSION}",
             "GlazeKeyboardCapabilityV15.kt",
             "GlazeKeyboardCapabilityV15Test.kt",
             "GoreeCloud Sync change tracking, authorized replication, conflict reconciliation",
             "conformance:\n  status: nonconformant",
         ),
     )
+    if "\n  sync:" in platform_text:
+        fail("GoreeCloud Sync must remain separately governed and must not appear as an Integral Platform System")
 
     require_all(
         "representative Keyboard runtime",
@@ -320,12 +328,17 @@ def main() -> None:
     active_records = adoption_text + "\n" + platform_text + "\n" + token_text + "\n" + optics_text + "\n" + capability_text
     for stale in (
         "Current Stable target: **GLAZE UI V1.4 (`1.4.0`)**",
+        "Current Stable target: **GLAZE UI V1.5 (`1.5.0`)**",
         '  glaze_ui_required: "1.4.0"',
         "glaze-ui==1.4.0",
         '  glaze_ui:\n    result: applicable-migration-required\n    version: "1.4.0"',
         'schema_version: "0.2"',
+        'schema_version: "0.3"',
         '  platform_contract: "0.2"',
+        '  platform_contract: "0.3"',
         "goreecloud-platform-contract==0.2",
+        "goreecloud-platform-contract==0.3",
+        "  repository: GoreeCloud/goreecloud-keyboard",
         "known immutable import-closure defect",
         "Glaze UI 2.2.0 Stable is the production design-system authority.",
         "stable_eligible: true",
@@ -334,9 +347,10 @@ def main() -> None:
             fail(f"active evidence retains stale/superseded Glaze authority `{stale}`")
 
     print(
-        "Keyboard GLAZE UI V1.5 boundary passed: "
-        f"target {GLAZE_VERSION} at {GLAZE_SOURCE_REVISION}; inherited optical baseline "
-        f"{OPTICAL_BASELINE_VERSION} at {OPTICAL_BASELINE_REVISION}; Platform Contract 0.3 remains "
+        "Keyboard GLAZE UI boundary passed: "
+        f"implemented V1.5 mapping {GLAZE_VERSION} at {GLAZE_SOURCE_REVISION}; required target "
+        f"{GLAZE_REQUIRED_VERSION} at {GLAZE_REQUIRED_SOURCE_REVISION}; inherited optical baseline "
+        f"{OPTICAL_BASELINE_VERSION} at {OPTICAL_BASELINE_REVISION}; Platform Contract 0.4 remains "
         "migration-required/nonconformant; GoreeCloud Sync remains separately blocked; "
         "Android runtime remains Light/Dark only; sensitive content cannot drive Glaze; "
         "Environmental Color Memory remains 0%; Experimental Motion remains quarantined; "
