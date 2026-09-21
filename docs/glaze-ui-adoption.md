@@ -1,9 +1,10 @@
-# GLAZE UI V1.5 Development Mapping — GoreeCloud Keyboard
+# GLAZE UI V1.5 Implemented Mapping / V1.6 Migration Requirement — GoreeCloud Keyboard
 
 Status: **Migration in progress / Development**  
-Current Stable target: **GLAZE UI V1.5 (`1.5.0`)**  
-Canonical repository: `GoreeCloud/goreecloud-glaze-ui`  
-Exact Stable merged source authority: `b7fa8164bfdeaa1dc0acb21b770e7601120da04e`  
+Current Stable target: **GLAZE UI V1.6 (`1.6.0`)**  
+Canonical repository: `GoreeCloud/glaze-ui`  
+Exact current Stable release source authority: `a7180679ea851389e0f3004515f9a25f420e716d`  
+Implemented Development mapping: **GLAZE UI V1.5 (`1.5.0`)** at `b7fa8164bfdeaa1dc0acb21b770e7601120da04e`  
 Reviewed V1.5 implementation anchor: `ee1032a0822ab8e103f8afe48e5c1859fde65cc9`  
 Inherited optical/material baseline: **GLAZE UI V1.4.1 (`1.4.1`)** at `4fab9da0fad2e5c974e0e66ec88632c61745751c`  
 Immediate rollback baseline: **V1.4.1 (`1.4.1`)**  
@@ -11,7 +12,7 @@ Production eligible on the Glaze UI gate: **no**
 
 ## Scope
 
-GoreeCloud Keyboard now targets current Official Stable GLAZE UI V1.5 / `1.5.0` through a first-party native Android mapping. V1.5 adds context/capability-aware presentation semantics while inheriting the accepted V1.4.1 optical/material baseline. Keyboard deliberately keeps those concerns separate: `GlazeKeyboardCapabilityV15` handles bounded authority-owned capability presentation, while `GlazeKeyboardTokens`, `GlazeKeyboardOptics`, and `GlazeKeyboardAtmosphere` retain the privacy-restricted native visual baseline.
+Current Official Stable GLAZE UI authority is V1.6 / `1.6.0`, and GoreeCloud Keyboard must migrate to that target before current application conformance can be claimed. The implemented Development presentation remains the PR #68 V1.5 mapping: V1.5 capability-aware presentation semantics at exact Stable source `b7fa8164bfdeaa1dc0acb21b770e7601120da04e`, with the accepted V1.4.1 optical/material baseline. This record therefore distinguishes current required authority from implemented source instead of relabeling V1.5 code as V1.6. `GlazeKeyboardCapabilityV15` handles bounded authority-owned capability presentation, while `GlazeKeyboardTokens`, `GlazeKeyboardOptics`, and `GlazeKeyboardAtmosphere` retain the privacy-restricted native visual baseline.
 
 This mapping remains **Development evidence only**. Shared Glaze Stable status does not establish complete Keyboard consumer conformance, rendered/accessibility/device acceptance, production approval, signed release, Release Candidate entry, or Stable Keyboard qualification.
 
