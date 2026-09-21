@@ -11,10 +11,10 @@ KEYBOARD_VIEW = MAIN / "kotlin/com/goreecloud/keyboard/KeyboardView.kt"
 TOKENS = MAIN / "kotlin/com/goreecloud/keyboard/GlazeKeyboardTokens.kt"
 ATMOSPHERE = MAIN / "kotlin/com/goreecloud/keyboard/GlazeKeyboardAtmosphere.kt"
 MOTION_REFERENCE_REVISION = "b386c793c047e2f5d5d92125732f142e7fdf32dc"
-SOURCE_GLAZE_VERSION = "1.2.0"
+SOURCE_GLAZE_VERSION = "1.6.0"
 GOVERNED_GLAZE_BASELINE = "1.6.0"
 GOVERNED_GLAZE_REVISION = "a7180679ea851389e0f3004515f9a25f420e716d"
-GLAZE_SOURCE_REVISION = "f285b9145e27e6e7027b075c37299d101945c272"
+GLAZE_SOURCE_REVISION = "a7180679ea851389e0f3004515f9a25f420e716d"
 MARKER = "GlazeMotionExperimental"
 
 
@@ -64,28 +64,28 @@ def main() -> None:
         "Glaze adoption record",
         adoption_text,
         (
-            "# GLAZE UI V1.2 Development Source Mapping — GoreeCloud Keyboard",
+            "# GLAZE UI V1.6 Development Source Baseline — GoreeCloud Keyboard",
             "Status: **Migration in progress / Development**",
-            f"Repository-local source target: **GLAZE UI V1.2 (`{SOURCE_GLAZE_VERSION}`)**",
+            f"Repository-local source target: **GLAZE UI V1.6 (`{SOURCE_GLAZE_VERSION}`)**",
             f"Governed Stable consumer baseline: **GLAZE UI V1.6 (`{GOVERNED_GLAZE_BASELINE}`)**",
-            f"Reviewed V1.2 source reference: `{GLAZE_SOURCE_REVISION}`",
-            f"Current Stable V1.6 source reference: `{GOVERNED_GLAZE_REVISION}`",
+            f"Accepted release source: `{GLAZE_SOURCE_REVISION}`",
+            f"Source qualification anchor: `c7509c79256b04b0aa67cb9dd0737d7588e0ae4a`",
             "Production eligible on the Glaze UI gate: **no**",
             "applicable-migration-required",
-            "Neutral glass is the material. Color is an accent.",
-            "Deep Dark source material is explicitly defined",
-            "editor/content sampling",
+            "Material roles are explicit",
+            "Deep Dark is not inferred automatically",
+            "editor-content sampling",
             "one-field `goreecloud-keyboard-preferences/1` portability boundary remains unchanged",
             "Glaze Motion 0.5 evaluation remains test-only",
         ),
     )
 
     require_all(
-        "V1.2 source token mapping",
+        "V1.6 source token mapping",
         token_text,
         (
             f'const val TargetVersion = "{SOURCE_GLAZE_VERSION}"',
-            f'const val SourceRevision = "{GLAZE_SOURCE_REVISION}"',
+            'const val SourceRevision = AcceptedReleaseSource',
             "enum class Appearance { LIGHT, DARK, DEEP_DARK }",
             "const val GeneralInteractionFloorDp = 48f",
             "const val TouchAssistanceInteractionFloorDp = 56f",
@@ -98,10 +98,10 @@ def main() -> None:
     )
 
     require_all(
-        "V1.2 atmosphere/material boundary",
+        "V1.6 atmosphere/material boundary",
         atmosphere_text,
         (
-            "Neutral glass is the material. Color is an accent.",
+            "GLAZE UI V1.6 presentation-only material boundary",
             "const val DefaultMaterialTintContribution = 0f",
             "const val TealAsBaseMaterialAllowed = false",
             "const val GreenAsBaseMaterialAllowed = false",
@@ -114,7 +114,7 @@ def main() -> None:
             "const val PersistentSampleHistoryAllowed = false",
             "const val SemanticInferenceAllowed = false",
             "const val AnimatedAtmosphereEnabled = false",
-            "No editor/content",
+            "editor/content state",
         ),
     )
 
@@ -132,7 +132,7 @@ def main() -> None:
             "goreecloud-platform-contract==0.4",
             f"glaze-ui=={GOVERNED_GLAZE_BASELINE}",
             "conformance:\n  status: nonconformant",
-            f"current Official Stable authority is V1.6 / {GOVERNED_GLAZE_BASELINE}",
+            f"Current Official Stable GLAZE UI authority is V1.6 / {GOVERNED_GLAZE_BASELINE}",
         ),
     )
 

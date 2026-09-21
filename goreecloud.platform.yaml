@@ -76,7 +76,7 @@ platform_systems:
       - android/app/src/test/kotlin/com/goreecloud/keyboard/GlazeKeyboardTokensTest.kt
       - scripts/check_glaze_motion_evaluation.py
       - docs/glaze-ui-adoption.md
-    notes: Current Official Stable GLAZE UI authority is V1.6 / 1.6.0 at exact release source a7180679ea851389e0f3004515f9a25f420e716d. Keyboard's implemented repository-local native presentation still maps historical V1.2 / 1.2.0 source semantics at f285b9145e27e6e7027b075c37299d101945c272, so Keyboard remains applicable-migration-required. This declaration does not relabel the V1.2 implementation as V1.6-migrated or establish downstream conformance. Fresh V1.6 source adoption plus whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain required.
+    notes: Current Official Stable GLAZE UI authority is V1.6 / 1.6.0 at exact accepted release source a7180679ea851389e0f3004515f9a25f420e716d. The current candidate pins that exact source, its qualification anchor, Stable runtime entrypoint, presentation-only authority boundary, and V1.6 semantic material roles in the native KeyboardView path. The existing neutral palette remains a bounded fallback and whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain incomplete, so Keyboard remains applicable-migration-required.
   mesh:
     result: applicable-blocked
     version: null
@@ -179,7 +179,7 @@ conformance:
     - docs/development/portable-preference-import-preview.md
     - docs/development/portable-preference-export-review.md
   blockers:
-    - Keyboard still implements a repository-local GLAZE UI V1.2 / 1.2.0 native presentation mapping at exact historical source f285b9145e27e6e7027b075c37299d101945c272 while current Official Stable authority is V1.6 / 1.6.0 at a7180679ea851389e0f3004515f9a25f420e716d. V1.6 source migration and fresh whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain incomplete.
+    - Keyboard now has a bounded GLAZE UI V1.6 / 1.6.0 source baseline pinned to accepted release source a7180679ea851389e0f3004515f9a25f420e716d, but complete consumer migration and acceptance remain incomplete; inherited fallback palette review, whole-keyboard rendered/accessibility/adaptive/form-factor coverage, representative-device performance, Human Visual Excellence, rollback, release, and production acceptance are still required.
     - Privacy Shield integration and acceptance are not established for this highly sensitive input surface.
     - Wardveil Security integration and acceptance are not established.
     - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; explicit user file transfer is only one-field portability.

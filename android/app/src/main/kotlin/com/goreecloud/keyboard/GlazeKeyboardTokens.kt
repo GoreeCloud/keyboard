@@ -3,34 +3,41 @@ package com.goreecloud.keyboard
 import kotlin.math.roundToInt
 
 /**
- * Bounded native mapping of the GLAZE UI V1.2 foundation, Frosted Neutral material,
- * appearance, geometry, target-size, and interaction-state subset consumed by
- * GoreeCloud Keyboard's first-party Android surface.
+ * Bounded native source baseline for current Official Stable GLAZE UI V1.6.
  *
- * Current authority is machine version 1.2.0 at exact Stable release revision
- * f285b9145e27e6e7027b075c37299d101945c272. V1.2 preserves inherited V1 semantic,
- * accessibility, component, System Shell, and truth boundaries while promoting the
- * Frosted Neutral + Living Frosted visual system.
+ * The accepted shared release source is pinned exactly. Keyboard consumes V1.6 semantic
+ * material roles and presentation-only authority boundaries while preserving the existing
+ * neutral fallback palette until rendered/accessibility/device qualification is completed.
  *
- * Governing rule: Neutral glass is the material. Color is an accent.
- *
- * The existing [RadiusMediumDp] property name remains a source-compatible alias for the
- * V1.2 12 dp control role. Optical geometry references remain separate from structural
- * radii and interaction hit targets.
- *
- * Android night mode remains a binary Light/Dark signal in KeyboardView. Deep Dark is
- * defined here from the V1.2 appearance contract but is not inferred from ordinary
- * Android dark mode and is not auto-selected by the current IME runtime.
- *
- * This mapping changes the actual key material consumed by KeyboardView from the older
- * chromatic V1.1 source line to V1.2 neutral frosted surfaces. It does not by itself
- * establish complete rendered/accessibility/device/release acceptance.
+ * This source baseline does not establish downstream consumer acceptance, production
+ * acceptance, or Stable qualification for GoreeCloud Keyboard.
  */
 internal object GlazeKeyboardTokens {
-    const val TargetVersion = "1.2.0"
-    const val SourceRevision = "f285b9145e27e6e7027b075c37299d101945c272"
+    const val TargetVersion = "1.6.0"
+    const val AcceptedReleaseSource = "a7180679ea851389e0f3004515f9a25f420e716d"
+    const val SourceQualificationAnchor = "c7509c79256b04b0aa67cb9dd0737d7588e0ae4a"
+    const val StableRuntimeEntrypoint = "js/glaze-v1.6.0.mjs"
+    const val RollbackBaseline = "1.5.1"
+
+    // Compatibility name retained for existing repository checks.
+    const val SourceRevision = AcceptedReleaseSource
+
+    const val PresentationOnly = true
+    const val PermissionRequestAutomatic = false
+    const val AuthorizationInferred = false
+    const val ConsequentialExecutionAutomatic = false
+    const val DownstreamConsumerAcceptanceAutomatic = false
 
     enum class Appearance { LIGHT, DARK, DEEP_DARK }
+
+    enum class MaterialRole {
+        CANVAS,
+        SOLID,
+        RAISED,
+        FUNCTIONAL_GLASS,
+        CLEAR_GLASS,
+        OVERLAY,
+    }
 
     data class Palette(
         val canvasArgb: Int,
@@ -47,27 +54,21 @@ internal object GlazeKeyboardTokens {
     const val TouchAssistanceInteractionFloorDp = 56f
     const val SuggestionStripHeightDp = GeneralInteractionFloorDp
 
-    // V1.2 optical geometry references remain separate from structural radii.
     const val OpticalMicroDp = 8f
     const val OpticalControlDp = 16f
     const val OpticalContainerDp = 24f
     const val OpticalHeroDp = 32f
     const val OpticalCapsuleDp = 999f
 
-    // V1.2 interaction-state calibration.
     const val PressedOverlayOpacity = 0.095f
     const val SelectedOverlayOpacity = 0.12f
     const val FocusWidthDp = 3f
     const val IncreasedContrastFocusWidthDp = 4f
 
-    /**
-     * V1.2 Frosted Neutral base-glass mapping. Canvas/text roles remain inherited V1
-     * structural roles while the interactive key substrate now uses the promoted neutral
-     * material values rather than V1.1 chromatic atmosphere.
-     */
+    // Existing neutral fallback palette retained during the bounded V1.6 source-baseline tranche.
     val LightPalette = Palette(
         canvasArgb = 0xFFF5F7FA.toInt(),
-        surfaceArgb = 0x94FFFFFF.toInt(), // rgba(255,255,255,0.58)
+        surfaceArgb = 0x94FFFFFF.toInt(),
         onSurfaceArgb = 0xFF151A23.toInt(),
         onSurfaceMutedArgb = 0xFF5D6675.toInt(),
         lineArgb = 0x1A505050,
@@ -75,7 +76,7 @@ internal object GlazeKeyboardTokens {
 
     val DarkPalette = Palette(
         canvasArgb = 0xFF0B0D11.toInt(),
-        surfaceArgb = 0x9E19191B.toInt(), // rgba(25,25,27,0.62)
+        surfaceArgb = 0x9E19191B.toInt(),
         onSurfaceArgb = 0xFFF5F7FA.toInt(),
         onSurfaceMutedArgb = 0xFFB0B7C3.toInt(),
         lineArgb = 0x1AFFFFFF,
@@ -83,7 +84,7 @@ internal object GlazeKeyboardTokens {
 
     val DeepDarkPalette = Palette(
         canvasArgb = 0xFF05070A.toInt(),
-        surfaceArgb = 0xB80E0E10.toInt(), // rgba(14,14,16,0.72)
+        surfaceArgb = 0xB80E0E10.toInt(),
         onSurfaceArgb = 0xFFF5F7FA.toInt(),
         onSurfaceMutedArgb = 0xFFABB4C2.toInt(),
         lineArgb = 0x17FFFFFF,
@@ -96,6 +97,18 @@ internal object GlazeKeyboardTokens {
         Appearance.LIGHT -> LightPalette
         Appearance.DARK -> DarkPalette
         Appearance.DEEP_DARK -> DeepDarkPalette
+    }
+
+    fun materialArgb(appearance: Appearance, role: MaterialRole): Int {
+        val palette = palette(appearance)
+        return when (role) {
+            MaterialRole.CANVAS,
+            MaterialRole.SOLID,
+            MaterialRole.OVERLAY -> palette.canvasArgb
+            MaterialRole.RAISED,
+            MaterialRole.FUNCTIONAL_GLASS,
+            MaterialRole.CLEAR_GLASS -> palette.surfaceArgb
+        }
     }
 
     fun stateOverlayArgb(appearance: Appearance, opacity: Float): Int {

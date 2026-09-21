@@ -19,14 +19,14 @@ The current Android source includes:
 - Sensitive-editor and host no-suggestions privacy gating that suppresses suggestion capture, display, and acceptance, resets fail-closed at authoritative editor-session lifecycle boundaries, and keeps missing/no-active-editor state conservative.
 - Privacy-by-default behavior with no Android network permission.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category, with validation/checksum integrity, explicit user-controlled Android Storage Access Framework import/export, import preview before write, export review/freeze before destination selection, and no generic preference serialization.
-- Historical GLAZE UI V1.2 (`1.2.0`) Development source/material mapping pinned to reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; current governed consumer target is GLAZE UI V1.6 / `1.6.0` at `a7180679ea851389e0f3004515f9a25f420e716d`.
-- V1.2 neutral Frosted Neutral key material is consumed by the real native `KeyboardView`: neutral glass is the substrate and color remains accent/semantic rather than default material tint.
-- V1.2 Light/Dark/Deep Dark source palettes, 4/8 dp spacing, 12 dp control radius role, 48/56 dp interaction floors, optical geometry references, and pressed/selected/focus state calibration are repository-local and test locked. Runtime appearance selection remains Android Light/Dark only until a separately reviewed Deep Dark policy exists.
-- A V1.2 non-semantic atmosphere/material boundary that prohibits teal, green, aqua, amber, brand, or semantic color from defining the keyboard substrate and enables no editor/content sampling, remote derivation, persistence, semantic inference, telemetry, network lookup, or animated atmosphere.
+- Bounded GLAZE UI V1.6 (`1.6.0`) native source baseline pinned to accepted release source `a7180679ea851389e0f3004515f9a25f420e716d` and source qualification anchor `c7509c79256b04b0aa67cb9dd0737d7588e0ae4a`.
+- The real native `KeyboardView` consumes V1.6 Canvas, Functional Glass, Overlay, and Raised semantic material roles while retaining the existing neutral palette as a bounded fallback pending rendered qualification.
+- V1.6 presentation remains presentation-only and cannot manufacture permission, authorization, privacy/security meaning, consequential execution, or downstream consumer acceptance.
+- The V1.6 material boundary makes clarity authoritative over translucency, forbids background/editor-content inspection for presentation derivation, and preserves safe solid fallback behavior.
 - Explicit Wardveil Security, Privacy Shield, Everkeep, GoreeCloud Identity, GoreeCloud Mesh, and Manager acceptance boundaries.
 - Android unit/build/governance and emulator validation infrastructure covering native registration, interaction, privacy lifecycle, emoji search, Unicode deletion, alternate popup geometry/hit testing, portability, and Glaze UI source boundaries.
 
-The historical GLAZE UI V1.2 mapping remains Development/migration evidence only. Current Official Stable consumer authority is V1.6 / `1.6.0`; Keyboard has not completed that migration. `KeyboardView` currently selects Light/Dark from Android night mode; it does not infer or auto-select Deep Dark. Complete current-Stable component/state/material-role migration across all surfaces, Reduced Motion/Transparency, Increased Contrast, forced-colors/native equivalents, 200% text/reflow, runtime Touch Assistance resolution, RTL/localization, TalkBack/Switch Access, representative phone/tablet/foldable and physical-device ergonomics, Human Visual Excellence, production signing/distribution, release, and Stable qualification remain separate gates.
+The current GLAZE UI V1.6 source baseline is Development migration evidence only. Keyboard has not completed whole-consumer migration or downstream acceptance. `KeyboardView` currently selects Light/Dark from Android night mode; it does not infer or auto-select Deep Dark. Complete current-Stable component/state/material-role migration across all surfaces, Reduced Motion/Transparency, Increased Contrast, forced-colors/native equivalents, 200% text/reflow, runtime Touch Assistance resolution, RTL/localization, TalkBack/Switch Access, representative phone/tablet/foldable and physical-device ergonomics, Human Visual Excellence, production signing/distribution, release, and Stable qualification remain separate gates.
 
 ## Product direction
 
@@ -44,7 +44,7 @@ Private on-device recents are a convenience cache, not a general learned-languag
 - `COMPETITIVE-OBJECTIVES.md` — product-quality objectives and evidence discipline.
 - `USER-MANUAL.md` — current Development user guidance.
 - `docs/native-architecture.md` — native implementation architecture.
-- `docs/glaze-ui-adoption.md` — historical V1.2 source mapping, current V1.6 migration authority, and remaining gates.
+- `docs/glaze-ui-adoption.md` — current V1.6 source baseline, authority boundaries, and remaining consumer-acceptance gates.
 - `docs/glaze-motion-evaluation.md` — historical/test-only Experimental Glaze Motion evaluation.
 - `docs/development/` — bounded Development evidence and implementation notes.
 
