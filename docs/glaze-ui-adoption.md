@@ -12,11 +12,16 @@ Production eligible on the Glaze UI gate: **no**
 
 This repository currently carries a Development source/material mapping derived from historical GLAZE UI V1.2 / `1.2.0`. That mapping is **not** the current governed Stable application-consumer authority. Current Official Stable consumer authority is GLAZE UI V1.6 / `1.6.0` at exact release source `a7180679ea851389e0f3004515f9a25f420e716d`. Keyboard therefore remains `applicable-migration-required` because its implemented local source tokens still model V1.2 Frosted Neutral material and interaction states rather than a completed V1.6 consumer migration.
 
-The repository-local mapping covers applicable V1.2 foundation, Frosted Neutral material, appearance, geometry, target-size, interaction-state, and bounded native accessibility behavior in GoreeCloud Keyboard's first-party Android surface. It does **not** establish complete V1.2 consumer conformance, governed release adoption, production acceptance, representative-device acceptance, signed release, Release Candidate entry, or Stable qualification.
+The repository-local mapping covers applicable V1.2 foundation, Frosted Neutral material, appearance, geometry, target-size, interaction-state, and bounded native accessibility behavior in GoreeCloud Keyboard's first-party Android surface. A new bounded V1.6 runtime presentation-context foundation now consumes Android-owned font scale, animator enablement, and touch-exploration state, but the underlying material/token implementation remains V1.2-derived. This does **not** establish complete V1.6 consumer conformance, governed release adoption, production acceptance, representative-device acceptance, signed release, Release Candidate entry, or Stable qualification.
 
 The native surface remains first-party `KeyboardView`; no web runtime, remote UI layer, network permission, analytics, advertising, or Experimental Motion production dependency is introduced.
 
 ## Implemented V1.2 Development source mapping
+
+- `GlazeKeyboardV16PresentationPolicy` now pins current Stable V1.6 / `1.6.0` release source `a7180679ea851389e0f3004515f9a25f420e716d` and maps only Android-owned presentation signals.
+- `KeyboardView` consumes that bounded V1.6 context for Reduced/Minimal motion classification, large/extra-large text classification, screen-reader/touch-assistance state, the 48/56 dp interaction floor, suggestion-strip sizing, and long-press alternate target sizing.
+- No editor text, composing state, clipboard data, suggestion content, app identity, network state, privacy state, security state, or authorization truth is consumed by this presentation resolver.
+- This is a partial V1.6 runtime-context migration foundation only; the native material/color/token mapping below remains explicitly historical V1.2-derived implementation until separately migrated and accepted.
 
 - `GlazeKeyboardTokens.TargetVersion` is `1.2.0` and `SourceRevision` records reviewed V1.2 source reference `f285b9145e27e6e7027b075c37299d101945c272`.
 - Governing material rule: **Neutral glass is the material. Color is an accent.**
@@ -39,7 +44,7 @@ The native surface remains first-party `KeyboardView`; no web runtime, remote UI
 
 ## Governance and presentation boundary
 
-Repository-local V1.2 source values may be used as historical Development implementation evidence, but they cannot be represented as the current Stable consumer contract or as accepted downstream conformance. `goreecloud.platform.yaml` therefore keeps `platform_systems.glaze_ui.result` as `applicable-migration-required`, records current governed target `1.6.0`, and requires `1.6.0` in `compatibility.glaze_ui_required` while the implemented V1.2 presentation remains explicitly unmigrated.
+Repository-local V1.2 source values may be used as historical Development implementation evidence, but they cannot be represented as the current Stable consumer contract or as accepted downstream conformance. `goreecloud.platform.yaml` therefore keeps `platform_systems.glaze_ui.result` as `applicable-migration-required`, records current governed target `1.6.0`, and requires `1.6.0` in `compatibility.glaze_ui_required`. The new V1.6 Android presentation-context resolver is bounded migration progress, while the material/token implementation remains V1.2-derived and complete V1.6 consumer acceptance is still open.
 
 Keyboard follows the mapped material and interaction hierarchy while retaining the principle: **Solid where users read or make explicit critical decisions. Glazed where users interact with transient navigation, command, search, control, or feedback chrome.** For an IME, key labels, suggestion content, selection/focus indication, and sensitive-input behavior are higher priority than optical effects.
 
@@ -74,6 +79,8 @@ The existing one-field `goreecloud-keyboard-preferences/1` portability boundary 
 - `android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardAccessibilityDelegate.kt` — bounded `ExploreByTouchHelper` virtual-node bridge for custom-drawn keys, suggestions, emoji category controls, and visible local emoji-search results.
 - `android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardTokens.kt` — bounded V1.2 structural/material/state source mapping including explicit Deep Dark source values.
 - `android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardAtmosphere.kt` — V1.2 neutral-substrate and non-semantic atmosphere boundary.
+- `android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardV16PresentationPolicy.kt` — bounded V1.6 Android presentation-context resolver pinned to the exact Stable release source.
+- `GlazeKeyboardV16PresentationPolicyTest` — unit evidence for exact V1.6 authority, Reduced/Minimal motion resolution, Android font-scale thresholds, and 48/56 dp touch-assistance target behavior.
 - `android/app/src/main/kotlin/com/goreecloud/keyboard/AlternatePopupLayout.kt` — viewport-bounded long-press geometry/hit-test authority.
 - `GlazeKeyboardTokensTest` — exact repository source provenance, inherited geometry, neutral Light/Dark/Deep Dark materials, state calibration, interaction floors, and atmosphere-observation/tinting assertions.
 - `GlazeKeyboardV12VisualStateRuntimeTest` — native emulator rendering evidence that an ordinary key changes visually on press, returns to idle presentation on release/cancel, and retains release-only semantic commit behavior.
@@ -87,7 +94,7 @@ The existing one-field `goreecloud-keyboard-preferences/1` portability boundary 
 
 This source mapping still does not establish:
 
-- migration from the historical V1.2 source mapping to current Stable GLAZE UI V1.6 / `1.6.0` authority;
+- complete migration from the historical V1.2 material/token mapping to current Stable GLAZE UI V1.6 / `1.6.0` authority beyond the bounded Android presentation-context foundation;
 - a reviewed runtime policy for selecting Deep Dark, if Keyboard should expose one;
 - complete governed component/state/material-role mapping across every keyboard/settings surface;
 - selected/focus state runtime coverage for every applicable control surface;
