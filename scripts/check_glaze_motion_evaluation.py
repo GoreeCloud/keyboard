@@ -12,7 +12,8 @@ TOKENS = MAIN / "kotlin/com/goreecloud/keyboard/GlazeKeyboardTokens.kt"
 ATMOSPHERE = MAIN / "kotlin/com/goreecloud/keyboard/GlazeKeyboardAtmosphere.kt"
 MOTION_REFERENCE_REVISION = "b386c793c047e2f5d5d92125732f142e7fdf32dc"
 SOURCE_GLAZE_VERSION = "1.2.0"
-GOVERNED_GLAZE_BASELINE = "1.1.0"
+GOVERNED_GLAZE_BASELINE = "1.6.0"
+GOVERNED_GLAZE_REVISION = "a7180679ea851389e0f3004515f9a25f420e716d"
 GLAZE_SOURCE_REVISION = "f285b9145e27e6e7027b075c37299d101945c272"
 MARKER = "GlazeMotionExperimental"
 
@@ -52,7 +53,8 @@ def main() -> None:
             "Evaluation mode: **native Android interaction mapping, test-only**",
             "Production dependency: **no**",
             "V1.2 is **not** the governed Stable application-consumer baseline",
-            f"GLAZE UI V1.1 / `{GOVERNED_GLAZE_BASELINE}`",
+            f"GLAZE UI V1.6 / `{GOVERNED_GLAZE_BASELINE}`",
+            f"`{GOVERNED_GLAZE_REVISION}`",
             "Motion remains separately Experimental",
             "insufficient for promotion by itself",
         ),
@@ -65,8 +67,9 @@ def main() -> None:
             "# GLAZE UI V1.2 Development Source Mapping — GoreeCloud Keyboard",
             "Status: **Migration in progress / Development**",
             f"Repository-local source target: **GLAZE UI V1.2 (`{SOURCE_GLAZE_VERSION}`)**",
-            f"Governed Stable consumer baseline: **GLAZE UI V1.1 (`{GOVERNED_GLAZE_BASELINE}`)**",
+            f"Governed Stable consumer baseline: **GLAZE UI V1.6 (`{GOVERNED_GLAZE_BASELINE}`)**",
             f"Reviewed V1.2 source reference: `{GLAZE_SOURCE_REVISION}`",
+            f"Current Stable V1.6 source reference: `{GOVERNED_GLAZE_REVISION}`",
             "Production eligible on the Glaze UI gate: **no**",
             "applicable-migration-required",
             "Neutral glass is the material. Color is an accent.",
@@ -116,17 +119,20 @@ def main() -> None:
     )
 
     require_all(
-        "Platform Contract v0.2",
+        "Platform Contract v0.4",
         platform_text,
         (
-            'schema_version: "0.2"',
+            'schema_version: "0.4"',
             "  id: goreecloud-keyboard",
-            f'  glaze_ui:\n    result: applicable-migration-required\n    version: "{SOURCE_GLAZE_VERSION}"',
+            "  repository: GoreeCloud/keyboard",
+            f'  glaze_ui:\n    result: applicable-migration-required\n    version: "{GOVERNED_GLAZE_BASELINE}"',
+            "  policy:\n    result: applicable-blocked",
+            "  observability:\n    result: applicable-blocked",
             f'  glaze_ui_required: "{GOVERNED_GLAZE_BASELINE}"',
-            "goreecloud-platform-contract==0.2",
+            "goreecloud-platform-contract==0.4",
             f"glaze-ui=={GOVERNED_GLAZE_BASELINE}",
             "conformance:\n  status: nonconformant",
-            "known immutable import-closure defect",
+            f"current Official Stable authority is V1.6 / {GOVERNED_GLAZE_BASELINE}",
         ),
     )
 
@@ -195,7 +201,7 @@ def main() -> None:
     print(
         "Keyboard Glaze boundary passed: repository-local source target "
         f"{SOURCE_GLAZE_VERSION} at {GLAZE_SOURCE_REVISION}; governed consumer baseline "
-        f"{GOVERNED_GLAZE_BASELINE}; Platform Contract remains migration-required/nonconformant; "
+        f"{GOVERNED_GLAZE_BASELINE} at {GOVERNED_GLAZE_REVISION}; Platform Contract 0.4 remains migration-required/nonconformant; "
         "Android runtime remains Light/Dark only; Experimental Motion remains quarantined; "
         "rendered/accessibility/device/release acceptance remains separate."
     )
