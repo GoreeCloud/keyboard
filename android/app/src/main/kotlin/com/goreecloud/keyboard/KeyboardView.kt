@@ -135,7 +135,7 @@ class KeyboardView @JvmOverloads constructor(
         invalidateStructure()
     }
 
-    fun setGlazeV16PresentationSignals(signals: GlazeKeyboardV16PresentationSignals) {
+    internal fun setGlazeV16PresentationSignals(signals: GlazeKeyboardV16PresentationSignals) {
         val resolved = GlazeKeyboardV16AndroidPresentationContext.resolve(signals)
         if (resolved == glazeV16PresentationContext) return
         glazeV16PresentationContext = resolved
