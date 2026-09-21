@@ -36,16 +36,7 @@ class GlazeKeyboardV16PresentationPolicyTest {
         assertTrue(context.touchAssistance)
         assertTrue(context.screenReaderOptimized)
         assertEquals(56f, GlazeKeyboardV16PresentationPolicy.interactionFloorDp(context))
-        assertEquals(
-            308f,
-            maxOf(
-                300f,
-                GlazeKeyboardV16PresentationPolicy.interactionFloorDp(context) +
-                    GlazeKeyboardTokens.Space2Dp +
-                    GlazeKeyboardTokens.Space1Dp * 5f +
-                    GlazeKeyboardV16PresentationPolicy.interactionFloorDp(context) * 4f,
-            ),
-        )
+        assertEquals(308f, GlazeKeyboardV16PresentationPolicy.preferredImeHeightDp(context))
         assertEquals(
             GlazeKeyboardV16MotionMode.MINIMAL,
             GlazeKeyboardV16PresentationPolicy.motionMode(context),
@@ -66,6 +57,7 @@ class GlazeKeyboardV16PresentationPolicyTest {
         assertFalse(context.largeText)
         assertFalse(context.touchAssistance)
         assertEquals(48f, GlazeKeyboardV16PresentationPolicy.interactionFloorDp(context))
+        assertEquals(300f, GlazeKeyboardV16PresentationPolicy.preferredImeHeightDp(context))
         assertEquals(
             GlazeKeyboardV16MotionMode.STANDARD,
             GlazeKeyboardV16PresentationPolicy.motionMode(context),
