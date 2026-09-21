@@ -10,6 +10,7 @@ MAIN = ROOT / "android/app/src/main"
 KEYBOARD_VIEW = MAIN / "kotlin/com/goreecloud/keyboard/KeyboardView.kt"
 TOKENS = MAIN / "kotlin/com/goreecloud/keyboard/GlazeKeyboardTokens.kt"
 ATMOSPHERE = MAIN / "kotlin/com/goreecloud/keyboard/GlazeKeyboardAtmosphere.kt"
+V16_POLICY = MAIN / "kotlin/com/goreecloud/keyboard/GlazeKeyboardV16PresentationPolicy.kt"
 MOTION_REFERENCE_REVISION = "b386c793c047e2f5d5d92125732f142e7fdf32dc"
 SOURCE_GLAZE_VERSION = "1.2.0"
 GOVERNED_GLAZE_BASELINE = "1.6.0"
@@ -31,7 +32,7 @@ def require_all(label: str, text: str, markers: tuple[str, ...]) -> None:
 
 
 def main() -> None:
-    for path in (DOC, ADOPTION, PLATFORM, TEST, KEYBOARD_VIEW, TOKENS, ATMOSPHERE):
+    for path in (DOC, ADOPTION, PLATFORM, TEST, KEYBOARD_VIEW, TOKENS, ATMOSPHERE, V16_POLICY):
         if not path.is_file():
             fail(f"missing required evidence: {path.relative_to(ROOT)}")
 
@@ -42,6 +43,7 @@ def main() -> None:
     view_text = KEYBOARD_VIEW.read_text(encoding="utf-8")
     token_text = TOKENS.read_text(encoding="utf-8")
     atmosphere_text = ATMOSPHERE.read_text(encoding="utf-8")
+    v16_policy_text = V16_POLICY.read_text(encoding="utf-8")
 
     require_all(
         "Motion boundary",
@@ -137,6 +139,23 @@ def main() -> None:
     )
 
     require_all(
+        "V1.6 Android presentation context foundation",
+        v16_policy_text,
+        (
+            'const val StableVersion = "1.6.0"',
+            'const val StableSourceRevision = "a7180679ea851389e0f3004515f9a25f420e716d"',
+            "ValueAnimator",
+        ) if False else (
+            'const val StableVersion = "1.6.0"',
+            'const val StableSourceRevision = "a7180679ea851389e0f3004515f9a25f420e716d"',
+            "LargeTextFontScale = 1.30f",
+            "ExtraLargeTextFontScale = 1.60f",
+            "touchExplorationEnabled",
+            "interactionFloorDp = GlazeKeyboardTokens.interactionFloorDp(touchAssistance)",
+        ),
+    )
+
+    require_all(
         "representative Keyboard runtime",
         view_text,
         (
@@ -149,6 +168,11 @@ def main() -> None:
             "private var pressedKeyBounds: RectF? = null",
             "GlazeKeyboardTokens.stateOverlayArgb(",
             "GlazeKeyboardTokens.PressedOverlayOpacity",
+            "GlazeKeyboardV16PresentationPolicy.resolve(",
+            "ValueAnimator.areAnimatorsEnabled()",
+            "accessibilityManager?.isTouchExplorationEnabled == true",
+            "presentation.suggestionStripHeightDp",
+            "currentGlazeV16Presentation().interactionFloorDp",
             "override fun onTouchEvent(event: MotionEvent)",
             "performClick()",
         ),
