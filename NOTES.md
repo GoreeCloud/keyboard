@@ -2,6 +2,8 @@
 
 ## Current stabilization context
 
+- Current V1.6 follow-up sizing applies the 56 dp Touch Assistance floor to the suggestion strip and alternate popup and requests a 308 dp preferred four-row keyboard height when touch exploration is active. This remains Development source behavior pending exact-head CI and physical-device acceptance.
+
 - Repository lifecycle remains Development and is not Stable or production accepted.
 - Current repository identity is `GoreeCloud/keyboard`.
 - The implemented native Android presentation remains a historical repository-local GLAZE UI V1.2 / `1.2.0` mapping at reviewed source `f285b9145e27e6e7027b075c37299d101945c272`.
