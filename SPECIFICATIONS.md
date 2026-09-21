@@ -24,6 +24,7 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - No Android network permission in the current application foundation.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category, with strict validation/checksum integrity, explicit user-controlled Storage Access Framework import/export, preview-before-write import, review/freeze-before-destination export, and no generic preference serialization.
 - Historical GLAZE UI V1.2 (`1.2.0`) Development source/material mapping pinned to reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; current governed consumer target is GLAZE UI V1.6 / `1.6.0` at exact Stable release source `a7180679ea851389e0f3004515f9a25f420e716d`.
+- A bounded V1.6 Android presentation-context resolver now maps Android-owned font scale, animator enablement, and touch-exploration state into large-text, Reduced/Minimal Motion, screen-reader/touch-assistance, and 48/56 dp target behavior without observing editor content or expanding input-data authority.
 - V1.2 Frosted Neutral key material is consumed by the native `KeyboardView`; neutral glass is the material and color remains an accent rather than a default substrate tint.
 - V1.2 Light/Dark/Deep Dark source palettes, 4/8 dp spacing, 12 dp control radius, 48/56 dp target floors, optical geometry references, and pressed/selected/focus state calibration are repository-local and unit-tested. Runtime appearance selection remains Light/Dark from Android night mode only.
 - A V1.2 non-semantic atmosphere/material boundary prohibits chromatic, brand, or semantic color from defining the keyboard substrate and enables no editor/content sampling, remote color derivation, persistent sample history, semantic inference, telemetry, network lookup, or animated atmosphere.
@@ -98,7 +99,7 @@ Keyboard may publish minimized operational/version/capability state to Manager w
 
 ## GLAZE UI / Design Center
 
-Current Official Stable GoreeCloud design-system authority is GLAZE UI V1.6 / `1.6.0` at exact release source `a7180679ea851389e0f3004515f9a25f420e716d`. This repository still implements a historical V1.2 / `1.2.0` foundation and Frosted Neutral material mapping at reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; that implementation is Development evidence only and is not relabeled as V1.6 migration or consumer acceptance.
+Current Official Stable GoreeCloud design-system authority is GLAZE UI V1.6 / `1.6.0` at exact release source `a7180679ea851389e0f3004515f9a25f420e716d`. Keyboard now contains a bounded V1.6 Android presentation-context resolver and consumes it in the native `KeyboardView` for Android-owned accessibility/motion signals and interaction sizing. The underlying Frosted Neutral material/color/token mapping remains historical V1.2 / `1.2.0` at reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; this partial migration is Development evidence only and is not complete V1.6 consumer acceptance.
 
 The governing V1.2 material rule is **Neutral glass is the material. Color is an accent.** `KeyboardView` now consumes neutral V1.2 base-glass surfaces for Light/Dark runtime rendering. Deep Dark is source-defined but not automatically selected from ordinary Android dark mode. The source also records V1.2 state calibration for pressed/selected/focus behavior without representing that source map as complete rendered conformance.
 
@@ -132,7 +133,7 @@ Feature richness must remain substantive. Buttons, placeholders, labels, decorat
 Development source or passing CI is not equivalent to production acceptance or Stable qualification. Production promotion requires evidence appropriate to the shipped platform, including:
 
 - exact-revision source/build/test validation;
-- complete GLAZE UI V1.2 consumer mapping for applicable keyboard and settings surfaces;
+- complete GLAZE UI V1.6 consumer migration for applicable keyboard and settings surfaces beyond the bounded runtime-context foundation;
 - Reduced Transparency, Reduced Motion, Increased Contrast, forced-colors/native equivalents, large text/reflow, RTL/localization, and Touch Assistance behavior;
 - TalkBack, Switch Access, and other claimed assistive-input acceptance;
 - representative Android host-editor compatibility;
