@@ -13,12 +13,12 @@
 
 - Native Android InputMethodService, first-party KeyboardView rendering, offline emoji/search, Unicode deletion, long-press alternates, bounded local Quill suggestions, privacy-sensitive editor handling, and Android virtual accessibility-node foundations are implemented Development source.
 - The repository-local `goreecloud-keyboard-preferences/1` portability format remains limited to the explicitly selected emoji category with validation, import preview, export review/freeze, and user-controlled Storage Access Framework transfer.
-- Existing V1.2 material/token evidence is historical implementation evidence only. It must not be relabeled as V1.6 migration or Stable consumer conformance.
+- Existing V1.2 material/token evidence remains historical implementation evidence only. A bounded V1.6 Android presentation-context resolver is now implemented for Android font scale, animator enablement, touch exploration, 48/56 dp target selection, and suggestion/alternate target sizing; this partial migration must not be relabeled as complete V1.6 or Stable consumer conformance.
 - Historical Experimental Glaze Motion evaluation remains test-only and is not a production dependency.
 
 ## Active stabilization gates
 
-- Complete GLAZE UI V1.6 source migration and fresh whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, and production acceptance.
+- Complete GLAZE UI V1.6 material/token/component migration beyond the bounded runtime-context foundation, plus fresh whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, and production acceptance.
 - Accepted Privacy Shield and Wardveil Security integration appropriate to highly sensitive input processing.
 - Approved Everkeep backup/clean-target recovery scope without silently persisting typed or usage-derived history.
 - Accepted Manager, Mesh, Identity, Policy, and Observability integrations where architecturally applicable.
