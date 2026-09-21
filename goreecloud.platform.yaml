@@ -1,10 +1,10 @@
-schema_version: "0.3"
+schema_version: "0.4"
 
 component:
   type: application
   id: goreecloud-keyboard
   product_name: GoreeCloud Keyboard
-  repository: GoreeCloud/goreecloud-keyboard
+  repository: GoreeCloud/keyboard
 
 lifecycle: development
 version: "0.1.0-dev"
@@ -74,7 +74,7 @@ platform_systems:
     notes: A one-field portable preference format, category-only local export/apply seams, and explicit user-controlled Storage Access Framework transfer exist, including import preview/Apply, export review/freeze, and minimized reviewed-export lifecycle restoration, but complete approved backup/restore scope, clean-target recovery, automatic continuity, and accepted Everkeep integration do not.
   glaze_ui:
     result: applicable-migration-required
-    version: "1.5.0"
+    version: "1.6.0"
     evidence:
       - android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardTokens.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/GlazeKeyboardOptics.kt
@@ -89,7 +89,7 @@ platform_systems:
       - docs/glaze-ui-adoption.md
       - docs/glaze-motion-evaluation.md
     notes: >-
-      Repository-local Development source now targets current Official Stable GLAZE UI V1.5 / 1.5.0 at exact Stable source revision b7fa8164bfdeaa1dc0acb21b770e7601120da04e and reviewed implementation anchor ee1032a0822ab8e103f8afe48e5c1859fde65cc9. Keyboard inherits the accepted V1.4.1 optical/material baseline at 4fab9da0fad2e5c974e0e66ec88632c61745751c while keeping a stricter optical policy: semantic protection is maximal, Reduced Transparency and Forced Colors fail closed to solid treatment, decorative tint is disabled, Environmental Color Memory influence is 0%, and sensitive editor/suggestion/clipboard/application-identity data cannot drive optics. The V1.5 capability resolver accepts only explicit authority-owned state, fails closed on missing/conflicting capability ownership, and cannot infer authorization, provider precedence, navigation, or execution authority. Complete rendered/accessibility/adaptive/representative-device/application acceptance remains outstanding.
+      Current Official Stable GLAZE UI authority is V1.6 / 1.6.0 at exact release source a7180679ea851389e0f3004515f9a25f420e716d. Keyboard's implemented Development presentation still carries the PR #68 V1.5 capability mapping and inherited V1.4.1 optical/material baseline; this control-plane reconciliation does not relabel that source as V1.6-migrated. Keyboard remains applicable-migration-required. The existing strict privacy posture remains authoritative: semantic protection is maximal, Reduced Transparency and Forced Colors fail closed to solid treatment, decorative tint is disabled, Environmental Color Memory influence is 0%, and typed/editor/suggestion/clipboard/application-identity data cannot drive presentation. Complete V1.6 source adoption plus Keyboard-specific rendered, assistive-technology, adaptive/form-factor, representative-device, performance/power, rollback, Human Visual Excellence, platform-system, signing, release, and production acceptance remain outstanding.
   mesh:
     result: applicable-blocked
     version: null
@@ -105,6 +105,20 @@ platform_systems:
     evidence:
       - SPECIFICATIONS.md
     notes: Core typing and the local category-only transfer flow require no GoreeCloud account, but accepted Identity integration for any future account-backed personalization or synchronization is not established.
+  policy:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - SPECIFICATIONS.md
+      - goreecloud.platform.yaml
+    notes: GoreeCloud Policy is applicable to Keyboard policy representation, privacy/security decisions, administrative restrictions, and evidence boundaries, but no accepted Keyboard runtime Policy evaluation, enforcement coordination, explanation, freshness, exception, or production acceptance exists.
+  observability:
+    result: applicable-blocked
+    version: null
+    evidence:
+      - SPECIFICATIONS.md
+      - goreecloud.platform.yaml
+    notes: Keyboard has local Development diagnostics and CI evidence, but accepted GoreeCloud Observability health, performance/latency, power, error/event, dependency-health, provenance/freshness, alerting, collection-gap, and representative-device runtime acceptance are not established. Observability must not collect typed text, composing text, surrounding text, clipboard contents, suggestion contents, key history, or other sensitive editor data.
 
 health:
   health_endpoint: null
@@ -143,11 +157,11 @@ external_dependencies:
     version_constraint: ">=26"
 
 compatibility:
-  platform_contract: "0.3"
-  glaze_ui_required: "1.5.0"
+  platform_contract: "0.4"
+  glaze_ui_required: "1.6.0"
   requires:
-    - goreecloud-platform-contract==0.3
-    - glaze-ui==1.5.0
+    - goreecloud-platform-contract==0.4
+    - glaze-ui==1.6.0
     - android-api>=26
   provides:
     - goreecloud-keyboard-preferences/1
@@ -185,13 +199,13 @@ conformance:
     - docs/development/portable-preference-import-preview.md
     - docs/development/portable-preference-export-review.md
   blockers:
-    - GLAZE UI V1.5 / 1.5.0 source mapping now exists with the inherited V1.4.1 optical/material baseline and privacy-safe capability semantics, but complete Keyboard-specific rendered/accessibility/adaptive/representative-device/performance/rollback acceptance remains outstanding.
+    - Current Official Stable GLAZE UI V1.6 / 1.6.0 is the required target, while implemented Keyboard Development source remains on the PR #68 V1.5 capability mapping with inherited V1.4.1 optical/material behavior. V1.6 source migration plus complete Keyboard-specific rendered/accessibility/adaptive/representative-device/performance/power/rollback/Human Visual Excellence acceptance remain outstanding.
     - GoreeCloud Identity integration and acceptance are not established for any future identity-aware capability.
     - Wardveil Security integration and acceptance are not established.
     - Privacy Shield integration and acceptance are not established for this highly sensitive input surface.
     - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; the explicit user file flow is only one-field portability.
     - GoreeCloud Mesh registration, capability publication, and runtime acceptance are not established.
     - GoreeCloud Sync change tracking, authorized replication, conflict reconciliation, offline resume, background synchronization, and cross-device continuity are not established.
-    - Manager platform visibility and administrative integration acceptance are not established.
+    - Manager platform visibility and administrative integration acceptance are not established.\n    - GoreeCloud Policy runtime evaluation, enforcement coordination, explanation, freshness, exception, and evidence integration/acceptance are not established.\n    - GoreeCloud Observability privacy-safe health, performance/latency, power, event, dependency-health, provenance/freshness, alerting, collection-gap, and representative-device runtime acceptance are not established.
     - Current portability covers only one explicit emoji-category preference and does not include product-wide Keyboard state.
     - Production signing, distribution, representative-device acceptance, release approval, and Stable qualification remain outstanding.
