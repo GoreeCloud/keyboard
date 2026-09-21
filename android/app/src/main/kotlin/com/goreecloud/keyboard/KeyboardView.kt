@@ -259,8 +259,14 @@ class KeyboardView @JvmOverloads constructor(
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         val appearance = if (nightMode == Configuration.UI_MODE_NIGHT_YES) GlazeKeyboardTokens.Appearance.DARK else GlazeKeyboardTokens.Appearance.LIGHT
         val palette = GlazeKeyboardTokens.palette(appearance)
-        backgroundPaint.color = palette.canvasArgb
-        keyPaint.color = palette.surfaceArgb
+        backgroundPaint.color = GlazeKeyboardTokens.materialArgb(
+            appearance,
+            GlazeKeyboardTokens.MaterialRole.CANVAS,
+        )
+        keyPaint.color = GlazeKeyboardTokens.materialArgb(
+            appearance,
+            GlazeKeyboardTokens.MaterialRole.FUNCTIONAL_GLASS,
+        )
         pressedKeyPaint.color = GlazeKeyboardTokens.stateOverlayArgb(
             appearance,
             GlazeKeyboardTokens.PressedOverlayOpacity,
@@ -269,8 +275,14 @@ class KeyboardView @JvmOverloads constructor(
         textPaint.color = palette.onSurfaceArgb
         suggestionPaint.color = palette.onSurfaceArgb
         suggestionHintPaint.color = palette.onSurfaceMutedArgb
-        alternatePopupPaint.color = palette.canvasArgb
-        alternateSelectedPaint.color = palette.surfaceArgb
+        alternatePopupPaint.color = GlazeKeyboardTokens.materialArgb(
+            appearance,
+            GlazeKeyboardTokens.MaterialRole.OVERLAY,
+        )
+        alternateSelectedPaint.color = GlazeKeyboardTokens.materialArgb(
+            appearance,
+            GlazeKeyboardTokens.MaterialRole.RAISED,
+        )
     }
 
     private fun drawSuggestionStrip(canvas: Canvas, horizontalPadding: Float, topArea: Float) {
