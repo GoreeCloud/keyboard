@@ -4,19 +4,19 @@
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Development / nonconformant  
 **Repository version:** `0.1.0-dev`  
-**Migration state:** Candidate on `migration/repository-feature-records-20260922`; becomes authoritative only after accepted merge to `main`.  
-**Evidence baseline:** authoritative `main` at `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a` (PR #77).  
+**Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
+**Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline remains `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a` (PR #77).  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Purpose and migration sources
 
 This file carries forward material planned, partial, blocked, deferred, acceptance-gated, or future capability obligations from:
-- the former root `FEATURE-ROADMAP.md`;
-- legacy Drive `FEATURE-ROADMAP.docx` (`1D6Y8Tjv3fcqF6KMmcMKugqG7QmvmnzMt`);
+- the retired former root `FEATURE-ROADMAP.md` preserved through Git history;
+- retired legacy Drive `FEATURE-ROADMAP.docx` (`1D6Y8Tjv3fcqF6KMmcMKugqG7QmvmnzMt`), whose migrated dispositions are preserved below;
 - current repository `README.md`, `FEATURES.md`, `SPECIFICATIONS.md`, `NOTES.md`, and Platform Contract evidence; and
 - verified authoritative `main`.
 
-The Drive roadmap's repository name `GoreeCloud/goreecloud-keyboard` is stale. Current repository identity is `GoreeCloud/keyboard`, as verified by live GitHub state and the accepted Platform Contract 0.4 declaration.
+The retired Drive roadmap's repository name `GoreeCloud/goreecloud-keyboard` was stale. Current repository identity is `GoreeCloud/keyboard`, as verified by live GitHub state and the accepted Platform Contract 0.4 declaration.
 
 Open Draft pull requests remain candidate-only. In particular, PR #78 and the older stacked Draft feature lines are not implementation authority.
 

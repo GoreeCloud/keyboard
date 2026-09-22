@@ -4,7 +4,7 @@
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Development / nonconformant  
 **Repository version:** `0.1.0-dev`  
-**Migration state:** Candidate on `migration/repository-feature-records-20260922`; becomes authoritative only after accepted merge to `main`.  
+**Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current runtime-bearing baseline:** `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a`, merge of PR #77 on September 21, 2026.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
@@ -12,7 +12,7 @@
 
 This record describes capabilities accepted on authoritative `main`. It does not promote open Draft pull requests, historical Drive roadmap wording, or superseded Glaze adoption claims into current implementation state.
 
-Current `main` is Development / nonconformant. Exact-main Android CI #261 / run `35662756227` passed on `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a`. Source/build/emulator success does not establish representative physical-device, Production, Release Candidate, or Stable acceptance.
+Authoritative `main` includes the repository-native governance migration at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; exact-main Android CI #264 / run `35758772834` passed on that revision. The current runtime-bearing capability baseline remains `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a` from PR #77. Source/build/emulator success does not establish representative physical-device, Production, Release Candidate, or Stable acceptance.
 
 Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older open stacked Drafts remain candidate-only and are not represented as accepted behavior below.
 

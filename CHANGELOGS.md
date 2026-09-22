@@ -3,23 +3,25 @@
 **Record type:** Authoritative repository changelog index and current change history  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Development / nonconformant  
-**Migration state:** Candidate on `migration/repository-feature-records-20260922`; becomes authoritative only after accepted merge to `main`.  
-**Current baseline:** `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a` (PR #77).  
+**Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
+**Current governance baseline:** `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1` (PR #79).  
+**Current runtime-bearing baseline:** `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a` (PR #77).  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Authority and interpretation
 
-This file becomes the repository-local changelog authority after accepted migration. Historical Keyboard chronology formerly stored in Google Drive is preserved in six contiguous files under `docs/changelog-history/`.
+This file is the repository-local changelog authority. Historical Keyboard chronology formerly stored in Google Drive is preserved in six contiguous files under `docs/changelog-history/`.
 
-The historical archive preserves all 208 non-empty paragraphs from `Change Log — Keyboard.docx`, verbatim except for Markdown normalization of Word heading styles. Historical Draft/candidate/lifecycle statements apply only to their original context and do not override current authoritative `main`.
+The historical archive preserves all 208 non-empty paragraphs from the retired `Change Log — Keyboard.docx`, verbatim except for Markdown normalization of Word heading styles. Historical Draft/candidate/lifecycle statements apply only to their original context and do not override current authoritative `main`.
 
 Draft or unmerged pull requests are not accepted changes. PR #78 and older open stacked Drafts remain candidate-only.
 
 ## Historical Drive archive
 
-Legacy source:
+Retired legacy source:
 - `Change Log — Keyboard.docx`
-- Drive file ID `1aSq_9oQxxyXr-YErNBFesLn5r4_h4N0t`
+- former Drive file ID `1aSq_9oQxxyXr-YErNBFesLn5r4_h4N0t`
+- permanently deleted September 22, 2026 after verified migration; independent metadata readback returned `404 Not Found`
 
 Migrated repository archive:
 - [`legacy-drive-keyboard-changelog-part-01.md`](docs/changelog-history/legacy-drive-keyboard-changelog-part-01.md) — source non-empty paragraphs 1–35 of 208
@@ -33,6 +35,16 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 22, 2026 — Drive retirement completed and independently verified
+- Repository migration PR #79 merged to authoritative `main` as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`.
+- Exact candidate Android CI #263 passed on `249d252efe1da5fa1a8694044d751b940ed4403a`, including the repository feature/changelog governance guard, unit tests, APK build/provenance, and Android 15 native interaction/IME activation.
+- Exact-main Android CI #264 / run `35758772834` passed on `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, including the same repository governance guard and Android 15 emulator lane.
+- Authoritative `main` was read back with root `IMPLEMENTED-FEATURES.md`, `PLANNED-FEATURES.md`, and `CHANGELOGS.md` present, all six contiguous historical archive files present, and root `FEATURE-ROADMAP.md` absent.
+- Legacy Drive roadmap `FEATURE-ROADMAP.docx` (`1D6Y8Tjv3fcqF6KMmcMKugqG7QmvmnzMt`) was permanently deleted only after those gates passed; independent metadata readback returned `404 Not Found`.
+- Legacy Drive changelog `Change Log — Keyboard.docx` (`1aSq_9oQxxyXr-YErNBFesLn5r4_h4N0t`) was permanently deleted only after those gates passed; independent metadata readback returned `404 Not Found`.
+- The repository-native records and Git history are now the sole authorized Keyboard feature/changelog authority under the active standard.
+- This retirement changes documentation authority only; it does not alter Android input behavior, permissions, editor privacy rules, network behavior, platform-system runtime integration, Production Acceptance, Release Candidate qualification, or Stable qualification.
+
 ### September 22, 2026 — Repository feature/changelog governance migration candidate
 - Added root `IMPLEMENTED-FEATURES.md`, `PLANNED-FEATURES.md`, and `CHANGELOGS.md`.
 - Preserved all 208 non-empty legacy Drive changelog paragraphs across six contiguous repository historical-provenance files.
@@ -42,7 +54,7 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 - Added a repository-governance regression check requiring the new root records, all six archive parts, their contiguous source-range markers, and absence of the retired root roadmap filename.
 - Reconciled current Development notes/features/specification to the accepted PR #77 and V1.6 governance baseline.
 - No input behavior, Android permission, sensitive-editor policy, network behavior, platform-system runtime authority, Production, Release Candidate, or Stable state is changed by this governance migration.
-- Drive sources remain migration sources until this candidate is accepted, authoritative `main` is read back, post-merge validation passes, and the deletion gate is satisfied.
+- At this candidate checkpoint, Drive sources remained migration sources pending accepted merge, authoritative-main readback, post-merge validation, and deletion verification; those conditions were later satisfied by the completion entry above.
 
 ### September 21, 2026 — PR #77: Touch Assistance runtime sizing
 - Merged PR #77 to authoritative `main` as `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a`.
@@ -70,21 +82,21 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 ### September 9, 2026 and earlier — migrated Drive chronology
 See the six-part complete historical archive linked above. The archive preserves the source chronology and original status/evidence language.
 
-## Drive retirement gate
+## Drive retirement completion
 
-The mapped Drive roadmap and changelog must not be deleted until:
-1. this migration is accepted through the repository workflow;
-2. applicable exact-head checks pass;
-3. the three root records and six-part historical archive are read back from authoritative `main`;
-4. retired root `FEATURE-ROADMAP.md` is confirmed absent;
-5. current repository references/governance are reconciled; and
-6. applicable post-merge validation passes on the accepted revision.
+Keyboard's mapped Drive roadmap/changelog retirement is complete and verified.
 
-Only after those gates pass may these two mapped legacy Drive sources be permanently deleted:
-- roadmap `FEATURE-ROADMAP.docx` — `1D6Y8Tjv3fcqF6KMmcMKugqG7QmvmnzMt`
-- changelog `Change Log — Keyboard.docx` — `1aSq_9oQxxyXr-YErNBFesLn5r4_h4N0t`
+Verified completion conditions:
+1. PR #79 was accepted through the repository workflow and merged to authoritative `main`.
+2. Exact candidate Android CI #263 passed.
+3. Root `IMPLEMENTED-FEATURES.md`, `PLANNED-FEATURES.md`, and `CHANGELOGS.md` plus all six historical archive parts were read back from authoritative `main`.
+4. Root `FEATURE-ROADMAP.md` was confirmed absent from authoritative `main`.
+5. Active repository identity/governance references were reconciled to `GoreeCloud/keyboard` and the repository-native authority model.
+6. Exact-main Android CI #264 / run `35758772834` passed on merge `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`.
+7. Drive roadmap ID `1D6Y8Tjv3fcqF6KMmcMKugqG7QmvmnzMt` was permanently deleted and independently verified `404 Not Found`.
+8. Drive changelog ID `1aSq_9oQxxyXr-YErNBFesLn5r4_h4N0t` was permanently deleted and independently verified `404 Not Found`.
 
-After deletion, independently verify both IDs return not found, then record the retirement event in a narrow follow-up change.
+Do not recreate, synchronize, mirror, back up, or retain active Keyboard feature-roadmap or changelog copies in Google Drive.
 
 ## Maintenance rule
 
