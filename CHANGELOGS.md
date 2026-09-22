@@ -9,9 +9,9 @@
 
 ## Authority and interpretation
 
-This file becomes the repository-local changelog authority after accepted migration. Historical Keyboard chronology formerly stored in Google Drive is preserved in `docs/changelog-history/legacy-drive-keyboard-changelog.md`.
+This file becomes the repository-local changelog authority after accepted migration. Historical Keyboard chronology formerly stored in Google Drive is preserved in six contiguous files under `docs/changelog-history/`.
 
-The historical archive preserves every non-empty paragraph from `Change Log — Keyboard.docx`. Historical Draft/candidate/lifecycle statements apply only to their original context and do not override current authoritative `main`.
+The historical archive preserves all 208 non-empty paragraphs from `Change Log — Keyboard.docx`, verbatim except for Markdown normalization of Word heading styles. Historical Draft/candidate/lifecycle statements apply only to their original context and do not override current authoritative `main`.
 
 Draft or unmerged pull requests are not accepted changes. PR #78 and older open stacked Drafts remain candidate-only.
 
@@ -20,20 +20,27 @@ Draft or unmerged pull requests are not accepted changes. PR #78 and older open 
 Legacy source:
 - `Change Log — Keyboard.docx`
 - Drive file ID `1aSq_9oQxxyXr-YErNBFesLn5r4_h4N0t`
-- migrated repository archive: [`docs/changelog-history/legacy-drive-keyboard-changelog.md`](docs/changelog-history/legacy-drive-keyboard-changelog.md)
 
-The archive preserves the Drive chronology as historical provenance, including merged milestones, failed/corrected validation attempts, Draft candidate evidence, Glaze transitions, local input/privacy work, accessibility work, and release-boundary statements.
+Migrated repository archive:
+- [`legacy-drive-keyboard-changelog-part-01.md`](docs/changelog-history/legacy-drive-keyboard-changelog-part-01.md) — source non-empty paragraphs 1–35 of 208
+- [`legacy-drive-keyboard-changelog-part-02.md`](docs/changelog-history/legacy-drive-keyboard-changelog-part-02.md) — paragraphs 36–70
+- [`legacy-drive-keyboard-changelog-part-03.md`](docs/changelog-history/legacy-drive-keyboard-changelog-part-03.md) — paragraphs 71–105
+- [`legacy-drive-keyboard-changelog-part-04.md`](docs/changelog-history/legacy-drive-keyboard-changelog-part-04.md) — paragraphs 106–140
+- [`legacy-drive-keyboard-changelog-part-05.md`](docs/changelog-history/legacy-drive-keyboard-changelog-part-05.md) — paragraphs 141–175
+- [`legacy-drive-keyboard-changelog-part-06.md`](docs/changelog-history/legacy-drive-keyboard-changelog-part-06.md) — paragraphs 176–208
+
+Together these six files preserve the complete non-empty Drive chronology, including merged milestones, failed/corrected validation attempts, Draft candidate evidence, Glaze transitions, local input/privacy work, accessibility work, and release-boundary statements.
 
 ## Current repository changelog
 
 ### September 22, 2026 — Repository feature/changelog governance migration candidate
 - Added root `IMPLEMENTED-FEATURES.md`, `PLANNED-FEATURES.md`, and `CHANGELOGS.md`.
-- Preserved the complete non-empty legacy Drive changelog text in a repository historical-provenance file.
+- Preserved all 208 non-empty legacy Drive changelog paragraphs across six contiguous repository historical-provenance files.
 - Reconciled the former repository `FEATURE-ROADMAP.md` and Drive roadmap into evidence-backed implemented/open records.
 - Explicitly dispositioned every legacy FR identifier.
-- Corrected active governance to current repository identity `GoreeCloud/keyboard`; the stale `GoreeCloud/goreecloud-keyboard` identity is retained only where historically necessary.
-- Added a repository-governance regression check requiring the new root records and rejecting the retired root roadmap filename.
-- Reconciled current Development notes and CI provenance to accepted current state.
+- Corrected active governance and Android artifact provenance to current repository identity `GoreeCloud/keyboard`; the stale `GoreeCloud/goreecloud-keyboard` identity is retained only inside historical source text or explicitly labeled stale context.
+- Added a repository-governance regression check requiring the new root records, all six archive parts, their contiguous source-range markers, and absence of the retired root roadmap filename.
+- Reconciled current Development notes/features/specification to the accepted PR #77 and V1.6 governance baseline.
 - No input behavior, Android permission, sensitive-editor policy, network behavior, platform-system runtime authority, Production, Release Candidate, or Stable state is changed by this governance migration.
 - Drive sources remain migration sources until this candidate is accepted, authoritative `main` is read back, post-merge validation passes, and the deletion gate is satisfied.
 
@@ -61,14 +68,14 @@ The archive preserves the Drive chronology as historical provenance, including m
 - This was governance/documentation/control-plane reconciliation; it did not establish platform-system runtime acceptance or production state.
 
 ### September 9, 2026 and earlier — migrated Drive chronology
-See the complete historical archive linked above. The archive preserves all material legacy entries and their original status claims.
+See the six-part complete historical archive linked above. The archive preserves the source chronology and original status/evidence language.
 
 ## Drive retirement gate
 
 The mapped Drive roadmap and changelog must not be deleted until:
 1. this migration is accepted through the repository workflow;
 2. applicable exact-head checks pass;
-3. the three root records and historical archive are read back from authoritative `main`;
+3. the three root records and six-part historical archive are read back from authoritative `main`;
 4. retired root `FEATURE-ROADMAP.md` is confirmed absent;
 5. current repository references/governance are reconciled; and
 6. applicable post-merge validation passes on the accepted revision.
