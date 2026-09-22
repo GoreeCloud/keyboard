@@ -44,6 +44,30 @@ class GlazeKeyboardV16PresentationPolicyTest {
     }
 
     @Test
+    fun touchAssistanceCompressesGapsBeforeShrinkingOrdinaryRows() {
+        val context = GlazeKeyboardV16PresentationContext(touchAssistance = true)
+
+        assertEquals(
+            2.4f,
+            GlazeKeyboardV16PresentationPolicy.verticalGapDp(
+                totalHeightDp = 300f,
+                rowCount = 4,
+                context = context,
+            ),
+            0.001f,
+        )
+        assertEquals(
+            GlazeKeyboardTokens.Space1Dp,
+            GlazeKeyboardV16PresentationPolicy.verticalGapDp(
+                totalHeightDp = 308f,
+                rowCount = 4,
+                context = context,
+            ),
+            0.001f,
+        )
+    }
+
+    @Test
     fun neutralSignalsPreserveOrdinaryTargetAndMotion() {
         val context = GlazeKeyboardV16AndroidPresentationContext.resolve(
             GlazeKeyboardV16PresentationSignals(
