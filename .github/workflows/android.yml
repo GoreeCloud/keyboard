@@ -50,6 +50,9 @@ jobs:
       - name: Validate keyboard accessibility boundary
         run: python3 scripts/check_keyboard_accessibility.py
 
+      - name: Validate repository feature and changelog records
+        run: python3 scripts/check_repository_feature_records.py
+
       - name: Run unit tests
         run: gradle :android:app:testDebugUnitTest --stacktrace
 
@@ -67,7 +70,7 @@ jobs:
           mkdir -p "$ARTIFACT_ROOT"
           cp "$APK" "$ARTIFACT_ROOT/GoreeCloudKeyboard-debug.apk"
           cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
-          repository=GoreeCloud/goreecloud-keyboard
+          repository=GoreeCloud/keyboard
           source_sha=$SOURCE_SHA
           version_name=0.1.0-dev
           application_id=com.goreecloud.keyboard

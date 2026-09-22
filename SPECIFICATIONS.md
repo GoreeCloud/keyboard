@@ -19,16 +19,19 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - Fully offline emoji search over only the packaged first-party catalog. Search query state is transient, bounded, cleared on close, cannot be mutated while closed, and is not sent through the active editor or Quill composing context.
 - Deterministic local long-press key alternates with viewport-bounded popup layout, exact shared render/hit-test geometry, pointer movement selection, cancellation, haptic feedback, and accessibility announcements.
 - Local-only GoreeCloud Quill suggestion boundary with deterministic prefix suggestions, bounded typo-correction candidates, Unicode-code-point-aware correction, bounded transient capture, and commit authority restricted to the exact candidates currently presented for the active editor session.
-- Sensitive-editor classification, host no-suggestions policy, and fail-closed editor lifecycle handling that clear composing/suggestion state and prevent ordinary-field authority from leaking across editor transitions or no-active-editor states.
+- Sensitive-editor classification, host no-suggestions/no-personalized-learning policy, and fail-closed editor lifecycle handling that clear composing/suggestion state and prevent ordinary-field authority from leaking across editor transitions or no-active-editor states.
 - Bounded Unicode-aware backspace for common emoji modifiers, ZWJ-linked emoji, regional-indicator flags, keycaps, variation selectors, combining marks, and CRLF. Ambiguous truncated ordinary-field look-behind fails closed; sensitive editors retain one-code-point deletion without text look-behind.
 - No Android network permission in the current application foundation.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category, with strict validation/checksum integrity, explicit user-controlled Storage Access Framework import/export, preview-before-write import, review/freeze-before-destination export, and no generic preference serialization.
-- Historical GLAZE UI V1.2 (`1.2.0`) Development source/material mapping pinned to reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; current governed consumer target is GLAZE UI V1.6 / `1.6.0` at exact Stable release source `a7180679ea851389e0f3004515f9a25f420e716d`.
+- Historical GLAZE UI V1.2 (`1.2.0`) Development optical/material mapping pinned to reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; current governed consumer target is GLAZE UI V1.6 / `1.6.0` at exact Stable release source `a7180679ea851389e0f3004515f9a25f420e716d`.
 - V1.2 Frosted Neutral key material is consumed by the native `KeyboardView`; neutral glass is the material and color remains an accent rather than a default substrate tint.
 - V1.2 Light/Dark/Deep Dark source palettes, 4/8 dp spacing, 12 dp control radius, 48/56 dp target floors, optical geometry references, and pressed/selected/focus state calibration are repository-local and unit-tested. Runtime appearance selection remains Light/Dark from Android night mode only.
 - A V1.2 non-semantic atmosphere/material boundary prohibits chromatic, brand, or semantic color from defining the keyboard substrate and enables no editor/content sampling, remote color derivation, persistent sample history, semantic inference, telemetry, network lookup, or animated atmosphere.
-- Experimental Glaze Motion evaluation remains historical/test-only and is not a production dependency or V1.2 acceptance source.
-- Android unit/build/governance and emulator validation infrastructure covers registration, native interaction, editor privacy lifecycle, emoji search, Unicode deletion, suggestion authority, portable preferences, Glaze UI mapping, and alternate-popup geometry/hit testing.
+- A bounded V1.6 Android presentation-context layer accepted through PR #73 consumes Android font scale, animator enablement, and touch-exploration state without expanding editor-data authority or relabeling the V1.2 optical substrate as V1.6-complete.
+- PR #77 applies the 56 dp Touch Assistance interaction floor to the suggestion strip and alternate targets and requests a 308 dp preferred four-row IME height under touch exploration when Android grants the requested size.
+- Experimental Glaze Motion evaluation remains historical/test-only and is not a production dependency or current V1.6 acceptance source.
+- Platform Contract 0.4 declares the current repository identity `GoreeCloud/keyboard` and all nine Integral Platform Systems while preserving Development/nonconformant state.
+- Android unit/build/governance and emulator validation infrastructure covers registration, native interaction, editor privacy lifecycle, emoji search, Unicode deletion, suggestion authority, portable preferences, Glaze UI mapping/context, alternate-popup geometry/hit testing, and accessibility foundations.
 
 ## Native input behavior
 
@@ -56,7 +59,7 @@ Eligible letter and punctuation keys expose deterministic local alternates after
 
 ### Editor transitions
 
-Authoritative Android editor-session start/finish callbacks reset transient privacy/suggestion state. Missing or no-active-editor metadata remains sensitive and suggestions-suppressed. Ordinary editors can relax that policy only through a concrete editor transition. Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` is honored without misclassifying the field as a password.
+Authoritative Android editor-session start/finish callbacks reset transient privacy/suggestion state. Missing or no-active-editor metadata remains sensitive and suggestions-suppressed. Ordinary editors can relax that policy only through a concrete editor transition. Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` and no-personalized-learning requests are honored without misclassifying ordinary fields as passwords.
 
 ### Suggestion authority
 
@@ -96,17 +99,23 @@ Current local typing does not depend on Mesh availability. Future cross-applicat
 
 Keyboard may publish minimized operational/version/capability state to Manager when an accepted integration exists. Manager does not gain typed-text, editor-content, clipboard-payload, suggestion-history, or other sensitive input authority merely because it manages application lifecycle/configuration.
 
+### GoreeCloud Policy and Observability
+
+GoreeCloud Policy and GoreeCloud Observability are applicable under the current Platform Contract 0.4 model but remain blocked pending accepted integration. Policy must not manufacture privacy/security authority outside producer contracts. Observability must remain privacy-safe and must not collect typed text, editor contents, clipboard payloads, credentials, or hidden input history.
+
 ## GLAZE UI / Design Center
 
-Current Official Stable GoreeCloud design-system authority is GLAZE UI V1.6 / `1.6.0` at exact release source `a7180679ea851389e0f3004515f9a25f420e716d`. This repository still implements a historical V1.2 / `1.2.0` foundation and Frosted Neutral material mapping at reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; that implementation is Development evidence only and is not relabeled as V1.6 migration or consumer acceptance.
+Current Official Stable GoreeCloud design-system authority is GLAZE UI V1.6 / `1.6.0` at exact release source `a7180679ea851389e0f3004515f9a25f420e716d`. This repository still implements a historical V1.2 / `1.2.0` optical/material foundation at reviewed source `f285b9145e27e6e7027b075c37299d101945c272`; that implementation is Development evidence only and is not relabeled as a completed V1.6 migration or consumer acceptance.
 
-The governing V1.2 material rule is **Neutral glass is the material. Color is an accent.** `KeyboardView` now consumes neutral V1.2 base-glass surfaces for Light/Dark runtime rendering. Deep Dark is source-defined but not automatically selected from ordinary Android dark mode. The source also records V1.2 state calibration for pressed/selected/focus behavior without representing that source map as complete rendered conformance.
+Accepted PR #73 adds a bounded V1.6 presentation-context layer over that substrate. Accepted PR #77 uses the existing 56 dp Touch Assistance interaction floor consistently for the suggestion strip and alternate targets and requests a 308 dp preferred four-row height when touch exploration is active. These changes are partial current-Stable migration progress, not whole-consumer V1.6 acceptance.
+
+The historical V1.2 material rule is **Neutral glass is the material. Color is an accent.** `KeyboardView` consumes neutral V1.2 base-glass surfaces for Light/Dark runtime rendering. Deep Dark is source-defined but not automatically selected from ordinary Android dark mode. The source also records historical V1.2 state calibration for pressed/selected/focus behavior without representing that source map as current V1.6 conformance.
 
 Accessibility directives outrank cosmetic material behavior. Reduced Transparency, Reduced Motion, Increased Contrast, forced-colors/native equivalents, focus visibility, content legibility, target size, and task completion must remain valid even when blur/translucency/advanced effects are unavailable. The keyboard must not become dependent on nested backdrop blur or atmosphere for input correctness.
 
 Local emoji search remains an application-local input-navigation capability and is not GoreeCloud Universal Search. Long-press alternates are transient application interaction, not Control Center. Glaze presentation semantics do not grant Universal Search, Control Center, security, privacy, identity, recovery, or other platform authority to Keyboard.
 
-Historical Glaze Motion 0.5 evaluation remains test-only and provides no current V1.2 production/conformance evidence.
+Historical Glaze Motion evaluation remains test-only and provides no current V1.6 production/conformance evidence.
 
 ## Product-quality direction
 
@@ -123,25 +132,26 @@ GoreeCloud Keyboard must evolve as a complete first-party input product rather t
 - hardware-keyboard and accessibility-aware workflows where applicable;
 - Quill-assisted writing through privacy-preserving boundaries;
 - user-controlled appearance and input preferences;
-- explicitly governed portability, backup, recovery, and optional synchronization.
+- explicitly governed portability, backup, recovery, and optional synchronization;
+- Apple-platform support through a separate native implementation and platform-specific acceptance path.
 
-Feature richness must remain substantive. Buttons, placeholders, labels, decorative surfaces, or roadmap statements are not implementation evidence. Each capability requires functional behavior, native lifecycle integration, privacy/security boundaries, accessibility, testing, and appropriate runtime/release acceptance.
+Feature richness must remain substantive. Buttons, placeholders, labels, decorative surfaces, roadmap statements, or unmerged Draft pull requests are not implementation evidence. Each capability requires functional behavior, native lifecycle integration, privacy/security boundaries, accessibility, testing, and appropriate runtime/release acceptance.
 
 ## Production and Stable acceptance gates
 
 Development source or passing CI is not equivalent to production acceptance or Stable qualification. Production promotion requires evidence appropriate to the shipped platform, including:
 
 - exact-revision source/build/test validation;
-- complete GLAZE UI V1.2 consumer mapping for applicable keyboard and settings surfaces;
-- Reduced Transparency, Reduced Motion, Increased Contrast, forced-colors/native equivalents, large text/reflow, RTL/localization, and Touch Assistance behavior;
-- TalkBack, Switch Access, and other claimed assistive-input acceptance;
+- complete GLAZE UI V1.6 optical/material/component migration and consumer acceptance for applicable keyboard and settings surfaces, with the historical V1.2 substrate treated only as implementation provenance;
+- Reduced Transparency, Reduced Motion, Increased Contrast, forced-colors/native equivalents, large text/reflow, RTL/localization, and complete Touch Assistance behavior;
+- TalkBack, Switch Access, Voice Access where claimed, and other assistive-input acceptance;
 - representative Android host-editor compatibility;
 - representative phone/tablet/foldable layout and ergonomics acceptance;
 - representative physical-device typing, long-press/slide/release, latency, performance, power, and thermal acceptance;
 - Human Visual Excellence review of the actual Keyboard consumer;
 - Privacy Shield and Wardveil Security acceptance appropriate to a sensitive input surface;
 - approved Everkeep continuity/recovery scope and clean-target recovery evidence where required;
-- applicable Manager/Mesh/Identity integrations without expanding input-data authority;
+- applicable Manager/Mesh/Identity/Policy/Observability integrations without expanding input-data authority;
 - protected signing, provenance, distribution, update, rollback, and recovery procedures;
 - governed Release Candidate validation; and
 - explicit production/Stable approval.
