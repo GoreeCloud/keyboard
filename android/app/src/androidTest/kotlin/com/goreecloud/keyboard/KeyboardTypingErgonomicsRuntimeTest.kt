@@ -34,9 +34,10 @@ class KeyboardTypingErgonomicsRuntimeTest {
         render(view)
 
         val enter = view.accessibilityTargets().first { it.label == "Enter" }
+        val safeGap = GlazeKeyboardTokens.BottomSafeGapDp * view.resources.displayMetrics.density
         assertTrue(
-            "Bottom-row controls must not extend into the navigation/gesture inset",
-            enter.bounds.bottom <= view.height - bottomInset,
+            "Bottom-row controls must preserve the Glaze safe gap above navigation/gesture insets",
+            enter.bounds.bottom <= view.height - bottomInset - safeGap + 1f,
         )
     }
 
@@ -48,6 +49,36 @@ class KeyboardTypingErgonomicsRuntimeTest {
         for (digit in "1234567890") {
             assertTrue("Letters layer must expose digit $digit", digit.toString() in labels)
         }
+    }
+
+    @Test
+    fun lettersLayerExposesLanguageAwareSpaceSemantics() {
+        val view = createRenderedKeyboard()
+        val labels = view.accessibilityTargets().map { it.label }.toSet()
+
+        assertTrue(
+            "Letters layer must expose the current language through the space-key semantics",
+            "Space, English (US)" in labels,
+        )
+    }
+
+    @Test
+    fun suggestionTargetsPreserveTheFullInteractionFloor() {
+        val view = KeyboardView(
+            ApplicationProvider.getApplicationContext<android.content.Context>(),
+        )
+        view.setSuggestions(listOf("hello", "help", "hero"))
+        render(view)
+
+        val minimumHeight =
+            GlazeKeyboardTokens.GeneralInteractionFloorDp * view.resources.displayMetrics.density
+        val suggestions = view.accessibilityTargets().filter { it.label.startsWith("Suggestion ") }
+
+        assertEquals(3, suggestions.size)
+        assertTrue(
+            "Suggestion targets must preserve the full Glaze interaction floor even when the visual surface is inset",
+            suggestions.all { it.bounds.height() + 1f >= minimumHeight },
+        )
     }
 
     @Test
