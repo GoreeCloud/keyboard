@@ -4,11 +4,15 @@
 
 GoreeCloud Keyboard is currently a **Development** Android input-method implementation. This manual describes behavior present in the repository source and Development builds. It does not claim a public production release, Stable qualification, representative physical-device acceptance, or current Apple-platform build.
 
-## Enable the keyboard on Android
+## Install and enable the Development keyboard on Android
 
-After installing a Development build, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev** with package ID `com.goreecloud.keyboard.dev.v3`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
-Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard when a text field is active.
+When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
+
+After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+
+Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev when a text field is active.
 
 Exact settings labels vary by Android device and version.
 
@@ -53,7 +57,7 @@ After you commit at least one emoji, a **Recent** control appears. Current recen
 
 The persistence format is a small bounded local list; it does not include surrounding typed text, editor contents, message drafts, timestamps, application identity, or usage telemetry.
 
-The current picker is not a complete emoji catalog. Emoji search, cloud emoji lookup, GIF/sticker search, and synchronization are not implemented current behavior.
+The current picker is not a complete emoji catalog. Offline search over the packaged emoji catalog is implemented; cloud emoji lookup, GIF/sticker search, and synchronization are not implemented current behavior.
 
 ## Local GoreeCloud Quill suggestions
 
@@ -62,6 +66,14 @@ For ordinary text fields, the suggestion strip can show local candidates derived
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
 The current suggestion engine is intentionally bounded. It provides deterministic prefix candidates and limited typo-correction candidates; it is not a claim of a complete language model, cloud writing service, or full autocorrect system.
+
+## Swipe typing
+
+In ordinary non-sensitive text fields, you can slide across letter keys and release to submit a locally decoded word. The current Development implementation uses only the transient key path from that gesture and the packaged local Quill lexicon.
+
+Swipe typing is disabled in sensitive editors and while touch-exploration/screen-reader optimized presentation is active. The gesture path is not persisted, learned from, transmitted, or combined with surrounding editor text.
+
+Recognition quality is still Development-grade and remains subject to physical-device refinement.
 
 ## Sensitive text fields
 
@@ -77,15 +89,15 @@ Future network-backed capabilities, if implemented, require separate user-contro
 
 ## Appearance
 
-The current Development source targets GLAZE UI V1.1 (`1.1.0`) at Stable release commit `15cc76d2bcd4065552dc31c77145b63f34d9e7b2`. The live keyboard continues to follow Android night mode using inherited Light/Dark structural values.
+The governed consumer target is GLAZE UI V1.6 (`1.6.0`) at accepted source revision `a7180679ea851389e0f3004515f9a25f420e716d`. The current rendered key substrate still carries the inherited V1.2 Frosted Neutral optical/material implementation while the V1.6 presentation-context layer supplies current runtime accessibility and motion signals.
 
-The source also defines the current V1.1 Deep Dark structural palette, but the IME does **not** automatically select Deep Dark and this Development slice adds no new appearance preference. The V1.1 Deep Teal + Soft Amber atmosphere contract is also present as non-semantic source metadata but is not rendered by the typing surface and does not inspect editor or typed content.
+The live keyboard follows Android Light/Dark appearance. Deep Dark is defined in the inherited source mapping but is not automatically selected by the current IME runtime.
 
-Complete rendered/accessibility GLAZE UI V1.1 acceptance, runtime Deep Dark policy, Reduced Transparency/Motion, Increased Contrast/native equivalents, TalkBack/Switch Access, adaptive/form-factor validation, representative physical-device acceptance, Human Visual Excellence review, and production design acceptance remain incomplete.
+Complete V1.6 optical/component migration, Reduced Transparency/Motion acceptance, Increased Contrast/native equivalents, TalkBack/Switch Access, adaptive/form-factor validation, representative physical-device acceptance, Human Visual Excellence review, and production design acceptance remain incomplete.
 
 ## Current limitations
 
-The Development implementation does not yet claim complete gesture typing, multilingual input, emoji search, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, or Stable release acceptance.
+The Development implementation does not yet claim production-grade gesture recognition, multilingual input, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, or Stable release acceptance.
 
 ## Privacy and security expectations
 
