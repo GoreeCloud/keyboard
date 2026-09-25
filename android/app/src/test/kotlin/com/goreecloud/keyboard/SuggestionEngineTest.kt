@@ -84,7 +84,7 @@ class SuggestionEngineTest {
 
         assertEquals(
             "hello",
-            engine.autocorrection("hellp", listOf("hello", "help", "hero")),
+            engine.autocorrection("hellp", listOf("hello", "hero", "world")),
         )
         assertEquals(
             "the",
