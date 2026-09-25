@@ -12,13 +12,16 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 
 - Native Android `InputMethodService` integration and declarative/runtime input-method registration checks.
 - First-party `KeyboardView` rendering and pointer-input handling.
-- QWERTY letters with shift, backspace, space, and enter.
+- Five-row QWERTY letters with an always-visible number row, Shift, Backspace, language-labeled Space, Enter, and direct comma/period punctuation.
 - First-party letters/symbols mode switching with `?123`, `ABC`, and `=\\<` controls.
 - Primary symbol page with digits and common punctuation plus a secondary first-party page with brackets, operators, currency marks, and common typographic symbols.
 - Bounded first-party emoji input using complete Unicode `String` payloads, deterministic Smileys, People, Nature, Food, Symbols, and Travel categories, local Recent state, explicit Clear behavior, and bounded device-local private persistence.
 - Fully offline emoji search over only the packaged first-party catalog. Search query state is transient, bounded, cleared on close, cannot be mutated while closed, and is not sent through the active editor or Quill composing context.
 - Deterministic local long-press key alternates with viewport-bounded popup layout, exact shared render/hit-test geometry, pointer movement selection, cancellation, haptic feedback, and accessibility announcements.
-- Local-only GoreeCloud Quill suggestion boundary with frequency-ordered prefix suggestions, expanded packaged English forms, Unicode-code-point-aware correction, conservative automatic correction at word boundaries, bounded transient capture, a one-to-three candidate contract for non-empty ordinary-text prefixes, typed-token fallback when no dictionary candidate is stronger, and commit authority restricted to the exact candidates currently presented for the active editor session.
+- Local-only GoreeCloud Quill suggestion boundary with frequency-ordered prefix suggestions, expanded packaged English forms, correction-first presentation for bounded likely misspellings, Unicode-code-point-aware correction, conservative automatic correction at word boundaries, bounded transient capture, a one-to-three candidate contract for non-empty ordinary-text prefixes, typed-token fallback, and commit authority restricted to the exact candidates currently presented for the active editor session.
+- A packaged read-only GoreeCloud dictionary derived from the canonical first-party branding catalog plus common local English contractions; it does not learn from typed input.
+- A bounded first-party next-word/grammar layer using only transient words committed by Keyboard in the current editor session. It supports small local next-word phrase tables, common missing-apostrophe repairs, canonical GoreeCloud casing, and automatic sentence-start capitalization without persistent language-history storage.
+- Local swipe typing with transient QWERTY geometry, a deliberate minimum travel/time/multi-key activation threshold to reduce fast-tap false positives, and packaged-dictionary decoding.
 - Sensitive-editor classification, host no-suggestions policy, no-learning privacy handling, and fail-closed editor lifecycle behavior that clear composing/suggestion state and prevent ordinary-field authority from leaking across editor transitions or no-active-editor states.
 - Bounded Unicode-aware backspace for common emoji modifiers, ZWJ-linked emoji, regional-indicator flags, keycaps, variation selectors, combining marks, and CRLF. Ambiguous truncated ordinary-field look-behind fails closed; sensitive editors retain one-code-point deletion without text look-behind.
 - No Android network permission in the current application foundation.
@@ -28,10 +31,13 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - V1.2 Light/Dark/Deep Dark source palettes, 4/8 dp spacing, 12 dp control radius, 48/56 dp target floors, optical geometry references, and pressed/selected/focus state calibration are repository-local and unit-tested. Runtime appearance selection remains Light/Dark from Android night mode only.
 - A V1.2 non-semantic atmosphere/material boundary prohibits chromatic, brand, or semantic color from defining the keyboard substrate and enables no editor/content sampling, remote color derivation, persistent sample history, semantic inference, telemetry, network lookup, or animated atmosphere.
 - A bounded V1.6 Android presentation-context layer accepted through PR #73 consumes Android font scale, animator enablement, and touch-exploration state without expanding editor-data authority or relabeling the V1.2 optical substrate as V1.6-complete.
-- The current surface preserves the 56 dp Touch Assistance interaction floor for candidate/alternate targets and uses a five-row letters layout with 320 dp ordinary preferred height and 364 dp Touch Assistance preferred height; Android retains final IME measurement authority.
+- The current surface preserves the 56 dp Touch Assistance interaction floor for candidate/alternate targets and uses a five-row letters layout with 320 dp ordinary preferred height and 364 dp Touch Assistance preferred height; Android retains final IME measurement authority. The 0.1.6 Development candidate adds Compact, Standard, and Tall visible keycap-height choices while retaining the full underlying touch targets.
 - Experimental Glaze Motion evaluation remains historical/test-only and is not a production dependency or current V1.6 acceptance source.
-- Platform Contract 0.4 declares the current repository identity `GoreeCloud/keyboard` and all nine Integral Platform Systems while preserving Development/nonconformant state.
+- Platform Contract 2.0 declares repository identity `GoreeCloud/keyboard`, lifecycle `weave`, deployment state `development`, qualification state `in-progress`, next gate `seal`, and all nine Integral Platform Systems while preserving nonconformant state.
 - Android unit/build/governance and emulator validation infrastructure covers registration, native interaction, editor privacy lifecycle, emoji search, Unicode deletion, suggestion authority, portable preferences, Glaze UI mapping/context, alternate-popup geometry/hit testing, and accessibility foundations.
+
+- A launcher-visible first-party Keyboard settings activity plus an in-keyboard Settings control. Device-local preferences cover swipe typing, suggestions, autocorrect, next-word predictions, automatic capitalization, and Compact/Standard/Tall visible key heights.
+- The Development build uses the canonical GoreeCloud Keyboard app icon from the first-party branding catalog mapping.
 
 ## Native input behavior
 
