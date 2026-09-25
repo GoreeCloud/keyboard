@@ -68,19 +68,21 @@ jobs:
           ARTIFACT_ROOT="artifact-keyboard-android"
           rm -rf "$ARTIFACT_ROOT"
           mkdir -p "$ARTIFACT_ROOT"
-          cp "$APK" "$ARTIFACT_ROOT/GoreeCloudKeyboard-debug.apk"
+          cp "$APK" "$ARTIFACT_ROOT/GoreeCloudKeyboardDev-0.1.2.apk"
           cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
           repository=GoreeCloud/keyboard
           source_sha=$SOURCE_SHA
-          version_name=0.1.1-dev
-          application_id=com.goreecloud.keyboard
+          version_name=0.1.2-dev
+          application_id=com.goreecloud.keyboard.dev.v3
           artifact_role=android-keyboard-development-acceptance
           signing_role=ci-debug-installability-only
+          install_behavior=side-by-side-development-package
+          preinstalled_production_package=com.goreecloud.keyboard
           stable_release_authority=none
           EOF
           (
             cd "$ARTIFACT_ROOT"
-            sha256sum GoreeCloudKeyboard-debug.apk > SHA256SUMS
+            sha256sum GoreeCloudKeyboardDev-0.1.2.apk > SHA256SUMS
             sha256sum --check SHA256SUMS
           )
 
@@ -129,7 +131,11 @@ jobs:
             gradle --no-daemon :android:app:connectedDebugAndroidTest --stacktrace
             # connectedDebugAndroidTest removes its target package during cleanup. Reinstall the exact branch build before validating Android's enabled/default IME state.
             gradle --no-daemon :android:app:installDebug --stacktrace
-            adb shell ime enable com.goreecloud.keyboard/.KeyboardService
-            adb shell ime set com.goreecloud.keyboard/.KeyboardService
-            DEFAULT_IME="$(adb shell settings get secure default_input_method | tr -d '\r')"; echo "Android default IME: $DEFAULT_IME"; { [ "$DEFAULT_IME" = "com.goreecloud.keyboard/.KeyboardService" ] || [ "$DEFAULT_IME" = "com.goreecloud.keyboard/com.goreecloud.keyboard.KeyboardService" ]; }
-            adb shell ime list -s | tr -d '\r' | grep -E -x 'com\.goreecloud\.keyboard/(\.KeyboardService|com\.goreecloud\.keyboard\.KeyboardService)'
+            IME_ID="$(adb shell ime list -s | tr -d '\r' | grep -E '^com\.goreecloud\.keyboard\.dev\.v3/' | head -n 1)"
+            test -n "$IME_ID"
+            echo "Development IME: $IME_ID"
+            adb shell ime enable "$IME_ID"
+            adb shell ime set "$IME_ID"
+            DEFAULT_IME="$(adb shell settings get secure default_input_method | tr -d '\r')"
+            echo "Android default IME: $DEFAULT_IME"
+            test "$DEFAULT_IME" = "$IME_ID"
