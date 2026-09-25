@@ -31,30 +31,45 @@ class SuggestionEngine {
             .map { it.word }
             .toList()
 
-        val result = mutableListOf<String>()
-        // Keep the actively typed token visible even when it is not in the packaged dictionary.
-        // This gives ordinary typing a stable primary candidate while still allowing Quill
-        // completions/corrections to occupy the remaining slots.
-        result += exact?.word ?: prefix
-        result += completions
-            .asSequence()
-            .filterNot { it.equals(result.first(), ignoreCase = true) }
-            .take((limit - result.size).coerceAtLeast(0))
-        if (result.size >= limit) return result.take(limit)
-
-        if (codePointCount(normalized) < MIN_CORRECTION_LENGTH) {
-            return result.take(limit)
+        val corrections = if (codePointCount(normalized) >= MIN_CORRECTION_LENGTH) {
+            correctionCandidates(normalized, candidates).map { it.word }
+        } else {
+            emptyList()
         }
 
-        val corrections = correctionCandidates(normalized, candidates)
-            .asSequence()
-            .filterNot { candidate -> result.any { it.equals(candidate.word, ignoreCase = true) } }
-            .map { it.word }
-            .take(limit - result.size)
-            .toList()
+        val result = mutableListOf<String>()
+        when {
+            exact != null -> {
+                result += exact.word
+                result += completions
+            }
 
-        result += corrections
-        return result.take(limit)
+            completions.isNotEmpty() -> {
+                // Prefer real dictionary completions over echoing an incomplete token. Keep the
+                // literal token available as a final fallback so the user can always preserve it.
+                result += completions.take((limit - 1).coerceAtLeast(1))
+                result += prefix
+            }
+
+            corrections.isNotEmpty() -> {
+                // Put likely spelling corrections in front so a misspelling is visible rather than
+                // presenting the misspelled token as though it were the best candidate.
+                result += corrections.take((limit - 1).coerceAtLeast(1))
+                result += prefix
+            }
+
+            else -> result += prefix
+        }
+
+        if (result.size < limit) {
+            result += corrections.filterNot { candidate ->
+                result.any { it.equals(candidate, ignoreCase = true) }
+            }
+        }
+
+        return result
+            .distinctBy { it.lowercase() }
+            .take(limit.coerceAtMost(MAX_VISIBLE_SUGGESTIONS))
     }
 
     /**
@@ -186,5 +201,6 @@ class SuggestionEngine {
         const val MIN_CORRECTION_LENGTH = 3
         const val LONG_WORD_LENGTH = 6
         const val AUTOCORRECT_RANK_GAP = 8
+        const val MAX_VISIBLE_SUGGESTIONS = 3
     }
 }
