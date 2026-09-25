@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Quill typing-quality stabilization / 0.1.3-dev
+- Replaced fixed `the / I / to` starter candidates with an empty clean-boundary strip so suggestions are driven by the word actually being typed.
+- Changed candidate ordering from shortest/alphabetical preference to packaged-dictionary frequency order, while keeping exact typed words first.
+- Expanded the built-in local Quill English dictionary with common inflected and irregular forms without learning from typed text.
+- Added conservative automatic correction on space and common punctuation boundaries for confident one-edit misspellings, with host-prefix validation before replacement.
+- Kept deterministic transient suggestions available when an editor requests `IME_FLAG_NO_PERSONALIZED_LEARNING`; the current Quill path still persists no learned typing model. Sensitive fields and `TYPE_TEXT_FLAG_NO_SUGGESTIONS` remain suppressing boundaries.
+- Replaced literal crossed-key swipe matching with QWERTY geometry-aware route scoring, ordered letter coverage, detour scoring, and packaged-dictionary frequency ranking.
+- Added unit coverage for frequency-ranked suggestions, autocorrect, expanded dictionary forms, and geometry-aware swipe decoding.
+- Incremented the Development package to `versionCode 4` / `0.1.3-dev` and the side-by-side test package identity to `com.goreecloud.keyboard.dev.v4` so this CI-signed build does not need to replace earlier Development or preinstalled system copies.
+- These changes remain Development behavior and do not establish physical-device, Production, Release Candidate, or Stable acceptance.
+
+
 ### September 25, 2026 — Development APK installability isolation
 - Changed the CI/debug physical-test package identity to `com.goreecloud.keyboard.dev.v3` and the visible label to **GoreeCloud Keyboard Dev**.
 - This prevents Android from treating a CI debug-signed APK as an update to a preinstalled `com.goreecloud.keyboard` system package whose signing certificate may differ.
