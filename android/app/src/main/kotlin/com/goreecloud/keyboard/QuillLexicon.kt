@@ -7,7 +7,7 @@ package com.goreecloud.keyboard
  * contents, telemetry, contacts, clipboard data, accounts, or network sources.
  */
 internal object QuillLexicon {
-    val starterSuggestions = emptyList<String>()
+    val starterSuggestions = listOf("I", "The", "How")
 
     val english = listOf(
         "the", "I", "to", "a", "and", "is", "in", "it", "you", "that", "of", "for", "on", "with",
@@ -103,6 +103,7 @@ internal object QuillLexicon {
     val expandedEnglish: List<String> by lazy {
         val words = LinkedHashSet<String>()
         words += english
+        words += EverydayEnglishDictionary.terms
         words += GoreeCloudDictionary.canonicalTerms
         words += GoreeCloudDictionary.commonContractions
         words += goreeCloudVocabulary
