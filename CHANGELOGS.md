@@ -35,6 +35,13 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Side-by-side Development APK installability
+- The debug/Development APK now uses application ID `com.goreecloud.keyboard.dev` and the visible name **GoreeCloud Keyboard Dev**.
+- This prevents the CI debug-signed test APK from attempting to replace a preinstalled/system GoreeCloud Keyboard package with application ID `com.goreecloud.keyboard`, which can be rejected when the system copy uses a different signing certificate.
+- CI provenance and Android 15 IME activation checks now validate the Development package identity explicitly.
+- The production/system package identity remains `com.goreecloud.keyboard`; no production signing authority is implied.
+
+
 ### September 25, 2026 — Development package version 0.1.1-dev
 - Incremented Android `versionCode` from 1 to 2 and `versionName` from `0.1.0-dev` to `0.1.1-dev` so the stabilized typing build is distinguishable from earlier Development installs.
 - Updated CI artifact provenance to report `0.1.1-dev`.
