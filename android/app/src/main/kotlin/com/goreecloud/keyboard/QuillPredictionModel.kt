@@ -59,6 +59,9 @@ internal object QuillPredictionModel {
     }
 
     fun boundaryCorrection(word: String): String? = when (word.lowercase()) {
+        "goreecloud" -> "GoreeCloud"
+        "wardveil" -> "Wardveil"
+        "everkeep" -> "Everkeep"
         "i" -> "I"
         "im" -> "I'm"
         "ive" -> "I've"
