@@ -1,4 +1,4 @@
-schema_version: "0.4"
+schema_version: "2.0"
 
 component:
   type: application
@@ -6,8 +6,23 @@ component:
   product_name: GoreeCloud Keyboard
   repository: GoreeCloud/keyboard
 
-lifecycle: development
-version: "0.1.0-dev"
+lifecycle: weave
+lifecycle_metadata:
+  flags:
+    - blocked
+    - migration-required
+  deployment_state: development
+  qualification_state: in-progress
+  next_gate: seal
+  candidate_identity: null
+  last_transition: null
+  evidence:
+    - README.md
+    - SPECIFICATIONS.md
+    - IMPLEMENTED-FEATURES.md
+    - PLANNED-FEATURES.md
+    - CHANGELOGS.md
+version: "0.1.4-dev"
 
 supported_platforms:
   - android
@@ -79,7 +94,7 @@ platform_systems:
       - android/app/src/test/kotlin/com/goreecloud/keyboard/GlazeKeyboardV16PresentationPolicyTest.kt
       - scripts/check_glaze_motion_evaluation.py
       - docs/glaze-ui-adoption.md
-    notes: The current Official Stable authority is V1.6 / 1.6.0 at exact release source a7180679ea851389e0f3004515f9a25f420e716d. This Development candidate adds a bounded V1.6 Android presentation-context layer that consumes platform font scale, animator enablement, and touch-exploration state, and applies the touch-assistance interaction floor to alternate-character targets. Keyboard's optical substrate still maps historical V1.2 / 1.2.0 source semantics at f285b9145e27e6e7027b075c37299d101945c272, so Keyboard remains applicable-migration-required. This partial source adoption does not establish whole-keyboard V1.6 migration or downstream conformance. Full optical/component migration plus rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain required.
+    notes: The current Official Stable authority is V1.6 / 1.6.0 at exact release source a7180679ea851389e0f3004515f9a25f420e716d. This Weave-stage implementation includes a bounded V1.6 Android presentation-context layer that consumes platform font scale, animator enablement, and touch-exploration state, and applies the touch-assistance interaction floor to alternate-character targets. Keyboard's optical substrate still maps historical V1.2 / 1.2.0 source semantics at f285b9145e27e6e7027b075c37299d101945c272, so Keyboard remains applicable-migration-required. This partial source adoption does not establish whole-keyboard V1.6 migration or downstream conformance. Full optical/component migration plus rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain required.
   mesh:
     result: applicable-blocked
     version: null
@@ -110,7 +125,7 @@ platform_systems:
       - README.md
       - SPECIFICATIONS.md
       - goreecloud.platform.yaml
-    notes: Keyboard has local Development behavior and CI evidence, but accepted GoreeCloud Observability health, latency, input-performance, diagnostics, dependency-health, provenance/freshness, collection-gap, privacy-safe telemetry, and representative-device runtime acceptance are not established.
+    notes: Keyboard has local Weave-stage behavior in Development builds and CI evidence, but accepted GoreeCloud Observability health, latency, input-performance, diagnostics, dependency-health, provenance/freshness, collection-gap, privacy-safe telemetry, and representative-device runtime acceptance are not established.
 
 health:
   health_endpoint: null
@@ -149,10 +164,10 @@ external_dependencies:
     version_constraint: ">=26"
 
 compatibility:
-  platform_contract: "0.4"
+  platform_contract: "2.0"
   glaze_ui_required: "1.6.0"
   requires:
-    - goreecloud-platform-contract==0.4
+    - goreecloud-platform-contract==2.0
     - glaze-ui==1.6.0
     - android-api>=26
   provides:
@@ -193,4 +208,4 @@ conformance:
     - GoreeCloud Observability health, latency, diagnostics, performance, dependency-health, provenance/freshness, collection-gap, privacy-safe telemetry, and representative-device runtime acceptance are not established.
     - Current portability covers only one explicit emoji-category preference and does not include product-wide Keyboard state.
     - Representative physical-device typing, IME ergonomics, latency, accessibility, host-app compatibility, and form-factor acceptance remain incomplete.
-    - Production signing, distribution, release approval, Release Candidate qualification, and Stable qualification remain outstanding.
+    - Production signing, distribution, release approval, Seal qualification, production acceptance, and Anchor qualification remain outstanding.
