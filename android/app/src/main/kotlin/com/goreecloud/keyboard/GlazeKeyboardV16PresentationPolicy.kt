@@ -52,7 +52,7 @@ internal object GlazeKeyboardV16PresentationPolicy {
     private const val OrdinaryPreferredImeHeightDp = 364f
     private const val KeyboardRowCount = 5f
     private const val TopInteractionRowCount = 2f
-    private const val VerticalGapCount = 7f
+    private const val VerticalGapCount = 5f
 
     fun interactionFloorDp(context: GlazeKeyboardV16PresentationContext): Float =
         GlazeKeyboardTokens.interactionFloorDp(context.touchAssistance)
