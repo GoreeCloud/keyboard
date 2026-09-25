@@ -5,7 +5,7 @@
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current governance baseline:** `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1` (PR #79).  
-**Current runtime-bearing baseline:** `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a` (PR #77).  
+**Current runtime-bearing baseline:** `7313b5981fe309efbc4241bae5d79e61c630c751` (PR #85); exact-main Android CI #275 / run `36186867768` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Authority and interpretation
@@ -43,6 +43,7 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 - Added a bounded local swipe-typing gesture path, visible gesture trail, crossed-key-tolerant packaged-lexicon decoding, and runtime suppression for sensitive editors and touch-exploration presentation.
 - Added Android runtime coverage for bottom safe-area geometry, punctuation exposure, and swipe gesture emission plus local decoder unit coverage.
 - These changes remain Development behavior; they do not establish physical-device, Production, Release Candidate, or Stable acceptance.
+- PR #85 merged to authoritative `main` as `7313b5981fe309efbc4241bae5d79e61c630c751`; exact-main Android CI #275 / run `36186867768` passed, including unit tests, APK build/provenance, Android 15 runtime instrumentation, and IME activation.
 
 
 ### September 22, 2026 — Drive retirement completed and independently verified
