@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
@@ -100,9 +101,9 @@ class KeyboardSettingsActivity : Activity() {
         val heightGroup = RadioGroup(this).apply {
             orientation = RadioGroup.VERTICAL
         }
-        KeyboardKeyHeight.entries.forEach { option ->
+        KeyboardKeyHeight.values().forEach { option ->
             heightGroup.addView(RadioButton(this).apply {
-                id = ViewGroup.generateViewId()
+                id = View.generateViewId()
                 tag = option
                 text = when (option) {
                     KeyboardKeyHeight.COMPACT -> getString(R.string.keyboard_settings_key_height_compact)
