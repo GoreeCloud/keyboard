@@ -42,7 +42,7 @@ Open Draft pull requests remain candidate-only. In particular, PR #78 and the ol
 ## Product capability backlog
 
 ### Local typing quality and correction
-Continue Unicode-safe input/deletion, stronger local autocorrect, deterministic local suggestions, Unicode-normalized matching, correction quality, user dictionaries, and privacy-minimized personalization without retaining typed content by default.
+Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. The current Development path now includes frequency-ordered local suggestions and conservative one-edit automatic correction.
 
 ### Spacebar cursor control
 The privacy-bounded cursor-control work represented by legacy FR-011 and Draft PRs #63/#64 is not accepted on current `main`. Draft PR #78 is a separate newer direct-main accessibility candidate. Any accepted cursor-control implementation must preserve ordinary Space behavior, bounded/fail-closed movement, privacy boundaries, RTL/BiDi correctness, accessibility, and representative physical-device ergonomics.
@@ -51,7 +51,7 @@ The privacy-bounded cursor-control work represented by legacy FR-011 and Draft P
 Implement first-party multilingual layouts, explicit language switching, locale-aware typing, script-appropriate editing, and RTL/BiDi correctness. Draft PR #65 and its stacked successors remain candidate history rather than accepted current behavior.
 
 ### Gesture/swipe typing
-A Development foundation now provides bounded local gesture capture and packaged-lexicon decoding with no network, persistence, learning, editor reads, or clipboard/contact/account authority. Sensitive editors and touch-exploration presentation disable the gesture path. Continue improving recognition quality, multilingual models, correction quality, accessibility behavior, performance, physical-device ergonomics, and representative acceptance before any broader maturity claim.
+A Development foundation now provides bounded local gesture capture and QWERTY geometry-aware packaged-dictionary decoding with no network, persistence, learning, editor reads, or clipboard/contact/account authority. Sensitive editors and touch-exploration presentation disable the gesture path. Continue improving recognition quality, multilingual models, ambiguity handling, accessibility behavior, performance, physical-device ergonomics, and representative acceptance before any broader maturity claim.
 
 ### Emoji, symbols, alternates, and discovery
 Expand the accepted local emoji/symbol/alternate foundations with broader Unicode/grapheme correctness, richer discovery, complete catalog/search/composition behavior, accessibility, and representative device acceptance.
