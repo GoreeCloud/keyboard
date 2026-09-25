@@ -150,23 +150,45 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onBackspace() {
         val connection = currentInputConnection ?: return
-        val deleteCodePoints = if (sensitiveInput) {
-            1
-        } else {
-            val beforeCursor = connection.getTextBeforeCursor(BACKSPACE_LOOKBEHIND_UTF16, 0)
-                ?: return failClosedBackspaceContext()
-            TextDeletion.previousTextUnitCodePointCount(
-                textBeforeCursor = beforeCursor,
-                contextMayBeTruncated = beforeCursor.length >= BACKSPACE_LOOKBEHIND_UTF16,
-            )
-        }
 
-        if (deleteCodePoints <= 0) {
-            failClosedBackspaceContext()
+        if (sensitiveInput) {
+            if (!connection.deleteSurroundingTextInCodePoints(1, 0)) {
+                sendFallbackBackspace(connection)
+            }
+            clearPredictionContextAfterUnverifiedDeletion()
+            updateSuggestions()
             return
         }
 
-        connection.deleteSurroundingTextInCodePoints(deleteCodePoints, 0)
+        val beforeCursor = connection.getTextBeforeCursor(BACKSPACE_LOOKBEHIND_UTF16, 0)
+        if (beforeCursor == null) {
+            // Some editors do not implement bounded surrounding-text reads reliably. A standard
+            // DEL key event is the most compatible fallback and requires no additional text read.
+            sendFallbackBackspace(connection)
+            clearPredictionContextAfterUnverifiedDeletion()
+            updateSuggestions()
+            return
+        }
+
+        val deleteCodePoints = TextDeletion.previousTextUnitCodePointCount(
+            textBeforeCursor = beforeCursor,
+            contextMayBeTruncated = beforeCursor.length >= BACKSPACE_LOOKBEHIND_UTF16,
+        )
+
+        if (deleteCodePoints <= 0) {
+            sendFallbackBackspace(connection)
+            clearPredictionContextAfterUnverifiedDeletion()
+            updateSuggestions()
+            return
+        }
+
+        val deleted = connection.deleteSurroundingTextInCodePoints(deleteCodePoints, 0)
+        if (!deleted) {
+            sendFallbackBackspace(connection)
+            clearPredictionContextAfterUnverifiedDeletion()
+            updateSuggestions()
+            return
+        }
 
         if (!suggestionsSuppressed && !composingCaptureExhausted && composingWord.isNotEmpty()) {
             val lastCodePointStart = composingWord.offsetByCodePoints(composingWord.length, -1)
@@ -374,6 +396,20 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         keyboardView?.setSuggestions(emptyList())
     }
 
+    private fun sendFallbackBackspace(connection: android.view.inputmethod.InputConnection) {
+        connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
+        connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL))
+    }
+
+    private fun clearPredictionContextAfterUnverifiedDeletion() {
+        composingWord.clear()
+        committedHistory.clear()
+        composingStartsCapitalized = false
+        sentenceStartPending = false
+        composingCaptureExhausted = false
+        presentedSuggestions = emptyList()
+    }
+
     private fun recordCommittedWord(word: String) {
         val normalized = word.trim().lowercase()
         if (normalized.isEmpty()) return
@@ -404,7 +440,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                 prefix = composingWord.toString(),
                 dictionary = QuillLexicon.expandedEnglish,
             ).map(::formatCandidateCase)
-        } else if (typingSettings.predictionsEnabled && !sentenceStartPending) {
+        } else if (typingSettings.predictionsEnabled) {
             QuillPredictionModel.predict(committedHistory).map(::formatPredictionCase)
         } else {
             emptyList()
