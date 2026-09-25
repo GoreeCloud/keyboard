@@ -21,7 +21,8 @@ The keyboard opens in its **letters** layer.
 - Tap letter keys to enter text.
 - Tap **⇧** to shift the next alphabetic character.
 - Tap **⌫** to delete the preceding text unit supported by the current deletion model.
-- Tap **space** to insert a space.
+- Tap **space** to insert a space. In ordinary non-sensitive fields, Space may also apply a conservative local typo correction when exactly one packaged dictionary word is one Unicode edit away and the host text still matches the locally tracked prefix.
+- Tap **.** for a direct period key on the letters layout.
 - Tap **↵** to send the Android Enter key action to the active editor.
 
 The temporary shift state resets after a shifted alphabetic character is entered.
@@ -59,11 +60,13 @@ The current picker is not a complete emoji catalog. It includes bounded, fully o
 
 ## Local GoreeCloud Quill suggestions
 
-For ordinary text fields, the suggestion strip can show local candidates derived from the current composing word and the keyboard's local Development dictionary.
+For ordinary text fields, the suggestion strip shows **at least one and no more than three** local candidates while a word is actively being typed. Candidates come from a packaged, read-only English seed dictionary plus the current local prefix. The dictionary does not learn from typed text, synchronize, or use network access.
 
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
-The current suggestion engine is intentionally bounded. It provides deterministic prefix candidates and limited typo-correction candidates; it is not a claim of a complete language model, cloud writing service, or full autocorrect system.
+Space now performs a conservative local autocorrection only when exactly one packaged dictionary word is one Unicode edit away, the typed token is not already an exact packaged word, and Android's host text still matches the locally tracked prefix. Prefix completions and ambiguous corrections are not automatically committed.
+
+The current suggestion engine remains intentionally bounded. It provides deterministic prefix candidates, limited typo-correction candidates, and conservative Space-triggered autocorrection; it is not a claim of a complete language model or cloud writing service.
 
 ## Sensitive text fields
 
