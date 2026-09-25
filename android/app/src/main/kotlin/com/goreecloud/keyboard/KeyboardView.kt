@@ -122,7 +122,11 @@ class KeyboardView @JvmOverloads constructor(
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         ViewCompat.setAccessibilityDelegate(this, accessibilityDelegate)
         ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
-            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            val bottomInset = maxOf(
+                insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom,
+                insets.getInsets(WindowInsetsCompat.Type.systemGestures()).bottom,
+                insets.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom,
+            )
             if (bottomNavigationInsetPx != bottomInset) {
                 bottomNavigationInsetPx = bottomInset
                 requestLayout()
@@ -608,6 +612,7 @@ class KeyboardView @JvmOverloads constructor(
                         listener?.onText(value)
                         announceForAccessibility("Inserted alternate character")
                     }
+                    cancelSwipeInteraction()
                     invalidateStructure()
                     performClick()
                     return true
