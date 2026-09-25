@@ -132,4 +132,4 @@ jobs:
             adb shell ime enable com.goreecloud.keyboard.dev/com.goreecloud.keyboard.KeyboardService
             adb shell ime set com.goreecloud.keyboard.dev/com.goreecloud.keyboard.KeyboardService
             DEFAULT_IME="$(adb shell settings get secure default_input_method | tr -d '\r')"; echo "Android default IME: $DEFAULT_IME"; [ "$DEFAULT_IME" = "com.goreecloud.keyboard.dev/com.goreecloud.keyboard.KeyboardService" ]
-            adb shell ime list -s | tr -d '\r' | grep -E -x 'com\.goreecloud\.keyboard/(\.KeyboardService|com\.goreecloud\.keyboard\.KeyboardService)'
+            adb shell ime list -s | tr -d '\r' | grep -F -x 'com.goreecloud.keyboard.dev/com.goreecloud.keyboard.KeyboardService'
