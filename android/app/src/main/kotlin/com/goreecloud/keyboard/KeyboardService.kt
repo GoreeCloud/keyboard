@@ -18,6 +18,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private val suggestionEngine = SuggestionEngine()
     private val swipeTypingEngine = SwipeTypingEngine()
     private val composingWord = StringBuilder()
+    private var composingStartsCapitalized = false
     private var presentedSuggestions: List<String> = emptyList()
 
     override fun onCreateInputView(): View {
@@ -67,6 +68,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onDestroy() {
         composingWord.clear()
+        composingStartsCapitalized = false
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
         keyboardView = null
@@ -77,9 +79,19 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         if (value.isEmpty()) return
         val isLetterText = value.codePoints().allMatch { Character.isLetter(it) }
         val output = if (shifted && isLetterText) value.uppercase() else value
+
+        if (!isLetterText && value in AUTOCORRECT_BOUNDARIES) {
+            commitBoundary(value)
+            return
+        }
+
         currentInputConnection?.commitText(output, 1)
         if (!suggestionsSuppressed) {
             if (isLetterText) {
+                if (composingWord.isEmpty()) {
+                    composingStartsCapitalized =
+                        output.codePointAt(0).let { Character.isUpperCase(it) }
+                }
                 val normalized = output.lowercase()
                 if (!composingCaptureExhausted &&
                     SuggestionCapturePolicy.canAppend(composingWord.toString(), normalized)
@@ -89,6 +101,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                     // Keep committed typing authoritative in the host, but stop retaining local
                     // mid-word context once the bounded suggestion observation window is exhausted.
                     composingWord.clear()
+                    composingStartsCapitalized = false
                     composingCaptureExhausted = true
                 }
             } else {
@@ -104,9 +117,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSpace() {
-        currentInputConnection?.commitText(" ", 1)
-        clearComposingBoundary()
-        updateSuggestions()
+        commitBoundary(" ")
     }
 
     override fun onSwipe(keyPath: List<String>) {
@@ -114,7 +125,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         val connection = currentInputConnection ?: return
         val candidate = swipeTypingEngine.decode(
             keyPath = keyPath,
-            dictionary = QuillLexicon.english,
+            dictionary = QuillLexicon.expandedEnglish,
             limit = 1,
         ).firstOrNull() ?: return
 
@@ -157,6 +168,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         if (!suggestionsSuppressed && !composingCaptureExhausted && composingWord.isNotEmpty()) {
             val lastCodePointStart = composingWord.offsetByCodePoints(composingWord.length, -1)
             composingWord.delete(lastCodePointStart, composingWord.length)
+            if (composingWord.isEmpty()) composingStartsCapitalized = false
         }
         // If capture was exhausted, do not guess that backspace reconstructed a complete prefix.
         // Stay suppressed until a word/editor boundary provides a clean local observation start.
@@ -257,11 +269,58 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private fun clearComposingBoundary() {
         composingWord.clear()
+        composingStartsCapitalized = false
         composingCaptureExhausted = false
     }
 
+    private fun commitBoundary(separator: String) {
+        val connection = currentInputConnection ?: return
+        var committedCorrection = false
+
+        if (!suggestionsSuppressed &&
+            !sensitiveInput &&
+            !composingCaptureExhausted &&
+            composingWord.isNotEmpty()
+        ) {
+            val prefix = composingWord.toString()
+            val correction = suggestionEngine.bestAutocorrection(
+                word = prefix,
+                dictionary = QuillLexicon.expandedEnglish,
+            )
+            if (correction != null) {
+                val beforeCursor = connection.getTextBeforeCursor(prefix.length, 0)
+                if (SuggestionCommitPolicy.matchesExpectedPrefix(prefix, beforeCursor)) {
+                    val prefixCodePoints = prefix.codePointCount(0, prefix.length)
+                    connection.deleteSurroundingTextInCodePoints(prefixCodePoints, 0)
+                    connection.commitText(formatCandidateCase(correction) + separator, 1)
+                    committedCorrection = true
+                } else {
+                    // The host editor moved or changed independently. Never delete text against a
+                    // stale local prefix merely to force an autocorrection.
+                    composingCaptureExhausted = true
+                }
+            }
+        }
+
+        if (!committedCorrection) {
+            connection.commitText(separator, 1)
+        }
+        clearComposingBoundary()
+        updateSuggestions()
+    }
+
+    private fun formatCandidateCase(candidate: String): String =
+        if (composingStartsCapitalized) {
+            candidate.replaceFirstChar { first ->
+                if (first.isLowerCase()) first.titlecase() else first.toString()
+            }
+        } else {
+            candidate
+        }
+
     private fun failClosedBackspaceContext() {
         composingWord.clear()
+        composingStartsCapitalized = false
         composingCaptureExhausted = true
         presentedSuggestions = emptyList()
         keyboardView?.setSuggestions(emptyList())
@@ -273,14 +332,16 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             keyboardView?.setSuggestions(emptyList())
             return
         }
-        presentedSuggestions = if (composingWord.isEmpty()) {
-            QuillLexicon.starterSuggestions
-        } else {
-            suggestionEngine.suggest(
-                prefix = composingWord.toString(),
-                dictionary = QuillLexicon.english,
-            )
-        }.take(3)
+        if (composingWord.isEmpty()) {
+            presentedSuggestions = emptyList()
+            keyboardView?.setSuggestions(emptyList())
+            return
+        }
+
+        presentedSuggestions = suggestionEngine.suggest(
+            prefix = composingWord.toString(),
+            dictionary = QuillLexicon.expandedEnglish,
+        ).map(::formatCandidateCase).take(3)
         keyboardView?.setSuggestions(presentedSuggestions)
     }
 
@@ -296,5 +357,6 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private companion object {
         const val BACKSPACE_LOOKBEHIND_UTF16 = 64
+        val AUTOCORRECT_BOUNDARIES = setOf(".", ",", "!", "?", ";", ":")
     }
 }
