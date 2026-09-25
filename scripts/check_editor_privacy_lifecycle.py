@@ -127,10 +127,16 @@ def main() -> None:
         policy_source,
         (
             "fun shouldSuppress(inputType: Int, imeOptions: Int = 0)",
-            "EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING",
-            "imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0",
+            "InputPrivacyClassifier.isSensitive(inputType)",
+            "InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS",
+            "IME_FLAG_NO_PERSONALIZED_LEARNING",
+            "current Quill path does not persist a learned user model",
         ),
     )
+    if "imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0" in policy_source:
+        fail(
+            "no-personalized-learning must disable learning, not deterministic transient local suggestions"
+        )
 
     null_policy = """if (info == null) {
             // Unknown editor metadata must not silently receive ordinary-field privileges. Treat it
@@ -165,8 +171,9 @@ def main() -> None:
     print(
         "Keyboard editor privacy lifecycle boundary passed: inactive/no-editor state is fail-closed; "
         "current editor policy is applied at onStartInput/onStartInputView; null editor metadata "
-        "remains sensitive and suggestions-suppressed; IME no-personalized-learning requests suppress "
-        "transient suggestion capture; composing, shift, layer, and visible candidates are cleared at "
+        "remains sensitive and suggestions-suppressed; host no-suggestions requests suppress local "
+        "candidates while no-personalized-learning remains compatible with the current non-learning "
+        "transient Quill path; composing, shift, layer, and visible candidates are cleared at "
         "both onFinishInput and onFinishInputView."
     )
 
