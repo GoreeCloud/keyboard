@@ -228,7 +228,7 @@ class KeyboardView @JvmOverloads constructor(
                 characterRows[0].map(::textKey),
                 characterRows[1].map(::textKey),
                 listOf(Key("⇧", 1.25f, Action.SHIFT)) + characterRows[2].map(::textKey) + listOf(Key("⌫", 1.25f, Action.BACKSPACE)),
-                listOf(Key("?123", 1.3f, Action.SYMBOLS), Key("☺", 1.05f, Action.EMOJI), Key("space", 4.65f, Action.SPACE), Key("↵", 1.3f, Action.ENTER)),
+                listOf(Key("?123", 1.2f, Action.SYMBOLS), Key("☺", 0.95f, Action.EMOJI), Key("space", 3.8f, Action.SPACE), Key(".", 0.9f, Action.TEXT), Key("↵", 1.2f, Action.ENTER)),
             )
             KeyboardLayer.SYMBOLS -> listOf(
                 characterRows[0].map(::textKey),
