@@ -11,8 +11,8 @@ android {
         applicationId = "com.goreecloud.keyboard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.1.3-dev"
+        versionCode = 5
+        versionName = "0.1.4-dev"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -22,7 +22,7 @@ android {
             // package a version-scoped application ID so it installs alongside a preinstalled
             // com.goreecloud.keyboard build instead of Android treating it as an incompatible
             // signature update.
-            applicationIdSuffix = ".dev.v4"
+            applicationIdSuffix = ".dev.v5"
         }
 
         release {
