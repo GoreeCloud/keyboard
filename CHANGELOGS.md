@@ -5,7 +5,7 @@
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current governance baseline:** `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1` (PR #79).  
-**Current runtime-bearing baseline:** `cb57224dd904a54e35f0e01146d4109b357d6eb7` (PR #91); exact-main Android CI #288 / run `36194656484` passed.  
+**Current runtime-bearing baseline:** `64d5ed5b600e247630accceaa3f5ba8be26b3143` (PR #93); exact-main Android CI #294 / run `36196662346` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Authority and interpretation
@@ -45,6 +45,7 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 - Increased preferred IME sizing for the five-row letters surface to 320 dp ordinarily and 364 dp under Touch Assistance, while Android retains final measurement authority.
 - Incremented the Development package to `versionCode 5` / `0.1.4-dev` and the side-by-side CI test package identity to `com.goreecloud.keyboard.dev.v5`.
 - Added unit/runtime coverage for the one-to-three candidate contract and always-visible number row.
+- PR #93 merged to authoritative `main` as `64d5ed5b600e247630accceaa3f5ba8be26b3143`; exact-main Android CI #294 / run `36196662346` passed, including unit tests, APK build/provenance, Android 15 runtime instrumentation, and IME activation.
 - These changes remain Development behavior and do not establish physical-device, Production, Release Candidate, or Stable acceptance.
 
 
