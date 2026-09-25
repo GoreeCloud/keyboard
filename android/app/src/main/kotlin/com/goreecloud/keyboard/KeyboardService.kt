@@ -16,15 +16,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var composingCaptureExhausted = false
     private var keyboardView: KeyboardView? = null
     private val suggestionEngine = SuggestionEngine()
+    private val swipeTypingEngine = SwipeTypingEngine()
     private val composingWord = StringBuilder()
     private var presentedSuggestions: List<String> = emptyList()
-
-    private val bootstrapDictionary = listOf(
-        "about", "after", "again", "because", "before", "cloud", "could", "family",
-        "goreecloud", "hello", "keyboard", "message", "native", "privacy", "secure",
-        "security", "suggestion", "thanks", "there", "their", "these", "typing", "where",
-        "which", "would", "write", "writing"
-    )
 
     override fun onCreateInputView(): View {
         return KeyboardView(this).also { view ->
@@ -32,6 +26,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             view.listener = this
             view.setLayer(KeyboardLayer.LETTERS)
             view.setShifted(shifted)
+            view.setSwipeTypingEnabled(!sensitiveInput)
             view.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
             updateSuggestions()
         }
@@ -111,6 +106,29 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     override fun onSpace() {
         currentInputConnection?.commitText(" ", 1)
         clearComposingBoundary()
+        updateSuggestions()
+    }
+
+    override fun onSwipe(keyPath: List<String>) {
+        if (sensitiveInput || keyPath.isEmpty()) return
+        val candidate = swipeTypingEngine.decode(
+            keyPath = keyPath,
+            dictionary = QuillLexicon.english,
+            limit = 1,
+        ).firstOrNull() ?: return
+
+        val output = if (shifted) {
+            candidate.replaceFirstChar { first ->
+                if (first.isLowerCase()) first.titlecase() else first.toString()
+            }
+        } else {
+            candidate
+        }
+
+        currentInputConnection?.commitText("$output ", 1)
+        clearComposingBoundary()
+        shifted = false
+        keyboardView?.setShifted(false)
         updateSuggestions()
     }
 
@@ -215,6 +233,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         val inputType = info.inputType
         sensitiveInput = InputPrivacyClassifier.isSensitive(inputType)
         suggestionsSuppressed = EditorSuggestionPolicy.shouldSuppress(inputType, info.imeOptions)
+        keyboardView?.setSwipeTypingEnabled(!sensitiveInput)
     }
 
     private fun resetEditorSession() {
@@ -228,6 +247,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         presentedSuggestions = emptyList()
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setShifted(false)
+        keyboardView?.setSwipeTypingEnabled(false)
         // No active editor owns suggestion presentation after teardown. Clear the visible strip
         // rather than repopulating bootstrap candidates until a subsequent editor session starts.
         keyboardView?.setSuggestions(emptyList())
@@ -251,10 +271,14 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             keyboardView?.setSuggestions(emptyList())
             return
         }
-        presentedSuggestions = suggestionEngine.suggest(
-            prefix = composingWord.toString(),
-            dictionary = bootstrapDictionary
-        ).toList()
+        presentedSuggestions = if (composingWord.isEmpty()) {
+            QuillLexicon.starterSuggestions
+        } else {
+            suggestionEngine.suggest(
+                prefix = composingWord.toString(),
+                dictionary = QuillLexicon.english,
+            )
+        }.take(3)
         keyboardView?.setSuggestions(presentedSuggestions)
     }
 
