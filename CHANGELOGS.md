@@ -5,7 +5,7 @@
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current governance baseline:** `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1` (PR #79).  
-**Current runtime-bearing baseline:** `7313b5981fe309efbc4241bae5d79e61c630c751` (PR #85); exact-main Android CI #275 / run `36186867768` passed.  
+**Current runtime-bearing baseline:** `cb57224dd904a54e35f0e01146d4109b357d6eb7` (PR #91); exact-main Android CI #288 / run `36194656484` passed.n Android CI #275 / run `36186867768` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Authority and interpretation
@@ -44,7 +44,7 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 - Replaced literal crossed-key swipe matching with QWERTY geometry-aware route scoring, ordered letter coverage, detour scoring, and packaged-dictionary frequency ranking.
 - Added unit coverage for frequency-ranked suggestions, autocorrect, expanded dictionary forms, and geometry-aware swipe decoding.
 - Incremented the Development package to `versionCode 4` / `0.1.3-dev` and the side-by-side test package identity to `com.goreecloud.keyboard.dev.v4` so this CI-signed build does not need to replace earlier Development or preinstalled system copies.
-- These changes remain Development behavior and do not establish physical-device, Production, Release Candidate, or Stable acceptance.
+- PR #91 merged to authoritative `main` as `cb57224dd904a54e35f0e01146d4109b357d6eb7`; exact-main Android CI #288 / run `36194656484` passed, including unit tests, APK build/provenance, Android 15 runtime instrumentation, and IME activation.\n- These changes remain Development behavior and do not establish physical-device, Production, Release Candidate, or Stable acceptance.
 
 
 ### September 25, 2026 — Development APK installability isolation

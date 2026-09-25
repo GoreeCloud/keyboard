@@ -5,7 +5,7 @@
 **Lifecycle:** Development / nonconformant  
 **Repository version:** `0.1.3-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
-**Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `7313b5981fe309efbc4241bae5d79e61c630c751` (PR #85), with exact-main Android CI #275 / run `36186867768` passed.  
+**Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `cb57224dd904a54e35f0e01146d4109b357d6eb7` (PR #91), with exact-main Android CI #288 / run `36194656484` passed.native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `7313b5981fe309efbc4241bae5d79e61c630c751` (PR #85), with exact-main Android CI #275 / run `36186867768` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Purpose and migration sources

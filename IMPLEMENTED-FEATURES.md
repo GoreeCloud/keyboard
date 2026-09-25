@@ -5,14 +5,14 @@
 **Lifecycle:** Development / nonconformant  
 **Repository version:** `0.1.3-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
-**Current runtime-bearing baseline:** `7313b5981fe309efbc4241bae5d79e61c630c751`, merge of PR #85 on September 25, 2026; exact-main Android CI #275 / run `36186867768` passed.  
+**Current runtime-bearing baseline:** `cb57224dd904a54e35f0e01146d4109b357d6eb7`, merge of PR #91 on September 25, 2026; exact-main Android CI #288 / run `36194656484` passed.n September 25, 2026; exact-main Android CI #275 / run `36186867768` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Interpretation
 
 This record describes capabilities accepted on authoritative `main`. It does not promote open Draft pull requests, historical Drive roadmap wording, or superseded Glaze adoption claims into current implementation state.
 
-Authoritative `main` includes the repository-native governance migration at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; exact-main Android CI #264 / run `35758772834` passed on that revision. The current runtime-bearing capability baseline is `7313b5981fe309efbc4241bae5d79e61c630c751` from PR #85; exact-main Android CI #275 / run `36186867768` passed on that merge. Source/build/emulator success does not establish representative physical-device, Production, Release Candidate, or Stable acceptance.
+Authoritative `main` includes the repository-native governance migration at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; exact-main Android CI #264 / run `35758772834` passed on that revision. The current runtime-bearing capability baseline is `cb57224dd904a54e35f0e01146d4109b357d6eb7` from PR #91; exact-main Android CI #288 / run `36194656484` passed on that merge. Source/build/emulator success does not establish representative physical-device, Production, Release Candidate, or Stable acceptance.
 
 Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older open stacked Drafts remain candidate-only and are not represented as accepted behavior below.
 
