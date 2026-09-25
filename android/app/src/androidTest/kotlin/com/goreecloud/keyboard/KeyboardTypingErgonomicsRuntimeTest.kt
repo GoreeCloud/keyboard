@@ -121,13 +121,50 @@ class KeyboardTypingErgonomicsRuntimeTest {
             override fun onLayerChanged(layer: KeyboardLayer) = Unit
         }
 
-        dispatch(view, MotionEvent.ACTION_DOWN, h.centerX(), h.centerY())
-        dispatch(view, MotionEvent.ACTION_MOVE, e.centerX(), e.centerY())
-        dispatch(view, MotionEvent.ACTION_MOVE, l.centerX(), l.centerY())
-        dispatch(view, MotionEvent.ACTION_UP, o.centerX(), o.centerY())
+        dispatch(view, MotionEvent.ACTION_DOWN, h.centerX(), h.centerY(), eventTime = 0L)
+        dispatch(view, MotionEvent.ACTION_MOVE, e.centerX(), e.centerY(), eventTime = 80L)
+        dispatch(view, MotionEvent.ACTION_MOVE, l.centerX(), l.centerY(), eventTime = 145L)
+        dispatch(view, MotionEvent.ACTION_UP, o.centerX(), o.centerY(), eventTime = 210L)
 
         assertEquals(listOf(listOf("h", "e", "l", "o")), traces)
         assertTrue("Swipe typing must not also commit the release key as a tap", taps.isEmpty())
+    }
+
+    @Test
+    fun fastTwoKeySlipDoesNotBecomeSwipeTyping() {
+        val view = createRenderedKeyboard()
+        view.setSwipeTypingEnabled(true)
+        renderIntoExistingSize(view)
+
+        val targets = view.accessibilityTargets()
+        val h = targets.first { it.label == "h" }.bounds
+        val j = targets.first { it.label == "j" }.bounds
+        val traces = mutableListOf<List<String>>()
+        val taps = mutableListOf<String>()
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) {
+                taps += value
+            }
+
+            override fun onSwipe(keyPath: List<String>) {
+                traces += keyPath
+            }
+
+            override fun onSpace() = Unit
+            override fun onBackspace() = Unit
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        dispatch(view, MotionEvent.ACTION_DOWN, h.centerX(), h.centerY(), eventTime = 0L)
+        dispatch(view, MotionEvent.ACTION_MOVE, j.centerX(), j.centerY(), eventTime = 20L)
+        dispatch(view, MotionEvent.ACTION_UP, j.centerX(), j.centerY(), eventTime = 35L)
+
+        assertTrue("A quick two-key slip must not trigger swipe decoding", traces.isEmpty())
+        assertEquals(listOf("j"), taps)
     }
 
     private fun createRenderedKeyboard(): KeyboardView {
@@ -159,8 +196,14 @@ class KeyboardTypingErgonomicsRuntimeTest {
         )
     }
 
-    private fun dispatch(view: KeyboardView, action: Int, x: Float, y: Float) {
-        val event = MotionEvent.obtain(0L, 0L, action, x, y, 0)
+    private fun dispatch(
+        view: KeyboardView,
+        action: Int,
+        x: Float,
+        y: Float,
+        eventTime: Long = 0L,
+    ) {
+        val event = MotionEvent.obtain(0L, eventTime, action, x, y, 0)
         try {
             view.dispatchTouchEvent(event)
         } finally {
