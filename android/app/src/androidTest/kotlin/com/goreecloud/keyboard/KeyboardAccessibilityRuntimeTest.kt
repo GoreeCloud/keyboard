@@ -54,6 +54,20 @@ class KeyboardAccessibilityRuntimeTest {
     }
 
     @Test
+    fun lettersExposeDirectPeriodKeyThroughTheRealTextPath() {
+        val view = createRenderedKeyboard()
+        val period = view.accessibilityTargets().first { it.label == "." }
+        val committed = mutableListOf<String>()
+        view.listener = listener(onText = { committed += it })
+
+        assertTrue(
+            "Direct period key must activate through the normal text listener",
+            view.performAccessibilityTarget(period.id),
+        )
+        assertEquals(listOf("."), committed)
+    }
+
+    @Test
     fun longPressAlternatesAreDiscoverableAndActionableThroughNativeNodeActions() {
         val view = createRenderedKeyboard()
         val a = view.accessibilityTargets().first { it.label == "a" }
