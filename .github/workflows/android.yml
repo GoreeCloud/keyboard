@@ -72,7 +72,7 @@ jobs:
           cat > "$ARTIFACT_ROOT/BUILD-PROVENANCE.txt" <<EOF
           repository=GoreeCloud/keyboard
           source_sha=$SOURCE_SHA
-          version_name=0.1.0-dev
+          version_name=0.1.1-dev
           application_id=com.goreecloud.keyboard
           artifact_role=android-keyboard-development-acceptance
           signing_role=ci-debug-installability-only
