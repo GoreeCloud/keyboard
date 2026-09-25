@@ -32,6 +32,7 @@ class KeyboardView @JvmOverloads constructor(
         fun onSuggestion(value: String)
         fun onLayerChanged(layer: KeyboardLayer)
         fun onOpenSettings() = Unit
+        fun onHideKeyboard() = Unit
     }
 
     var listener: Listener? = null
@@ -48,6 +49,7 @@ class KeyboardView @JvmOverloads constructor(
         SYMBOLS_MORE,
         EMOJI,
         SETTINGS,
+        HIDE,
         EMOJI_SEARCH_CLEAR,
         EMOJI_SEARCH_CLOSE,
     }
@@ -237,7 +239,8 @@ class KeyboardView @JvmOverloads constructor(
         val gap = GlazeKeyboardTokens.Space1Dp * density
         val topArea = GlazeKeyboardV16PresentationPolicy
             .interactionFloorDp(glazeV16PresentationContext) * density
-        val keyboardTop = topArea + GlazeKeyboardTokens.Space2Dp * density
+        val toolbarHeight = if (layer == KeyboardLayer.EMOJI) 0f else topArea
+        val keyboardTop = topArea + toolbarHeight + GlazeKeyboardTokens.Space2Dp * density
         val bottomSafeGap = GlazeKeyboardTokens.BottomSafeGapDp * density
         val contentBottom = max(
             keyboardTop + rows.size,
@@ -248,6 +251,14 @@ class KeyboardView @JvmOverloads constructor(
         val keyRadius = GlazeKeyboardTokens.RadiusMediumDp * density
 
         drawSuggestionStrip(canvas, horizontalPadding, topArea)
+        if (toolbarHeight > 0f) {
+            drawUtilityToolbar(
+                canvas = canvas,
+                horizontalPadding = horizontalPadding,
+                top = topArea,
+                height = toolbarHeight,
+            )
+        }
 
         rows.forEachIndexed { rowIndex, row ->
             val totalWeight = row.sumOf { it.weight.toDouble() }.toFloat()
@@ -452,54 +463,19 @@ class KeyboardView @JvmOverloads constructor(
             return
         }
 
+        if (layer != KeyboardLayer.LETTERS || suggestions.isEmpty()) {
+            // Keep this region visually quiet when suggestions are unavailable. The utility toolbar
+            // is rendered separately below it, so no branded/status filler message is necessary.
+            return
+        }
+
         val density = resources.displayMetrics.density
-        val gap = GlazeKeyboardTokens.Space1Dp * density
         val verticalInset = GlazeKeyboardTokens.Space1Dp * density
         val radius = GlazeKeyboardTokens.RadiusMediumDp * density
-        val settingsHitBounds = RectF(
-            width - horizontalPadding - topArea,
-            0f,
-            width - horizontalPadding,
-            topArea,
-        )
-        val settingsVisualBounds = RectF(settingsHitBounds).apply { inset(0f, verticalInset) }
-        canvas.drawRoundRect(settingsVisualBounds, radius, radius, keyPaint)
-        canvas.drawRoundRect(settingsVisualBounds, radius, radius, utilityKeyOverlayPaint)
-        canvas.drawRoundRect(settingsVisualBounds, radius, radius, keyStrokePaint)
-        val settingsBaseline =
-            settingsVisualBounds.centerY() - (utilityTextPaint.descent() + utilityTextPaint.ascent()) / 2
-        canvas.drawText("⚙", settingsVisualBounds.centerX(), settingsBaseline, utilityTextPaint)
-        hitKeys += HitKey(settingsHitBounds, Key("⚙", action = Action.SETTINGS))
-
-        val contentRight = settingsHitBounds.left - gap
-        if (layer != KeyboardLayer.LETTERS) {
-            val baseline =
-                topArea / 2f - (suggestionHintPaint.descent() + suggestionHintPaint.ascent()) / 2
-            canvas.drawText(
-                "Symbols · local",
-                (horizontalPadding + contentRight) / 2f,
-                baseline,
-                suggestionHintPaint,
-            )
-            return
-        }
-
-        if (suggestions.isEmpty()) {
-            val baseline =
-                topArea / 2f - (suggestionHintPaint.descent() + suggestionHintPaint.ascent()) / 2
-            canvas.drawText(
-                "Quill · on-device",
-                (horizontalPadding + contentRight) / 2f,
-                baseline,
-                suggestionHintPaint,
-            )
-            return
-        }
-
         val stripBounds = RectF(
             horizontalPadding,
             verticalInset,
-            contentRight,
+            width - horizontalPadding,
             topArea - verticalInset,
         )
         canvas.drawRoundRect(stripBounds, radius, radius, suggestionSurfacePaint)
@@ -523,6 +499,53 @@ class KeyboardView @JvmOverloads constructor(
                 RectF(bounds.left, 0f, bounds.right, topArea),
                 suggestion,
             )
+        }
+    }
+
+    private fun drawUtilityToolbar(
+        canvas: Canvas,
+        horizontalPadding: Float,
+        top: Float,
+        height: Float,
+    ) {
+        val density = resources.displayMetrics.density
+        val gap = GlazeKeyboardTokens.Space1Dp * density
+        val verticalInset = GlazeKeyboardTokens.Space1Dp * density
+        val radius = GlazeKeyboardTokens.RadiusMediumDp * density
+        val actions = when (layer) {
+            KeyboardLayer.LETTERS -> listOf(
+                Key("☺", action = Action.EMOJI),
+                Key("?123", action = Action.SYMBOLS),
+                Key("⚙", action = Action.SETTINGS),
+                Key("⌄", action = Action.HIDE),
+            )
+            KeyboardLayer.SYMBOLS, KeyboardLayer.SYMBOLS_MORE -> listOf(
+                Key("ABC", action = Action.LETTERS),
+                Key("☺", action = Action.EMOJI),
+                Key("⚙", action = Action.SETTINGS),
+                Key("⌄", action = Action.HIDE),
+            )
+            KeyboardLayer.EMOJI -> emptyList()
+        }
+        if (actions.isEmpty()) return
+
+        val cellWidth = minOf(
+            64f * density,
+            (width - horizontalPadding * 2f - gap * (actions.size - 1)) / actions.size,
+        )
+        var left = horizontalPadding
+        actions.forEach { key ->
+            val hitBounds = RectF(left, top, left + cellWidth, top + height)
+            val visualBounds = RectF(hitBounds).apply { inset(0f, verticalInset) }
+            canvas.drawRoundRect(visualBounds, radius, radius, keyPaint)
+            canvas.drawRoundRect(visualBounds, radius, radius, utilityKeyOverlayPaint)
+            canvas.drawRoundRect(visualBounds, radius, radius, keyStrokePaint)
+            val labelPaint = keyLabelPaint(key)
+            val baseline =
+                visualBounds.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2
+            canvas.drawText(key.label, visualBounds.centerX(), baseline, labelPaint)
+            hitKeys += HitKey(hitBounds, key)
+            left += cellWidth + gap
         }
     }
 
@@ -873,6 +896,7 @@ class KeyboardView @JvmOverloads constructor(
         Action.SYMBOLS_MORE -> "More symbols"
         Action.EMOJI -> "Emoji"
         Action.SETTINGS -> "Keyboard settings"
+        Action.HIDE -> "Hide keyboard"
         Action.EMOJI_SEARCH_CLEAR -> "Clear emoji search"
         Action.EMOJI_SEARCH_CLOSE -> "Close emoji search"
     }
@@ -960,6 +984,7 @@ class KeyboardView @JvmOverloads constructor(
             Action.SYMBOLS_MORE -> switchLayer(KeyboardLayer.SYMBOLS_MORE)
             Action.EMOJI -> switchLayer(KeyboardLayer.EMOJI)
             Action.SETTINGS -> listener?.onOpenSettings()
+            Action.HIDE -> listener?.onHideKeyboard()
             Action.EMOJI_SEARCH_CLEAR -> {
                 emojiSearchSession.clear()
                 announceForAccessibility("Emoji search cleared")
