@@ -65,6 +65,39 @@ class GlazeKeyboardV12VisualStateRuntimeTest {
     }
 
     @Test
+    fun selectedShiftHasAVisualStateDistinctFromIdleUtilityKeys() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val view = KeyboardView(context).apply {
+            measure(
+                View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY),
+            )
+            layout(0, 0, measuredWidth, measuredHeight)
+        }
+
+        val initial = render(view)
+        initial.recycle()
+        val shiftBounds = view.accessibilityTargets().first { it.label == "Shift" }.bounds
+        val sampleX = shiftBounds.centerX().toInt()
+        val sampleY = shiftBounds.centerY().toInt()
+
+        val idle = render(view)
+        val idleColor = idle.getPixel(sampleX, sampleY)
+        idle.recycle()
+
+        view.setShifted(true)
+        val selected = render(view)
+        val selectedColor = selected.getPixel(sampleX, sampleY)
+        selected.recycle()
+
+        assertNotEquals(
+            "Selected Shift must be visibly distinct from the ordinary utility-key treatment",
+            idleColor,
+            selectedColor,
+        )
+    }
+
+    @Test
     fun cancelledPressClearsTransientPresentationWithoutCommitting() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val view = KeyboardView(context).apply {
