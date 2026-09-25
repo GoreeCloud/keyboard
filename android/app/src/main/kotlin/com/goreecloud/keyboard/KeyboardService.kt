@@ -19,13 +19,6 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private val composingWord = StringBuilder()
     private var presentedSuggestions: List<String> = emptyList()
 
-    private val bootstrapDictionary = listOf(
-        "about", "after", "again", "because", "before", "cloud", "could", "family",
-        "goreecloud", "hello", "keyboard", "message", "native", "privacy", "secure",
-        "security", "suggestion", "thanks", "there", "their", "these", "typing", "where",
-        "which", "would", "write", "writing"
-    )
-
     override fun onCreateInputView(): View {
         return KeyboardView(this).also { view ->
             keyboardView = view
@@ -109,7 +102,34 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSpace() {
-        currentInputConnection?.commitText(" ", 1)
+        val connection = currentInputConnection ?: return
+        if (!suggestionsSuppressed &&
+            !sensitiveInput &&
+            !composingCaptureExhausted &&
+            composingWord.isNotEmpty()
+        ) {
+            val prefix = composingWord.toString()
+            val correction = suggestionEngine.autocorrection(
+                prefix = prefix,
+                dictionary = LocalEnglishDictionary.words,
+            )
+            if (correction != null) {
+                val beforeCursor = connection.getTextBeforeCursor(prefix.length, 0)
+                if (SuggestionCommitPolicy.matchesExpectedPrefix(prefix, beforeCursor)) {
+                    val prefixCodePoints = prefix.codePointCount(0, prefix.length)
+                    connection.deleteSurroundingTextInCodePoints(prefixCodePoints, 0)
+                    connection.commitText(
+                        preserveTypedCase(correction, beforeCursor?.toString()) + " ",
+                        1,
+                    )
+                    clearComposingBoundary()
+                    updateSuggestions()
+                    return
+                }
+            }
+        }
+
+        connection.commitText(" ", 1)
         clearComposingBoundary()
         updateSuggestions()
     }
@@ -253,9 +273,21 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         }
         presentedSuggestions = suggestionEngine.suggest(
             prefix = composingWord.toString(),
-            dictionary = bootstrapDictionary
+            dictionary = LocalEnglishDictionary.words,
+            limit = 3,
         ).toList()
         keyboardView?.setSuggestions(presentedSuggestions)
+    }
+
+    private fun preserveTypedCase(candidate: String, actualPrefix: String?): String {
+        val actual = actualPrefix ?: return candidate
+        val letters = actual.filter(Char::isLetter)
+        return when {
+            letters.isNotEmpty() && letters.all(Char::isUpperCase) -> candidate.uppercase()
+            actual.firstOrNull()?.isUpperCase() == true ->
+                candidate.replaceFirstChar { char -> char.uppercase() }
+            else -> candidate
+        }
     }
 
     private fun currentGlazeV16PresentationSignals(): GlazeKeyboardV16PresentationSignals {
