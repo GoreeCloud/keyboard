@@ -41,7 +41,7 @@ class SwipeTypingEngineTest {
     fun remainsBoundedByRequestedLimit() {
         val result = engine.decode(
             keyPath = listOf("t", "h", "e"),
-            dictionary = listOf("the", "theme", "there", "these"),
+            dictionary = listOf("the", "tie", "tee", "time"),
             limit = 2,
         )
 
