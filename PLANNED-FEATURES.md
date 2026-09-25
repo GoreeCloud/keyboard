@@ -2,7 +2,7 @@
 
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
-**Lifecycle:** Development / nonconformant  
+**Lifecycle:** Weave / nonconformant; deployment state: development  
 **Repository version:** `0.1.4-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `64d5ed5b600e247630accceaa3f5ba8be26b3143` (PR #93), with exact-main Android CI #294 / run `36196662346` passed.  
@@ -16,7 +16,7 @@ This file carries forward material planned, partial, blocked, deferred, acceptan
 - current repository `README.md`, `FEATURES.md`, `SPECIFICATIONS.md`, `NOTES.md`, and Platform Contract evidence; and
 - verified authoritative `main`.
 
-The retired Drive roadmap's repository name `GoreeCloud/goreecloud-keyboard` was stale. Current repository identity is `GoreeCloud/keyboard`, as verified by live GitHub state and the accepted Platform Contract 0.4 declaration.
+The retired Drive roadmap's repository name `GoreeCloud/goreecloud-keyboard` was stale. Current repository identity is `GoreeCloud/keyboard`, as verified by live GitHub state and the accepted Platform Contract 2.0 declaration.
 
 Open Draft pull requests remain candidate-only. In particular, PR #78 and the older stacked Draft feature lines are not implementation authority.
 
@@ -37,12 +37,12 @@ Open Draft pull requests remain candidate-only. In particular, PR #78 and the ol
 ### P0 — Release and runtime acceptance
 - Complete representative Android host/editor/OEM/version testing.
 - Complete physical-device typing, long-press/slide/release, accessibility, latency, performance, power, and thermal acceptance.
-- Complete controlled production signing and key custody, provenance, distribution/update, rollback/recovery, Release Candidate qualification, production approval, and Stable qualification on exact revisions.
+- Complete controlled production signing and key custody, provenance, distribution/update, rollback/recovery, Seal qualification, production approval, and Anchor qualification on exact revisions.
 
 ## Product capability backlog
 
 ### Local typing quality and correction
-Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. The current Development path includes frequency-ordered local suggestions, conservative one-edit automatic correction, and a one-to-three candidate presentation contract for non-empty ordinary-text prefixes.
+Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. The current Weave-stage Development path includes frequency-ordered local suggestions, conservative one-edit automatic correction, and a one-to-three candidate presentation contract for non-empty ordinary-text prefixes.
 
 ### Spacebar cursor control
 The privacy-bounded cursor-control work represented by legacy FR-011 and Draft PRs #63/#64 is not accepted on current `main`. Draft PR #78 is a separate newer direct-main accessibility candidate. Any accepted cursor-control implementation must preserve ordinary Space behavior, bounded/fail-closed movement, privacy boundaries, RTL/BiDi correctness, accessibility, and representative physical-device ergonomics.
@@ -51,7 +51,7 @@ The privacy-bounded cursor-control work represented by legacy FR-011 and Draft P
 Implement first-party multilingual layouts, explicit language switching, locale-aware typing, script-appropriate editing, and RTL/BiDi correctness. Draft PR #65 and its stacked successors remain candidate history rather than accepted current behavior.
 
 ### Gesture/swipe typing
-A Development foundation now provides bounded local gesture capture and QWERTY geometry-aware packaged-dictionary decoding with no network, persistence, learning, editor reads, or clipboard/contact/account authority. Sensitive editors and touch-exploration presentation disable the gesture path. Continue improving recognition quality, multilingual models, ambiguity handling, accessibility behavior, performance, physical-device ergonomics, and representative acceptance before any broader maturity claim.
+A Weave-stage Development foundation now provides bounded local gesture capture and QWERTY geometry-aware packaged-dictionary decoding with no network, persistence, learning, editor reads, or clipboard/contact/account authority. Sensitive editors and touch-exploration presentation disable the gesture path. Continue improving recognition quality, multilingual models, ambiguity handling, accessibility behavior, performance, physical-device ergonomics, and representative acceptance before any broader maturity claim.
 
 ### Emoji, symbols, alternates, and discovery
 Expand the accepted local emoji/symbol/alternate foundations with broader Unicode/grapheme correctness, richer discovery, complete catalog/search/composition behavior, accessibility, and representative device acceptance.
@@ -86,9 +86,9 @@ Every legacy Drive roadmap identifier is accounted for below.
 | FR-001 | Superseded as an active roadmap-control row by the maintenance rules in the three repository-native records; the obligation to keep feature state current remains. |
 | FR-002 | Continues as GoreeCloud Tasks Management governance where work is actionable; it is not a product feature. |
 | FR-003 | The evidence-backed lifecycle rule remains. Its repository/Drive synchronization requirement is superseded: Drive roadmap/changelog mirroring is prohibited after migration. |
-| FR-010 | Implemented Development foundations are recorded in `IMPLEMENTED-FEATURES.md`; platform/privacy/production acceptance remains open here. |
+| FR-010 | Implemented Weave-stage foundations are recorded in `IMPLEMENTED-FEATURES.md`; platform/privacy/production acceptance remains open here. |
 | FR-011 | Remains open. Legacy Draft cursor-control candidates are not accepted current behavior. |
-| FR-012 | Partial Development foundation implemented; broader local typing/correction quality remains open. |
+| FR-012 | Partial Weave-stage foundation implemented; broader local typing/correction quality remains open. |
 | FR-013 | Remains open; Draft multilingual/Arabic work is candidate-only. |
 | FR-014 | Remains planned. |
 | FR-015 | Partial Development foundation implemented; richer discovery/correctness/acceptance remains open. |
@@ -99,9 +99,9 @@ Every legacy Drive roadmap identifier is accounted for below.
 | FR-020 | Partial local Quill foundation implemented; broader assistance remains open. |
 | FR-021 | One-field portability foundation implemented; broader backup/recovery/Everkeep acceptance remains open. |
 | FR-022 | Updated from the stale V1.3 target to current V1.6 authority. Partial V1.6 presentation context is implemented; full migration/acceptance remains open. |
-| FR-023 | Updated from the stale smaller platform-system list to the current nine-system Platform Contract 0.4 model. GLAZE UI remains migration-required and the other applicable system integrations remain blocked. |
+| FR-023 | Updated from the stale smaller platform-system list to the current nine-system Platform Contract 2.0 model. GLAZE UI remains migration-required and the other applicable system integrations remain blocked. |
 | FR-024 | Remains product direction only; no Apple implementation is claimed. |
-| FR-025 | Remains the exact-revision representative-test/signing/recovery/release/production/Stable gate. |
+| FR-025 | Remains the exact-revision representative-test/signing/recovery/release/production/Anchor gate. |
 
 ## Repository-governance obligations
 
