@@ -6,9 +6,11 @@ GoreeCloud Keyboard is currently a **Forge-stage** Android input-method implemen
 
 ## Enable the keyboard on Android
 
-After installing a Development build, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+Development APKs use the separate package `com.goreecloud.keyboard.dev` and the visible name **GoreeCloud Keyboard Dev**. This intentionally allows a Development build to install beside an older OEM/system-preinstalled GoreeCloud Keyboard without attempting to replace the system-signed package.
 
-Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard when a text field is active.
+After installing a Development build, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the development keyboard only if you intend to test it.
+
+Use Android's keyboard switcher or input-method selector to choose **GoreeCloud Keyboard Dev** when a text field is active. The preinstalled/system GoreeCloud Keyboard remains installed separately.
 
 Exact settings labels vary by Android device and version.
 
