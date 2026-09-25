@@ -35,6 +35,12 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Development package version 0.1.1-dev
+- Incremented Android `versionCode` from 1 to 2 and `versionName` from `0.1.0-dev` to `0.1.1-dev` so the stabilized typing build is distinguishable from earlier Development installs.
+- Updated CI artifact provenance to report `0.1.1-dev`.
+- No input behavior, privacy authority, platform maturity, production signing, Release Candidate, or Stable qualification is changed by the version increment.
+
+
 ### September 25, 2026 — Android typing ergonomics stabilization
 - Reserved Android navigation/system-gesture insets from the interactive keyboard area so the bottom row no longer occupies the gesture-navigation region.
 - Added direct comma and period keys to the letters-layer bottom row and centered the QWERTY home row for more conventional key geometry.
