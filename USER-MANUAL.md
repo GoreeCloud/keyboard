@@ -2,11 +2,11 @@
 
 ## Current availability
 
-GoreeCloud Keyboard is currently a **Development** Android input-method implementation. This manual describes behavior present in the repository source and Development builds. It does not claim a public production release, Stable qualification, representative physical-device acceptance, or current Apple-platform build.
+GoreeCloud Keyboard is currently a **Weave-stage** Android input-method implementation distributed as Development builds. This manual describes behavior present in the repository source and Development builds. It does not claim a public production release, Anchor qualification, representative physical-device acceptance, or current Apple-platform build.
 
 ## Install and enable the Development keyboard on Android
 
-Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev** with package ID `com.goreecloud.keyboard.dev.v3`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev** with package ID `com.goreecloud.keyboard.dev.v5`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
 When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
 
@@ -97,7 +97,7 @@ Complete V1.6 optical/component migration, Reduced Transparency/Motion acceptanc
 
 ## Current limitations
 
-The Development implementation does not yet claim production-grade gesture recognition, multilingual input, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, or Stable release acceptance.
+The Weave-stage implementation does not yet claim production-grade gesture recognition, multilingual input, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, Seal qualification, production acceptance, or Anchor acceptance.
 
 ## Privacy and security expectations
 
