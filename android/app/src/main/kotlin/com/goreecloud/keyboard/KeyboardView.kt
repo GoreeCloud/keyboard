@@ -72,6 +72,16 @@ class KeyboardView @JvmOverloads constructor(
         textSize = 20f * resources.displayMetrics.scaledDensity
         typeface = Typeface.create("sans", Typeface.NORMAL)
     }
+    private val utilityTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        textSize = 15f * resources.displayMetrics.scaledDensity
+        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+    }
+    private val spaceLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        textSize = 12f * resources.displayMetrics.scaledDensity
+        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+    }
     private val suggestionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         textSize = 14f * resources.displayMetrics.scaledDensity
@@ -85,6 +95,7 @@ class KeyboardView @JvmOverloads constructor(
     private val alternateSelectedPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val suggestionSurfacePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val utilityKeyOverlayPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val selectedUtilityKeyOverlayPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val suggestionDividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = resources.displayMetrics.density
@@ -217,7 +228,11 @@ class KeyboardView @JvmOverloads constructor(
         val topArea = GlazeKeyboardV16PresentationPolicy
             .interactionFloorDp(glazeV16PresentationContext) * density
         val keyboardTop = topArea + GlazeKeyboardTokens.Space2Dp * density
-        val contentBottom = max(keyboardTop + rows.size, height - bottomNavigationInsetPx.toFloat())
+        val bottomSafeGap = GlazeKeyboardTokens.BottomSafeGapDp * density
+        val contentBottom = max(
+            keyboardTop + rows.size,
+            height - bottomNavigationInsetPx.toFloat() - bottomSafeGap,
+        )
         val rowGapCount = (rows.size - 1).coerceAtLeast(0)
         val rowHeight = max(1f, (contentBottom - keyboardTop - gap * rowGapCount) / rows.size)
         val keyRadius = GlazeKeyboardTokens.RadiusMediumDp * density
@@ -236,7 +251,12 @@ class KeyboardView @JvmOverloads constructor(
                 val bounds = RectF(left, top, left + keyWidth, top + rowHeight)
                 canvas.drawRoundRect(bounds, keyRadius, keyRadius, keyPaint)
                 if (isUtilityKey(key)) {
-                    canvas.drawRoundRect(bounds, keyRadius, keyRadius, utilityKeyOverlayPaint)
+                    canvas.drawRoundRect(
+                        bounds,
+                        keyRadius,
+                        keyRadius,
+                        if (isSelectedUtilityKey(key)) selectedUtilityKeyOverlayPaint else utilityKeyOverlayPaint,
+                    )
                 }
                 if (isPressedKey(bounds)) {
                     canvas.drawRoundRect(bounds, keyRadius, keyRadius, pressedKeyPaint)
@@ -244,8 +264,9 @@ class KeyboardView @JvmOverloads constructor(
                 canvas.drawRoundRect(bounds, keyRadius, keyRadius, keyStrokePaint)
 
                 val label = renderedKeyLabel(key)
-                val baseline = bounds.centerY() - (textPaint.descent() + textPaint.ascent()) / 2
-                canvas.drawText(label, bounds.centerX(), baseline, textPaint)
+                val labelPaint = keyLabelPaint(key)
+                val baseline = bounds.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2
+                canvas.drawText(label, bounds.centerX(), baseline, labelPaint)
                 hitKeys += HitKey(bounds, key)
                 left += keyWidth + gap
             }
@@ -338,6 +359,21 @@ class KeyboardView @JvmOverloads constructor(
     private fun isUtilityKey(key: Key): Boolean =
         key.action !in setOf(Action.TEXT, Action.SPACE)
 
+    private fun isSelectedUtilityKey(key: Key): Boolean =
+        key.action == Action.SHIFT && shifted
+
+    private fun keyLabelPaint(key: Key): Paint = when {
+        key.action == Action.SPACE && layer == KeyboardLayer.LETTERS -> spaceLabelPaint
+        key.action in setOf(
+            Action.LETTERS,
+            Action.SYMBOLS,
+            Action.SYMBOLS_MORE,
+            Action.EMOJI_SEARCH_CLEAR,
+            Action.EMOJI_SEARCH_CLOSE,
+        ) -> utilityTextPaint
+        else -> textPaint
+    }
+
     private fun alternatesFor(hit: HitKey): List<String> {
         if (hit.key.action != Action.TEXT || layer == KeyboardLayer.EMOJI || emojiSearchSession.snapshot().active) {
             return emptyList()
@@ -365,12 +401,18 @@ class KeyboardView @JvmOverloads constructor(
         )
         keyStrokePaint.color = palette.lineArgb
         textPaint.color = palette.onSurfaceArgb
+        utilityTextPaint.color = palette.onSurfaceArgb
+        spaceLabelPaint.color = palette.onSurfaceMutedArgb
         suggestionPaint.color = palette.onSurfaceArgb
         suggestionHintPaint.color = palette.onSurfaceMutedArgb
         alternatePopupPaint.color = palette.canvasArgb
         alternateSelectedPaint.color = palette.surfaceArgb
         suggestionSurfacePaint.color = palette.surfaceArgb
         utilityKeyOverlayPaint.color = GlazeKeyboardTokens.stateOverlayArgb(
+            appearance,
+            GlazeKeyboardTokens.UtilityOverlayOpacity,
+        )
+        selectedUtilityKeyOverlayPaint.color = GlazeKeyboardTokens.stateOverlayArgb(
             appearance,
             GlazeKeyboardTokens.SelectedOverlayOpacity,
         )
@@ -425,7 +467,10 @@ class KeyboardView @JvmOverloads constructor(
             }
             val baseline = bounds.centerY() - (suggestionPaint.descent() + suggestionPaint.ascent()) / 2
             canvas.drawText(suggestion, bounds.centerX(), baseline, suggestionPaint)
-            hitSuggestions += HitSuggestion(bounds, suggestion)
+            hitSuggestions += HitSuggestion(
+                RectF(bounds.left, 0f, bounds.right, topArea),
+                suggestion,
+            )
         }
     }
 
@@ -755,7 +800,8 @@ class KeyboardView @JvmOverloads constructor(
         Action.TEXT -> renderedKeyLabel(key)
         Action.SHIFT -> "Shift"
         Action.BACKSPACE -> "Backspace"
-        Action.SPACE -> "Space"
+        Action.SPACE ->
+            if (layer == KeyboardLayer.LETTERS) "Space, English (US)" else "Space"
         Action.ENTER -> "Enter"
         Action.LETTERS -> "Letters"
         Action.SYMBOLS -> "Symbols"
