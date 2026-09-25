@@ -15,6 +15,11 @@ class QuillLexiconTest {
         assertTrue("typing" in words)
         assertTrue("messages" in words)
         assertTrue("suggestions" in words)
+        assertTrue("goreecloud" in words)
+        assertTrue("wardveil" in words)
+        assertTrue("everkeep" in words)
+        assertTrue("don't" in words)
+        assertTrue("doesn't" in words)
     }
 
     @Test
