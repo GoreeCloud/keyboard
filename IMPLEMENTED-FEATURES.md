@@ -2,7 +2,7 @@
 
 **Record type:** Repository implemented-feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
-**Lifecycle:** Development / nonconformant  
+**Lifecycle:** Weave / nonconformant; deployment state: development  
 **Repository version:** `0.1.4-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current runtime-bearing baseline:** `64d5ed5b600e247630accceaa3f5ba8be26b3143`, merge of PR #93 on September 25, 2026; exact-main Android CI #294 / run `36196662346` passed.  
@@ -12,11 +12,11 @@
 
 This record describes capabilities accepted on authoritative `main`. It does not promote open Draft pull requests, historical Drive roadmap wording, or superseded Glaze adoption claims into current implementation state.
 
-Authoritative `main` includes the repository-native governance migration at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; exact-main Android CI #264 / run `35758772834` passed on that revision. The current runtime-bearing capability baseline is `64d5ed5b600e247630accceaa3f5ba8be26b3143` from PR #93; exact-main Android CI #294 / run `36196662346` passed on that merge. Source/build/emulator success does not establish representative physical-device, Production, Release Candidate, or Stable acceptance.
+Authoritative `main` includes the repository-native governance migration at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; exact-main Android CI #264 / run `35758772834` passed on that revision. The current runtime-bearing capability baseline is `64d5ed5b600e247630accceaa3f5ba8be26b3143` from PR #93; exact-main Android CI #294 / run `36196662346` passed on that merge. Source/build/emulator success does not establish representative physical-device, production, Seal, or Anchor acceptance.
 
 Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older open stacked Drafts remain candidate-only and are not represented as accepted behavior below.
 
-## Implemented Development capabilities
+## Implemented Weave-stage capabilities
 
 ### Native Android IME foundation
 - First-party Android `InputMethodService` integration.
@@ -77,7 +77,7 @@ Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older o
 - Historical Experimental Glaze Motion evaluation remains test-only and is not a production dependency.
 
 ### Repository and platform control plane
-- Platform Contract 0.4 declaration with current repository identity `GoreeCloud/keyboard`.
+- Platform Contract 2.0 declaration with current repository identity `GoreeCloud/keyboard`, lifecycle `weave`, deployment state `development`, qualification state `in-progress`, and next gate `seal`.
 - Exactly nine Integral Platform Systems are declared: Manager, Privacy Shield, Wardveil Security, Everkeep, GLAZE UI, Mesh, Identity, Policy, and Observability.
 - GLAZE UI is `applicable-migration-required`; the other currently applicable system integrations remain blocked pending accepted evidence.
 - Android CI validates source/build/governance and an Android 15 emulator native-interaction/IME-activation path.
@@ -104,7 +104,7 @@ Current authoritative `main` does not establish:
 - broader Quill writing assistance beyond the local suggestion boundary;
 - Apple-platform keyboard implementation;
 - accepted runtime Privacy Shield, Wardveil Security, Everkeep, Manager, Mesh, Identity, Policy, or Observability integration;
-- Production Acceptance, Release Candidate qualification, or Stable qualification.
+- production acceptance, Seal qualification, or Anchor qualification.
 
 ## Maintenance rule
 
