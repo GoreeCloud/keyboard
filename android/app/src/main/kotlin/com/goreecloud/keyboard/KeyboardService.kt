@@ -1,7 +1,9 @@
 package com.goreecloud.keyboard
 
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
+import android.text.TextUtils
 import android.view.KeyEvent
 import android.view.View
 import android.view.accessibility.AccessibilityManager
@@ -18,17 +20,23 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var keyboardView: KeyboardView? = null
     private val suggestionEngine = SuggestionEngine()
     private val swipeTypingEngine = SwipeTypingEngine()
+    private val settingsStore by lazy { KeyboardSettingsStore(this) }
+    private var typingSettings = KeyboardTypingSettings()
     private val composingWord = StringBuilder()
+    private val committedHistory = mutableListOf<String>()
     private var composingStartsCapitalized = false
+    private var sentenceStartPending = false
     private var presentedSuggestions: List<String> = emptyList()
 
     override fun onCreateInputView(): View {
+        typingSettings = settingsStore.load()
         return KeyboardView(this).also { view ->
             keyboardView = view
             view.listener = this
             view.setLayer(KeyboardLayer.LETTERS)
             view.setShifted(shifted)
-            view.setSwipeTypingEnabled(!sensitiveInput)
+            view.setKeyHeightPreference(typingSettings.keyHeight)
+            view.setSwipeTypingEnabled(!sensitiveInput && typingSettings.swipeTypingEnabled)
             view.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
             updateSuggestions()
         }
@@ -43,8 +51,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         super.onStartInputView(info, restarting)
         beginEditorSession(info)
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
-        keyboardView?.setShifted(false)
+        keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
         keyboardView?.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
+        refreshAutomaticShift()
         updateSuggestions()
     }
 
@@ -62,6 +71,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         composingWord.clear()
         composingStartsCapitalized = false
         composingCaptureExhausted = false
+        committedHistory.clear()
+        sentenceStartPending = false
         presentedSuggestions = emptyList()
         keyboardView = null
         super.onDestroy()
@@ -75,7 +86,6 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         if (!isLetterText && value in AUTOCORRECT_BOUNDARIES) {
             commitBoundary(value)
-            resetOneShotShift()
             return
         }
 
@@ -83,6 +93,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         if (!suggestionsSuppressed) {
             if (isLetterText) {
+                sentenceStartPending = false
                 if (composingWord.isEmpty()) {
                     composingStartsCapitalized =
                         output.codePointAt(0).let { Character.isUpperCase(it) }
@@ -109,11 +120,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onSpace() {
         commitBoundary(" ")
-        resetOneShotShift()
     }
 
     override fun onSwipe(keyPath: List<String>) {
-        if (sensitiveInput || keyPath.isEmpty()) return
+        if (sensitiveInput || !typingSettings.swipeTypingEnabled || keyPath.isEmpty()) return
         val connection = currentInputConnection ?: return
 
         val candidate = swipeTypingEngine.decode(
@@ -131,6 +141,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         }
 
         connection.commitText("$output ", 1)
+        recordCommittedWord(output)
+        sentenceStartPending = false
         clearComposingBoundary()
         resetOneShotShift()
         updateSuggestions()
@@ -160,6 +172,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             val lastCodePointStart = composingWord.offsetByCodePoints(composingWord.length, -1)
             composingWord.delete(lastCodePointStart, composingWord.length)
             if (composingWord.isEmpty()) composingStartsCapitalized = false
+        } else if (composingWord.isEmpty()) {
+            // Cursor edits outside the locally tracked word invalidate transient prediction context.
+            committedHistory.clear()
+            sentenceStartPending = false
         }
 
         updateSuggestions()
@@ -170,6 +186,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
         connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
         clearComposingBoundary()
+        committedHistory.clear()
+        sentenceStartPending = true
+        applyAutomaticShiftIfNeeded()
         updateSuggestions()
     }
 
@@ -200,6 +219,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         }
 
         connection.commitText("$value ", 1)
+        recordCommittedWord(value)
+        sentenceStartPending = false
         clearComposingBoundary()
         resetOneShotShift()
         updateSuggestions()
@@ -209,16 +230,28 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         shifted = false
         clearComposingBoundary()
         keyboardView?.setShifted(false)
+        if (layer == KeyboardLayer.LETTERS) applyAutomaticShiftIfNeeded()
         updateSuggestions()
     }
 
+    override fun onOpenSettings() {
+        startActivity(
+            Intent(this, KeyboardSettingsActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
     private fun beginEditorSession(info: EditorInfo?) {
+        typingSettings = settingsStore.load()
         shifted = false
         composingWord.clear()
+        committedHistory.clear()
         composingStartsCapitalized = false
+        sentenceStartPending = false
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
         keyboardView?.setSuggestions(emptyList())
+        keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
         keyboardView?.setSwipeTypingEnabled(false)
 
         if (info == null) {
@@ -232,8 +265,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         val inputType = info.inputType
         sensitiveInput = InputPrivacyClassifier.isSensitive(inputType)
-        suggestionsSuppressed = EditorSuggestionPolicy.shouldSuppress(inputType, info.imeOptions)
-        keyboardView?.setSwipeTypingEnabled(!sensitiveInput)
+        suggestionsSuppressed =
+            EditorSuggestionPolicy.shouldSuppress(inputType, info.imeOptions) ||
+                !typingSettings.suggestionsEnabled
+        keyboardView?.setSwipeTypingEnabled(
+            !sensitiveInput && typingSettings.swipeTypingEnabled,
+        )
     }
 
     private fun resetEditorSession() {
@@ -241,7 +278,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         sensitiveInput = true
         suggestionsSuppressed = true
         composingWord.clear()
+        committedHistory.clear()
         composingStartsCapitalized = false
+        sentenceStartPending = false
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
@@ -258,25 +297,32 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private fun commitBoundary(separator: String) {
         val connection = currentInputConnection ?: return
+        val prefix = composingWord.toString()
         var committedCorrection = false
+        var committedWord: String? = prefix.takeIf { it.isNotEmpty() }
 
-        if (!suggestionsSuppressed &&
+        if (
+            typingSettings.autocorrectEnabled &&
+            !suggestionsSuppressed &&
             !sensitiveInput &&
             !composingCaptureExhausted &&
-            composingWord.isNotEmpty()
+            prefix.isNotEmpty()
         ) {
-            val prefix = composingWord.toString()
-            val correction = suggestionEngine.bestAutocorrection(
-                word = prefix,
-                dictionary = QuillLexicon.expandedEnglish,
-            )
+            val correction =
+                QuillPredictionModel.boundaryCorrection(prefix)
+                    ?: suggestionEngine.bestAutocorrection(
+                        word = prefix,
+                        dictionary = QuillLexicon.expandedEnglish,
+                    )
 
             if (correction != null) {
                 val beforeCursor = connection.getTextBeforeCursor(prefix.length, 0)
                 if (SuggestionCommitPolicy.matchesExpectedPrefix(prefix, beforeCursor)) {
                     val prefixCodePoints = prefix.codePointCount(0, prefix.length)
                     connection.deleteSurroundingTextInCodePoints(prefixCodePoints, 0)
-                    connection.commitText(formatCandidateCase(correction) + separator, 1)
+                    val formatted = formatCandidateCase(correction)
+                    connection.commitText(formatted + separator, 1)
+                    committedWord = formatted
                     committedCorrection = true
                 } else {
                     composingCaptureExhausted = true
@@ -286,6 +332,23 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         if (!committedCorrection) {
             connection.commitText(separator, 1)
+        }
+
+        committedWord?.let(::recordCommittedWord)
+
+        if (separator in SENTENCE_ENDINGS) {
+            committedHistory.clear()
+            sentenceStartPending = true
+            applyAutomaticShiftIfNeeded()
+        } else if (separator == " ") {
+            if (sentenceStartPending) {
+                applyAutomaticShiftIfNeeded()
+            } else {
+                resetOneShotShift()
+            }
+        } else {
+            sentenceStartPending = false
+            resetOneShotShift()
         }
 
         clearComposingBoundary()
@@ -303,25 +366,73 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private fun failClosedBackspaceContext() {
         composingWord.clear()
+        committedHistory.clear()
         composingStartsCapitalized = false
+        sentenceStartPending = false
         composingCaptureExhausted = true
         presentedSuggestions = emptyList()
         keyboardView?.setSuggestions(emptyList())
     }
 
+    private fun recordCommittedWord(word: String) {
+        val normalized = word.trim().lowercase()
+        if (normalized.isEmpty()) return
+        committedHistory += normalized
+        while (committedHistory.size > MAX_PREDICTION_HISTORY_WORDS) {
+            committedHistory.removeAt(0)
+        }
+    }
+
+    private fun formatPredictionCase(candidate: String): String =
+        if (sentenceStartPending) {
+            candidate.replaceFirstChar { first ->
+                if (first.isLowerCase()) first.titlecase() else first.toString()
+            }
+        } else {
+            candidate
+        }
+
     private fun updateSuggestions() {
-        if (suggestionsSuppressed || composingCaptureExhausted || composingWord.isEmpty()) {
+        if (suggestionsSuppressed || composingCaptureExhausted) {
             presentedSuggestions = emptyList()
             keyboardView?.setSuggestions(emptyList())
             return
         }
 
-        presentedSuggestions = suggestionEngine.suggest(
-            prefix = composingWord.toString(),
-            dictionary = QuillLexicon.expandedEnglish,
-        ).map(::formatCandidateCase).take(3)
+        presentedSuggestions = if (composingWord.isNotEmpty()) {
+            suggestionEngine.suggest(
+                prefix = composingWord.toString(),
+                dictionary = QuillLexicon.expandedEnglish,
+            ).map(::formatCandidateCase)
+        } else if (typingSettings.predictionsEnabled && !sentenceStartPending) {
+            QuillPredictionModel.predict(committedHistory).map(::formatPredictionCase)
+        } else {
+            emptyList()
+        }.take(3)
 
         keyboardView?.setSuggestions(presentedSuggestions)
+    }
+
+    private fun refreshAutomaticShift() {
+        if (
+            sensitiveInput ||
+            !typingSettings.autoCapitalizeEnabled
+        ) {
+            shifted = false
+            keyboardView?.setShifted(false)
+            return
+        }
+
+        val capsMode = currentInputConnection?.getCursorCapsMode(TextUtils.CAP_MODE_SENTENCES) ?: 0
+        shifted = capsMode and TextUtils.CAP_MODE_SENTENCES != 0
+        sentenceStartPending = shifted
+        keyboardView?.setShifted(shifted)
+    }
+
+    private fun applyAutomaticShiftIfNeeded() {
+        if (sensitiveInput || !typingSettings.autoCapitalizeEnabled || !sentenceStartPending) return
+        shifted = true
+        keyboardView?.setShifted(true)
     }
 
     private fun resetOneShotShift() {
@@ -343,6 +454,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private companion object {
         const val BACKSPACE_LOOKBEHIND_UTF16 = 64
+        const val MAX_PREDICTION_HISTORY_WORDS = 2
         val AUTOCORRECT_BOUNDARIES = setOf(".", ",", "!", "?", ";", ":")
+        val SENTENCE_ENDINGS = setOf(".", "!", "?")
     }
 }
