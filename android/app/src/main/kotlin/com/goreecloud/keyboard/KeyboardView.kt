@@ -84,6 +84,11 @@ class KeyboardView @JvmOverloads constructor(
     private val alternatePopupPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val alternateSelectedPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val suggestionSurfacePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val utilityKeyOverlayPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val suggestionDividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = resources.displayMetrics.density
+    }
     private val swipeTrailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
@@ -213,7 +218,8 @@ class KeyboardView @JvmOverloads constructor(
             .interactionFloorDp(glazeV16PresentationContext) * density
         val keyboardTop = topArea + GlazeKeyboardTokens.Space2Dp * density
         val contentBottom = max(keyboardTop + rows.size, height - bottomNavigationInsetPx.toFloat())
-        val rowHeight = max(1f, (contentBottom - keyboardTop - gap * 5) / rows.size)
+        val rowGapCount = (rows.size - 1).coerceAtLeast(0)
+        val rowHeight = max(1f, (contentBottom - keyboardTop - gap * rowGapCount) / rows.size)
         val keyRadius = GlazeKeyboardTokens.RadiusMediumDp * density
 
         drawSuggestionStrip(canvas, horizontalPadding, topArea)
@@ -229,6 +235,9 @@ class KeyboardView @JvmOverloads constructor(
                 val keyWidth = availableWidth * (key.weight / totalWeight)
                 val bounds = RectF(left, top, left + keyWidth, top + rowHeight)
                 canvas.drawRoundRect(bounds, keyRadius, keyRadius, keyPaint)
+                if (isUtilityKey(key)) {
+                    canvas.drawRoundRect(bounds, keyRadius, keyRadius, utilityKeyOverlayPaint)
+                }
                 if (isPressedKey(bounds)) {
                     canvas.drawRoundRect(bounds, keyRadius, keyRadius, pressedKeyPaint)
                 }
@@ -254,7 +263,7 @@ class KeyboardView @JvmOverloads constructor(
         gap: Float,
         horizontalPadding: Float,
     ): Float {
-        if (layer != KeyboardLayer.LETTERS || rowIndex != 1 || row.any { it.action != Action.TEXT }) {
+        if (layer != KeyboardLayer.LETTERS || rowIndex != 2 || row.any { it.action != Action.TEXT }) {
             return 0f
         }
         val topRowKeyWidth = (width - horizontalPadding * 2 - gap * 9) / 10f
@@ -284,6 +293,7 @@ class KeyboardView @JvmOverloads constructor(
         }
         return when (layer) {
             KeyboardLayer.LETTERS -> listOf(
+                DIGIT_ROW.map(::textKey),
                 characterRows[0].map(::textKey),
                 characterRows[1].map(::textKey),
                 listOf(Key("⇧", 1.25f, Action.SHIFT)) + characterRows[2].map(::textKey) + listOf(Key("⌫", 1.25f, Action.BACKSPACE)),
@@ -319,8 +329,14 @@ class KeyboardView @JvmOverloads constructor(
 
     private fun textKey(value: String): Key = Key(value, action = Action.TEXT)
 
-    private fun renderedKeyLabel(key: Key): String =
-        if (key.action == Action.TEXT && shifted && layer == KeyboardLayer.LETTERS) key.label.uppercase() else key.label
+    private fun renderedKeyLabel(key: Key): String = when {
+        key.action == Action.SPACE && layer == KeyboardLayer.LETTERS -> "English (US)"
+        key.action == Action.TEXT && shifted && layer == KeyboardLayer.LETTERS -> key.label.uppercase()
+        else -> key.label
+    }
+
+    private fun isUtilityKey(key: Key): Boolean =
+        key.action !in setOf(Action.TEXT, Action.SPACE)
 
     private fun alternatesFor(hit: HitKey): List<String> {
         if (hit.key.action != Action.TEXT || layer == KeyboardLayer.EMOJI || emojiSearchSession.snapshot().active) {
@@ -354,6 +370,11 @@ class KeyboardView @JvmOverloads constructor(
         alternatePopupPaint.color = palette.canvasArgb
         alternateSelectedPaint.color = palette.surfaceArgb
         suggestionSurfacePaint.color = palette.surfaceArgb
+        utilityKeyOverlayPaint.color = GlazeKeyboardTokens.stateOverlayArgb(
+            appearance,
+            GlazeKeyboardTokens.SelectedOverlayOpacity,
+        )
+        suggestionDividerPaint.color = palette.lineArgb
         swipeTrailPaint.color = palette.onSurfaceArgb
         swipeTrailPaint.alpha = 86
     }
@@ -379,15 +400,29 @@ class KeyboardView @JvmOverloads constructor(
             return
         }
 
-        val gap = GlazeKeyboardTokens.Space1Dp * resources.displayMetrics.density
-        val cellWidth = (width - horizontalPadding * 2 - gap * (suggestions.size - 1)) / suggestions.size
         val verticalInset = GlazeKeyboardTokens.Space1Dp * resources.displayMetrics.density
-        val radius = GlazeKeyboardTokens.OpticalCapsuleDp * resources.displayMetrics.density
+        val stripBounds = RectF(
+            horizontalPadding,
+            verticalInset,
+            width - horizontalPadding,
+            topArea - verticalInset,
+        )
+        val radius = GlazeKeyboardTokens.RadiusMediumDp * resources.displayMetrics.density
+        canvas.drawRoundRect(stripBounds, radius, radius, suggestionSurfacePaint)
+
+        val cellWidth = stripBounds.width() / suggestions.size
         suggestions.forEachIndexed { index, suggestion ->
-            val left = horizontalPadding + index * (cellWidth + gap)
-            val bounds = RectF(left, verticalInset, left + cellWidth, topArea - verticalInset)
-            canvas.drawRoundRect(bounds, radius, radius, suggestionSurfacePaint)
-            canvas.drawRoundRect(bounds, radius, radius, keyStrokePaint)
+            val left = stripBounds.left + cellWidth * index
+            val bounds = RectF(left, stripBounds.top, left + cellWidth, stripBounds.bottom)
+            if (index > 0) {
+                canvas.drawLine(
+                    bounds.left,
+                    bounds.top + GlazeKeyboardTokens.Space2Dp * resources.displayMetrics.density,
+                    bounds.left,
+                    bounds.bottom - GlazeKeyboardTokens.Space2Dp * resources.displayMetrics.density,
+                    suggestionDividerPaint,
+                )
+            }
             val baseline = bounds.centerY() - (suggestionPaint.descent() + suggestionPaint.ascent()) / 2
             canvas.drawText(suggestion, bounds.centerX(), baseline, suggestionPaint)
             hitSuggestions += HitSuggestion(bounds, suggestion)
@@ -859,5 +894,6 @@ class KeyboardView @JvmOverloads constructor(
         const val ACCESSIBILITY_EMOJI_CATEGORY_BASE = 3_000
         const val ACCESSIBILITY_EMOJI_SEARCH_RESULT_BASE = 4_000
         const val SWIPE_START_SLOP_MULTIPLIER = 1.35f
+        val DIGIT_ROW = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     }
 }
