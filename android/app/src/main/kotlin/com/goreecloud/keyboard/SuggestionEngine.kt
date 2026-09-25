@@ -14,13 +14,10 @@ class SuggestionEngine {
     fun suggest(prefix: String, dictionary: Collection<String>, limit: Int = 3): List<String> {
         if (prefix.isBlank() || limit <= 0) return emptyList()
 
+        val boundedLimit = limit.coerceAtMost(MAX_VISIBLE_SUGGESTIONS)
         val normalized = prefix.lowercase()
         val normalizedCodePointCount = codePointCount(normalized)
-        val candidates = dictionary
-            .asSequence()
-            .filter { it.isNotBlank() }
-            .distinctBy { it.lowercase() }
-            .toList()
+        val candidates = normalizedCandidates(dictionary)
 
         val prefixMatches = candidates
             .asSequence()
@@ -31,11 +28,50 @@ class SuggestionEngine {
             )
             .toList()
 
-        if (prefixMatches.size >= limit || normalizedCodePointCount < MIN_CORRECTION_LENGTH) {
-            return prefixMatches.take(limit)
+        val corrections = if (
+            prefixMatches.size < boundedLimit &&
+            normalizedCodePointCount >= MIN_CORRECTION_LENGTH
+        ) {
+            correctionCandidates(normalized, candidates)
+        } else {
+            emptyList()
         }
 
-        val corrections = candidates
+        val suggestions = (prefixMatches + corrections)
+            .distinctBy { it.lowercase() }
+            .take(boundedLimit)
+
+        // While the user is actively typing an ordinary word, keep one actionable item visible
+        // even when the packaged dictionary has no useful match. The local prefix itself is a
+        // no-network, no-learning "keep what I typed" candidate and preserves the 1..3 strip rule.
+        return if (suggestions.isNotEmpty()) suggestions else listOf(prefix).take(boundedLimit)
+    }
+
+    /**
+     * Returns a conservative automatic correction only when exactly one packaged dictionary word
+     * is one Unicode edit away. Prefix completions are deliberately excluded so Space never turns
+     * an incomplete word into an unsolicited completion.
+     */
+    fun autocorrection(prefix: String, dictionary: Collection<String>): String? {
+        if (prefix.isBlank() || codePointCount(prefix) < MIN_CORRECTION_LENGTH) return null
+
+        val normalized = prefix.lowercase()
+        val candidates = normalizedCandidates(dictionary)
+        if (candidates.any { it.equals(normalized, ignoreCase = true) }) return null
+
+        return correctionCandidates(normalized, candidates).singleOrNull()
+    }
+
+    private fun normalizedCandidates(dictionary: Collection<String>): List<String> =
+        dictionary
+            .asSequence()
+            .filter { it.isNotBlank() }
+            .distinctBy { it.lowercase() }
+            .toList()
+
+    private fun correctionCandidates(normalized: String, candidates: Collection<String>): List<String> {
+        val normalizedCodePointCount = codePointCount(normalized)
+        return candidates
             .asSequence()
             .filterNot { it.startsWith(normalized, ignoreCase = true) }
             .filter { isSingleEditAway(normalized, it.lowercase()) }
@@ -47,8 +83,6 @@ class SuggestionEngine {
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it },
             )
             .toList()
-
-        return (prefixMatches + corrections).take(limit)
     }
 
     private fun isSingleEditAway(left: String, right: String): Boolean {
@@ -97,5 +131,6 @@ class SuggestionEngine {
 
     private companion object {
         const val MIN_CORRECTION_LENGTH = 3
+        const val MAX_VISIBLE_SUGGESTIONS = 3
     }
 }
