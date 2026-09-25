@@ -3,7 +3,7 @@
 **Record type:** Repository implemented-feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Development / nonconformant  
-**Repository version:** `0.1.1-dev`  
+**Repository version:** `0.1.2-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current runtime-bearing baseline:** `7313b5981fe309efbc4241bae5d79e61c630c751`, merge of PR #85 on September 25, 2026; exact-main Android CI #275 / run `36186867768` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
@@ -23,6 +23,7 @@ Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older o
 - First-party `KeyboardView` rendering, hit testing, pointer input, and Android input-method registration checks.
 - Native QWERTY letters with Shift, Backspace, Space, Enter, direct comma/period punctuation, and editor-action behavior.
 - Android navigation-bar/system-gesture insets are reserved from the key interaction area so bottom-row controls do not extend beneath system navigation.
+- CI/debug physical-test builds use the version-scoped package `com.goreecloud.keyboard.dev.v3` and the visible name **GoreeCloud Keyboard Dev**, so they install alongside a preinstalled `com.goreecloud.keyboard` package instead of attempting an incompatible signature update.
 - No Android network permission in the current application foundation.
 
 ### Local suggestions and gesture typing
@@ -97,7 +98,6 @@ Current authoritative `main` does not establish:
 - accepted spacebar cursor-control behavior from Draft PRs #63/#64 or Draft PR #78;
 - the Draft number-row or configurable utility-toolbar stacks;
 - accepted Arabic/multilingual layout work from Draft PR #65 or its stacked successors;
-- gesture/swipe typing;
 - system-wide GoreeCloud Secure Paste enforcement;
 - privacy-approved voice input or translation;
 - one-handed, floating, split, tablet, foldable, or posture-aware production layouts;
