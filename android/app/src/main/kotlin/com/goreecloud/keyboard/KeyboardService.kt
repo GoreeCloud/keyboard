@@ -111,6 +111,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onSwipe(keyPath: List<String>) {
         if (sensitiveInput || keyPath.isEmpty()) return
+        val connection = currentInputConnection ?: return
         val candidate = swipeTypingEngine.decode(
             keyPath = keyPath,
             dictionary = QuillLexicon.english,
@@ -125,7 +126,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             candidate
         }
 
-        currentInputConnection?.commitText("$output ", 1)
+        connection.commitText("$output ", 1)
         clearComposingBoundary()
         shifted = false
         keyboardView?.setShifted(false)
@@ -227,6 +228,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             // suppressed until Android provides a concrete EditorInfo for the active session.
             sensitiveInput = true
             suggestionsSuppressed = true
+            keyboardView?.setSwipeTypingEnabled(false)
             return
         }
 
