@@ -23,7 +23,9 @@ internal class SwipeTypingEngine {
         val scored = dictionary.asSequence()
             .filter { it.isNotBlank() }
             .distinctBy { it.lowercase() }
-            .mapNotNull { word ->
+            .withIndex()
+            .mapNotNull { indexed ->
+                val word = indexed.value
                 val normalizedWord = word.lowercase()
                 val wordTrace = collapseConsecutive(
                     normalizedWord.codePoints()
@@ -36,20 +38,27 @@ internal class SwipeTypingEngine {
                     return@mapNotNull null
                 }
 
-                val distance = editDistance(trace, wordTrace)
+                val isOrderedSubsequence = isSubsequence(wordTrace, trace)
+                val distance = if (isOrderedSubsequence) 0 else editDistance(trace, wordTrace)
                 val allowance = maxOf(1, wordTrace.size / 3)
-                if (distance > allowance) return@mapNotNull null
+                if (!isOrderedSubsequence && distance > allowance) return@mapNotNull null
 
                 Candidate(
                     word = word,
                     distance = distance,
-                    traceLengthDelta = abs(trace.size - wordTrace.size),
+                    traceLengthDelta = if (isOrderedSubsequence) {
+                        (trace.size - wordTrace.size).coerceAtLeast(0)
+                    } else {
+                        abs(trace.size - wordTrace.size)
+                    },
                     wordLength = normalizedWord.codePointCount(0, normalizedWord.length),
+                    dictionaryRank = indexed.index,
                 )
             }
             .sortedWith(
                 compareBy<Candidate> { it.distance }
                     .thenBy { it.traceLengthDelta }
+                    .thenBy { it.dictionaryRank }
                     .thenBy { it.wordLength }
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.word },
             )
@@ -75,6 +84,18 @@ internal class SwipeTypingEngine {
             if (result.lastOrNull() != value) result += value
         }
         return result
+    }
+
+    private fun isSubsequence(candidate: List<Int>, observed: List<Int>): Boolean {
+        if (candidate.isEmpty()) return true
+        var candidateIndex = 0
+        for (value in observed) {
+            if (value == candidate[candidateIndex]) {
+                candidateIndex++
+                if (candidateIndex == candidate.size) return true
+            }
+        }
+        return false
     }
 
     private fun editDistance(left: List<Int>, right: List<Int>): Int {
@@ -104,6 +125,7 @@ internal class SwipeTypingEngine {
         val distance: Int,
         val traceLengthDelta: Int,
         val wordLength: Int,
+        val dictionaryRank: Int,
     )
 
     private companion object {
