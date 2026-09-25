@@ -45,6 +45,7 @@ def main() -> None:
             'Action.BACKSPACE -> "Backspace"',
             '"Space, English (US)"',
             'Action.ENTER -> "Enter"',
+            'Action.SETTINGS -> "Keyboard settings"',
             "label = hit.entry.accessibilityLabel",
             'label = "Suggestion ${hit.value}"',
             "accessibilityDelegate.invalidateVirtualRoot()",
