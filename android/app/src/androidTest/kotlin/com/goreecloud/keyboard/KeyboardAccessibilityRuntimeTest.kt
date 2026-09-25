@@ -166,6 +166,7 @@ class KeyboardAccessibilityRuntimeTest {
         onSuggestion: (String) -> Unit = {},
     ) = object : KeyboardView.Listener {
         override fun onText(value: String) = onText(value)
+        override fun onSwipe(keyPath: List<String>) = Unit
         override fun onSpace() = Unit
         override fun onBackspace() = Unit
         override fun onEnter() = Unit
