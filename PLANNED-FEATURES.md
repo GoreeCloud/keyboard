@@ -51,7 +51,7 @@ The privacy-bounded cursor-control work represented by legacy FR-011 and Draft P
 Implement first-party multilingual layouts, explicit language switching, locale-aware typing, script-appropriate editing, and RTL/BiDi correctness. Draft PR #65 and its stacked successors remain candidate history rather than accepted current behavior.
 
 ### Gesture/swipe typing
-Add gesture/swipe typing only through a bounded, privacy-reviewed recognition path with explicit local/remote authority, retention, sensitive-editor behavior, accessibility, and representative performance acceptance.
+A Development foundation now provides bounded local gesture capture and packaged-lexicon decoding with no network, persistence, learning, editor reads, or clipboard/contact/account authority. Sensitive editors and touch-exploration presentation disable the gesture path. Continue improving recognition quality, multilingual models, correction quality, accessibility behavior, performance, physical-device ergonomics, and representative acceptance before any broader maturity claim.
 
 ### Emoji, symbols, alternates, and discovery
 Expand the accepted local emoji/symbol/alternate foundations with broader Unicode/grapheme correctness, richer discovery, complete catalog/search/composition behavior, accessibility, and representative device acceptance.

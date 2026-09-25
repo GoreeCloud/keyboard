@@ -21,8 +21,17 @@ Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older o
 ### Native Android IME foundation
 - First-party Android `InputMethodService` integration.
 - First-party `KeyboardView` rendering, hit testing, pointer input, and Android input-method registration checks.
-- Native QWERTY letters with Shift, Backspace, Space, Enter, and editor-action behavior already accepted on `main`.
+- Native QWERTY letters with Shift, Backspace, Space, Enter, direct comma/period punctuation, and editor-action behavior.
+- Android navigation-bar/system-gesture insets are reserved from the key interaction area so bottom-row controls do not extend beneath system navigation.
 - No Android network permission in the current application foundation.
+
+### Local suggestions and gesture typing
+- Packaged, local-only Quill English lexicon with deterministic prefix suggestions and bounded one-edit correction.
+- General starter suggestions are available in ordinary text editors before a prefix is entered; sensitive/no-suggestion editor policy remains authoritative.
+- First-party local swipe-typing gesture capture with an on-device dictionary decoder and visible gesture trail.
+- Swipe typing is disabled for sensitive editors and while touch exploration/screen-reader optimized presentation is active.
+- Swipe decoding does not read surrounding editor text, persist gesture traces, learn from typing, use accounts/contacts/clipboard data, emit telemetry, or use network access.
+- Suggestion candidates are presented as bounded Glaze-style touch surfaces rather than text-only strip labels.
 
 ### Symbols and Unicode-safe text input
 - First-party letters/symbols switching with `?123`, `ABC`, and a secondary `=\\<` symbol page.

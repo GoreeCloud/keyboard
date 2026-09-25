@@ -35,6 +35,16 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Android typing ergonomics stabilization
+- Reserved Android navigation/system-gesture insets from the interactive keyboard area so the bottom row no longer occupies the gesture-navigation region.
+- Added direct comma and period keys to the letters-layer bottom row and centered the QWERTY home row for more conventional key geometry.
+- Reworked the Quill suggestion strip into bounded Glaze-style candidate surfaces and expanded the packaged local lexicon so ordinary typing produces useful completions across a much broader everyday vocabulary.
+- Added general starter candidates for ordinary editors while retaining sensitive-field, no-suggestions, and no-personalized-learning suppression boundaries.
+- Added a bounded local swipe-typing gesture path, visible gesture trail, crossed-key-tolerant packaged-lexicon decoding, and runtime suppression for sensitive editors and touch-exploration presentation.
+- Added Android runtime coverage for bottom safe-area geometry, punctuation exposure, and swipe gesture emission plus local decoder unit coverage.
+- These changes remain Development behavior; they do not establish physical-device, Production, Release Candidate, or Stable acceptance.
+
+
 ### September 22, 2026 — Drive retirement completed and independently verified
 - Repository migration PR #79 merged to authoritative `main` as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`.
 - Exact candidate Android CI #263 passed on `249d252efe1da5fa1a8694044d751b940ed4403a`, including the repository feature/changelog governance guard, unit tests, APK build/provenance, and Android 15 native interaction/IME activation.
