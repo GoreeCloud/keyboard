@@ -11,12 +11,20 @@ android {
         applicationId = "com.goreecloud.keyboard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1-dev"
+        versionCode = 3
+        versionName = "0.1.2-dev"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            // CI debug signing is not production/system signing authority. Give this physical-test
+            // package a version-scoped application ID so it installs alongside a preinstalled
+            // com.goreecloud.keyboard build instead of Android treating it as an incompatible
+            // signature update.
+            applicationIdSuffix = ".dev.v3"
+        }
+
         release {
             isMinifyEnabled = false
             proguardFiles(

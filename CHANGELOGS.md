@@ -35,6 +35,14 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Development APK installability isolation
+- Changed the CI/debug physical-test package identity to `com.goreecloud.keyboard.dev.v3` and the visible label to **GoreeCloud Keyboard Dev**.
+- This prevents Android from treating a CI debug-signed APK as an update to a preinstalled `com.goreecloud.keyboard` system package whose signing certificate may differ.
+- Incremented the Development package to `versionCode 3` / `0.1.2-dev`.
+- Updated emulator IME activation checks and artifact provenance for the Development package identity.
+- CI debug signing remains test-only and is not Production, system-image, Release Candidate, or Stable signing authority.
+
+
 ### September 25, 2026 — Development package version 0.1.1-dev
 - Incremented Android `versionCode` from 1 to 2 and `versionName` from `0.1.0-dev` to `0.1.1-dev` so the stabilized typing build is distinguishable from earlier Development installs.
 - Updated CI artifact provenance to report `0.1.1-dev`.
