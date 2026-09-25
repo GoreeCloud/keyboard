@@ -22,6 +22,6 @@ concurrency:
 
 jobs:
   validate:
-    uses: GoreeCloud/GoreeCloud/.github/workflows/reusable-platform-manifest.yml@6cb150d512647a0401b4da9e4741d7591693dee0
+    uses: GoreeCloud/GoreeCloud/.github/workflows/reusable-platform-manifest.yml@32cfe6395f6e4bc4872a99e8d0c666ea0b1ed7b8
     with:
       manifest-path: goreecloud.platform.yaml

@@ -2,11 +2,11 @@
 
 ## Current availability
 
-GoreeCloud Keyboard is currently a **Development** Android input-method implementation. This manual describes behavior present in the repository source and Development builds. It does not claim a public production release, Stable qualification, representative physical-device acceptance, or current Apple-platform build.
+GoreeCloud Keyboard is currently a **Weave-stage** Android input-method implementation distributed as Development builds. This manual describes behavior present in the repository source and Development builds. It does not claim a public production release, Anchor qualification, representative physical-device acceptance, or current Apple-platform build.
 
 ## Install and enable the Development keyboard on Android
 
-Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev** with package ID `com.goreecloud.keyboard.dev.v3`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev** with package ID `com.goreecloud.keyboard.dev.v5`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
 When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
 
@@ -20,10 +20,12 @@ Exact settings labels vary by Android device and version.
 
 The keyboard opens in its **letters** layer.
 
+- Use the always-visible number row for digits without switching layers.
 - Tap letter keys to enter text.
 - Tap **⇧** to shift the next alphabetic character.
 - Tap **⌫** to delete the preceding text unit supported by the current deletion model.
-- Tap **space** to insert a space.
+- Tap the direct **,** and **.** keys for common punctuation.
+- Tap the **English (US)** spacebar to insert a space.
 - Tap **↵** to send the Android Enter key action to the active editor.
 
 The temporary shift state resets after a shifted alphabetic character is entered.
@@ -43,7 +45,7 @@ Changing layers clears the temporary word context used for local suggestions. Sy
 
 ## Emoji
 
-Tap **☺** from the letters or symbols layers to open the current bounded local emoji surface. The compact category strip exposes **Smileys**, **People**, **Nature**, **Food**, and **Symbols**, with fuller spoken accessibility labels than the visible icon labels. Emoji keys commit their complete Unicode String value, including supported multi-code-point sequences such as skin-tone variants, ZWJ sequences, flags, and variation-selector forms.
+Tap **☺** from the letters or symbols layers to open the current bounded local emoji surface. The compact category strip exposes **Smileys**, **People**, **Nature**, **Food**, **Travel**, and **Symbols**, with fuller spoken accessibility labels than the visible icon labels. Emoji keys commit their complete Unicode String value, including supported multi-code-point sequences such as skin-tone variants, ZWJ sequences, flags, and variation-selector forms.
 
 After you commit at least one emoji, a **Recent** control appears. Current recents behavior is intentionally privacy-bounded:
 
@@ -61,11 +63,13 @@ The current picker is not a complete emoji catalog. Offline search over the pack
 
 ## Local GoreeCloud Quill suggestions
 
-For ordinary text fields, the suggestion strip can show local candidates derived from the current composing word and the keyboard's local Development dictionary.
+For ordinary text fields, the integrated candidate bar stays empty at a clean word boundary. Once you type a non-empty word prefix, GoreeCloud Quill shows **at least one and at most three** local candidates.
+
+Candidates are frequency-ordered from the packaged local lexicon. If no dictionary candidate is stronger, the word you are actively typing remains available as the fallback candidate instead of letting the strip drop to zero.
 
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
-The current suggestion engine is intentionally bounded. It provides deterministic prefix candidates and limited typo-correction candidates; it is not a claim of a complete language model, cloud writing service, or full autocorrect system.
+The current engine also performs conservative one-edit automatic correction at spaces and common punctuation boundaries when the local candidate is confident and the host text still matches the tracked prefix. Sensitive/no-suggestions editor policy remains authoritative. The current engine is local and bounded; it is not a cloud language model.
 
 ## Swipe typing
 
@@ -73,7 +77,7 @@ In ordinary non-sensitive text fields, you can slide across letter keys and rele
 
 Swipe typing is disabled in sensitive editors and while touch-exploration/screen-reader optimized presentation is active. The gesture path is not persisted, learned from, transmitted, or combined with surrounding editor text.
 
-Recognition quality is still Development-grade and remains subject to physical-device refinement.
+Recognition quality remains Weave-stage Development behavior and is still subject to physical-device refinement.
 
 ## Sensitive text fields
 
@@ -97,7 +101,7 @@ Complete V1.6 optical/component migration, Reduced Transparency/Motion acceptanc
 
 ## Current limitations
 
-The Development implementation does not yet claim production-grade gesture recognition, multilingual input, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, or Stable release acceptance.
+The Weave-stage implementation does not yet claim production-grade gesture recognition, multilingual input, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, Seal qualification, production acceptance, or Anchor acceptance.
 
 ## Privacy and security expectations
 

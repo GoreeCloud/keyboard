@@ -119,17 +119,21 @@ def main() -> None:
     )
 
     require_all(
-        "Platform Contract v0.4",
+        "Platform Contract 2.0",
         platform_text,
         (
-            'schema_version: "0.4"',
+            'schema_version: "2.0"',
+            "lifecycle: weave",
+            "  deployment_state: development",
+            "  qualification_state: in-progress",
+            "  next_gate: seal",
             "  id: goreecloud-keyboard",
             "  repository: GoreeCloud/keyboard",
             f'  glaze_ui:\n    result: applicable-migration-required\n    version: "{GOVERNED_GLAZE_BASELINE}"',
             "  policy:\n    result: applicable-blocked",
             "  observability:\n    result: applicable-blocked",
             f'  glaze_ui_required: "{GOVERNED_GLAZE_BASELINE}"',
-            "goreecloud-platform-contract==0.4",
+            "goreecloud-platform-contract==2.0",
             f"glaze-ui=={GOVERNED_GLAZE_BASELINE}",
             "conformance:\n  status: nonconformant",
             f"current Official Stable authority is V1.6 / {GOVERNED_GLAZE_BASELINE}",
@@ -201,7 +205,7 @@ def main() -> None:
     print(
         "Keyboard Glaze boundary passed: repository-local source target "
         f"{SOURCE_GLAZE_VERSION} at {GLAZE_SOURCE_REVISION}; governed consumer baseline "
-        f"{GOVERNED_GLAZE_BASELINE} at {GOVERNED_GLAZE_REVISION}; Platform Contract 0.4 remains migration-required/nonconformant; "
+        f"{GOVERNED_GLAZE_BASELINE} at {GOVERNED_GLAZE_REVISION}; Platform Contract 2.0 classifies Keyboard as Weave/development and remains migration-required/nonconformant; "
         "Android runtime remains Light/Dark only; Experimental Motion remains quarantined; "
         "rendered/accessibility/device/release acceptance remains separate."
     )

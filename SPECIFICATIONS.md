@@ -2,7 +2,7 @@
 
 ## Product status
 
-**Development — native Android stabilization.**
+**Weave — native Android stabilization and hardening; deployment state: development.**
 
 GoreeCloud Keyboard is an original GoreeCloud-owned keyboard implementation. The current implemented platform is Android through `InputMethodService` and a first-party rendering/input surface. Apple-platform support remains product direction and is not claimed as currently implemented.
 
