@@ -46,6 +46,7 @@ internal object GlazeKeyboardTokens {
     const val GeneralInteractionFloorDp = 48f
     const val TouchAssistanceInteractionFloorDp = 56f
     const val SuggestionStripHeightDp = GeneralInteractionFloorDp
+    const val BottomSafeGapDp = Space1Dp
 
     // V1.2 optical geometry references remain separate from structural radii.
     const val OpticalMicroDp = 8f
@@ -55,6 +56,7 @@ internal object GlazeKeyboardTokens {
     const val OpticalCapsuleDp = 999f
 
     // V1.2 interaction-state calibration.
+    const val UtilityOverlayOpacity = 0.055f
     const val PressedOverlayOpacity = 0.095f
     const val SelectedOverlayOpacity = 0.12f
     const val FocusWidthDp = 3f
