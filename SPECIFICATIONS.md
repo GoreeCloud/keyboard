@@ -12,13 +12,13 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 
 - Native Android `InputMethodService` integration and declarative/runtime input-method registration checks.
 - First-party `KeyboardView` rendering and pointer-input handling.
-- QWERTY letters with shift, backspace, space, and enter.
+- QWERTY letters with shift, backspace, space, a direct period key on the letters layout, and enter.
 - First-party letters/symbols mode switching with `?123`, `ABC`, and `=\\<` controls.
 - Primary symbol page with digits and common punctuation plus a secondary first-party page with brackets, operators, currency marks, and common typographic symbols.
 - Bounded first-party emoji input using complete Unicode `String` payloads, deterministic Smileys, People, Nature, Food, Symbols, and Travel categories, local Recent state, explicit Clear behavior, and bounded device-local private persistence.
 - Fully offline emoji search over only the packaged first-party catalog. Search query state is transient, bounded, cleared on close, cannot be mutated while closed, and is not sent through the active editor or Quill composing context.
 - Deterministic local long-press key alternates with viewport-bounded popup layout, exact shared render/hit-test geometry, pointer movement selection, cancellation, haptic feedback, and accessibility announcements.
-- Local-only GoreeCloud Quill suggestion boundary with deterministic prefix suggestions, bounded typo-correction candidates, Unicode-code-point-aware correction, bounded transient capture, and commit authority restricted to the exact candidates currently presented for the active editor session.
+- Local-only GoreeCloud Quill suggestion boundary with a packaged read-only English seed dictionary, deterministic prefix suggestions, a one-to-three visible-candidate invariant while an ordinary word is actively being typed, bounded Unicode-code-point-aware typo correction, conservative unique-candidate autocorrection on Space, bounded transient capture, and commit authority restricted to validated local/host prefix state.
 - Sensitive-editor classification, host no-suggestions/no-personalized-learning policy, and fail-closed editor lifecycle handling that clear composing/suggestion state and prevent ordinary-field authority from leaking across editor transitions or no-active-editor states.
 - Bounded Unicode-aware backspace for common emoji modifiers, ZWJ-linked emoji, regional-indicator flags, keycaps, variation selectors, combining marks, and CRLF. Ambiguous truncated ordinary-field look-behind fails closed; sensitive editors retain one-code-point deletion without text look-behind.
 - No Android network permission in the current application foundation.
