@@ -131,7 +131,7 @@ jobs:
             gradle --no-daemon :android:app:connectedDebugAndroidTest --stacktrace
             # connectedDebugAndroidTest removes its target package during cleanup. Reinstall the exact branch build before validating Android's enabled/default IME state.
             gradle --no-daemon :android:app:installDebug --stacktrace
-            IME_ID="$(adb shell ime list -s | tr -d '\r' | grep -E '^com\.goreecloud\.keyboard\.dev\.v3/' | head -n 1)"
+            IME_ID="$(adb shell ime list -a -s | tr -d '\r' | grep -E '^com\.goreecloud\.keyboard\.dev\.v3/' | head -n 1)"
             test -n "$IME_ID"
             echo "Development IME: $IME_ID"
             adb shell ime enable "$IME_ID"
