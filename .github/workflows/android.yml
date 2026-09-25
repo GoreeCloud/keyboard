@@ -131,11 +131,15 @@ jobs:
             gradle --no-daemon :android:app:connectedDebugAndroidTest --stacktrace
             # connectedDebugAndroidTest removes its target package during cleanup. Reinstall the exact branch build before validating Android's enabled/default IME state.
             gradle --no-daemon :android:app:installDebug --stacktrace
-            IME_ID="$(adb shell ime list -a -s | tr -d '\r' | grep -E '^com\.goreecloud\.keyboard\.dev\.v3/' | head -n 1)"
-            test -n "$IME_ID"
+            # The debug application ID is suffixed, while the service class remains in the
+            # source namespace. Use the exact component and allow PackageManager to publish the
+            # just-installed IME before activation.
+            IME_ID="com.goreecloud.keyboard.dev.v3/com.goreecloud.keyboard.KeyboardService"
+            sleep 2
             echo "Development IME: $IME_ID"
             adb shell ime enable "$IME_ID"
             adb shell ime set "$IME_ID"
             DEFAULT_IME="$(adb shell settings get secure default_input_method | tr -d '\r')"
             echo "Android default IME: $DEFAULT_IME"
             test "$DEFAULT_IME" = "$IME_ID"
+            adb shell ime list -a -s | tr -d '\r' | grep -F -x "$IME_ID"
