@@ -103,6 +103,8 @@ internal object QuillLexicon {
     val expandedEnglish: List<String> by lazy {
         val words = LinkedHashSet<String>()
         words += english
+        words += GoreeCloudDictionary.canonicalTerms
+        words += GoreeCloudDictionary.commonContractions
         words += goreeCloudVocabulary
         words += irregularForms
         english.forEach { base ->
