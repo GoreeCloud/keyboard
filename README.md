@@ -2,7 +2,7 @@
 
 GoreeCloud Keyboard is an original, native GoreeCloud keyboard implementation. The current implemented platform is Android through a first-party input-method service and rendering surface. Apple-platform support remains product direction and is not claimed as currently implemented.
 
-## Current Development foundation
+## Current Weave-stage Development foundation
 
 The current Android source includes:
 
@@ -17,7 +17,7 @@ The current Android source includes:
 - Deterministic local long-press alternates for common Latin diacritics and punctuation, with viewport-bounded popup geometry, pointer selection, cancellation, haptic feedback, and fail-closed hit testing.
 - A local GoreeCloud Quill suggestion boundary with frequency-ordered prefix candidates, an expanded packaged English dictionary with common derived forms, Unicode-aware typo correction, conservative automatic correction at word boundaries, bounded transient capture, a one-to-three candidate contract for non-empty ordinary-text prefixes, typed-token fallback, and suggestion commit authority bound to the exact candidates currently presented for the active editor session.
 - A bounded local swipe-typing Development path using transient QWERTY gesture geometry and packaged-dictionary ranking rather than literal crossed-key text, with a visible gesture trail and sensitive-editor/touch-exploration suppression.
-- CI/debug physical-test APKs use the version-scoped package `com.goreecloud.keyboard.dev.v3` and the visible name **GoreeCloud Keyboard Dev** so they install alongside a preinstalled `com.goreecloud.keyboard` package instead of attempting an incompatible signature update.
+- CI/debug physical-test APKs use the version-scoped package `com.goreecloud.keyboard.dev.v5` and the visible name **GoreeCloud Keyboard Dev** so they install alongside a preinstalled `com.goreecloud.keyboard` package instead of attempting an incompatible signature update.
 - Sensitive-editor and host no-suggestions privacy gating that suppresses suggestion capture, display, and acceptance, resets fail-closed at authoritative editor-session lifecycle boundaries, and keeps missing/no-active-editor state conservative. Android no-personalized-learning requests remain compatible with deterministic transient suggestions because the current Quill path does not persist a learned user model.
 - Privacy-by-default behavior with no Android network permission.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category, with validation/checksum integrity, explicit user-controlled Android Storage Access Framework import/export, import preview before write, export review/freeze before destination selection, and no generic preference serialization.
@@ -28,7 +28,7 @@ The current Android source includes:
 - Explicit Wardveil Security, Privacy Shield, Everkeep, GoreeCloud Identity, GoreeCloud Mesh, and Manager acceptance boundaries.
 - Android unit/build/governance and emulator validation infrastructure covering native registration, interaction, privacy lifecycle, emoji search, Unicode deletion, alternate popup geometry/hit testing, portability, and Glaze UI source boundaries.
 
-The historical GLAZE UI V1.2 mapping remains Development/migration evidence only. Current Official Stable consumer authority is V1.6 / `1.6.0`; Keyboard has not completed that migration. `KeyboardView` currently selects Light/Dark from Android night mode; it does not infer or auto-select Deep Dark. Complete current-Stable component/state/material-role migration across all surfaces, Reduced Motion/Transparency, Increased Contrast, forced-colors/native equivalents, 200% text/reflow, runtime Touch Assistance resolution, RTL/localization, TalkBack/Switch Access, representative phone/tablet/foldable and physical-device ergonomics, Human Visual Excellence, production signing/distribution, release, and Stable qualification remain separate gates.
+The historical GLAZE UI V1.2 mapping remains migration evidence only. Current Official Stable consumer authority is V1.6 / `1.6.0`; Keyboard has not completed that migration. `KeyboardView` currently selects Light/Dark from Android night mode; it does not infer or auto-select Deep Dark. Complete current-Stable component/state/material-role migration across all surfaces, Reduced Motion/Transparency, Increased Contrast, forced-colors/native equivalents, 200% text/reflow, runtime Touch Assistance resolution, RTL/localization, TalkBack/Switch Access, representative phone/tablet/foldable and physical-device ergonomics, Human Visual Excellence, production signing/distribution, Seal qualification, production acceptance, and Anchor qualification remain separate gates.
 
 ## Product direction
 
@@ -56,4 +56,4 @@ This repository contains original GoreeCloud-owned application code. Third-party
 
 ## Status
 
-**Development — native Android stabilization.** Source or CI validation does not by itself establish production acceptance, signed release, representative physical-device acceptance, Release Candidate status, or Stable qualification.
+**Weave — native Android stabilization and hardening; deployment state: development.** Source or CI validation does not by itself establish production acceptance, signed release, representative physical-device acceptance, Seal status, or Anchor qualification.
