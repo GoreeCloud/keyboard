@@ -8,7 +8,7 @@ The current Android source includes:
 
 - Android `InputMethodService` integration and runtime registration checks through `InputMethodManager`.
 - A first-party `KeyboardView` rendering, hit-testing, and pointer-input surface.
-- Core QWERTY input, shift, backspace, space, and enter actions.
+- Core QWERTY input, shift, backspace, space, enter, direct comma/period punctuation, and bottom safe-area handling for Android navigation/gesture insets.
 - First-party letters-and-symbols switching with `?123` / `ABC`, plus a second `=\\<` symbol page for brackets, operators, currency marks, and common typographic symbols.
 - A bounded first-party emoji layer that routes complete Unicode text through the existing String-safe input contract and includes deterministic Smileys, People, Nature, Food, Symbols, and Travel categories.
 - A compact emoji category strip with complete accessibility announcements, a bounded local Recent category, explicit Clear behavior, and device-local private persistence for up to 24 exact emoji String values.
@@ -16,6 +16,8 @@ The current Android source includes:
 - Bounded Unicode-aware backspace for common emoji modifiers, ZWJ-linked emoji, regional-indicator flags, keycaps, variation selectors, combining marks, and CRLF. Ambiguous/truncated ordinary-field look-behind fails closed; sensitive editors retain one-code-point deletion without text look-behind.
 - Deterministic local long-press alternates for common Latin diacritics and punctuation, with viewport-bounded popup geometry, pointer selection, cancellation, haptic feedback, and fail-closed hit testing.
 - A local GoreeCloud Quill suggestion boundary with deterministic prefix candidates, bounded typo correction, Unicode-code-point-aware one-edit correction, bounded transient capture, and suggestion commit authority bound to the exact candidates currently presented for the active editor session.
+- A bounded local swipe-typing Development path using transient letter-key traces and the packaged Quill lexicon, with a visible gesture trail and sensitive-editor/touch-exploration suppression.
+- CI/debug physical-test APKs use the version-scoped package `com.goreecloud.keyboard.dev.v3` and the visible name **GoreeCloud Keyboard Dev** so they install alongside a preinstalled `com.goreecloud.keyboard` package instead of attempting an incompatible signature update.
 - Sensitive-editor and host no-suggestions privacy gating that suppresses suggestion capture, display, and acceptance, resets fail-closed at authoritative editor-session lifecycle boundaries, and keeps missing/no-active-editor state conservative.
 - Privacy-by-default behavior with no Android network permission.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category, with validation/checksum integrity, explicit user-controlled Android Storage Access Framework import/export, import preview before write, export review/freeze before destination selection, and no generic preference serialization.
@@ -30,7 +32,7 @@ The historical GLAZE UI V1.2 mapping remains Development/migration evidence only
 
 ## Product direction
 
-GoreeCloud Keyboard is intended to become a beautiful, polished, feature-rich, privacy-first input platform while remaining fast, accessible, dependable, and native to supported platforms. Planned capability families include gesture typing, stronger local correction and dictionaries, multilingual input and language switching, richer emoji/symbol discovery, GoreeCloud Secure Paste, privacy-approved voice input, one-handed and split layouts, tablet/foldable adaptation, user dictionaries, Quill-assisted writing, and explicitly governed personalization/continuity features.
+GoreeCloud Keyboard is intended to become a beautiful, polished, feature-rich, privacy-first input platform while remaining fast, accessible, dependable, and native to supported platforms. Planned capability families include stronger gesture-recognition quality, stronger local correction and dictionaries, multilingual input and language switching, richer emoji/symbol discovery, GoreeCloud Secure Paste, privacy-approved voice input, one-handed and split layouts, tablet/foldable adaptation, user dictionaries, Quill-assisted writing, and explicitly governed personalization/continuity features.
 
 Feature richness must remain substantive. A feature is not considered implemented merely because a button, label, placeholder, or visual treatment exists; behavior, privacy/security boundaries, accessibility, tests, lifecycle integration, and appropriate runtime acceptance are required.
 
