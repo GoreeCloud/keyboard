@@ -199,7 +199,7 @@ class KeyboardView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun setKeyHeightPreference(value: KeyboardKeyHeight) {
+    internal fun setKeyHeightPreference(value: KeyboardKeyHeight) {
         if (keyHeightPreference == value) return
         keyHeightPreference = value
         invalidateStructure()
