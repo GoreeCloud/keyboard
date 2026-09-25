@@ -5,7 +5,7 @@
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current governance baseline:** `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1` (PR #79).  
-**Current runtime-bearing baseline:** `2dd42a70b2ca74e55fe3b3fcb3fca0547e06316a` (PR #77).  
+**Current runtime-bearing baseline:** `7313b5981fe309efbc4241bae5d79e61c630c751` (PR #85).  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Authority and interpretation
@@ -35,7 +35,10 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
-### September 25, 2026 — Android typing ergonomics stabilization
+### September 25, 2026 — PR #85: Android typing ergonomics stabilization
+- Merged PR #85 to authoritative `main` as `7313b5981fe309efbc4241bae5d79e61c630c751`.
+- Exact candidate Android CI #274 / run `36186425315` passed on `cb0cd991ebfe4351e8ce50bca0916e8539d900a4`.
+- Exact-main Android CI #275 / run `36186867768` passed on the merged revision, including unit tests, APK build/provenance, and the Android 15 native interaction/IME activation emulator lane.
 - Reserved Android navigation/system-gesture insets from the interactive keyboard area so the bottom row no longer occupies the gesture-navigation region.
 - Added direct comma and period keys to the letters-layer bottom row and centered the QWERTY home row for more conventional key geometry.
 - Reworked the Quill suggestion strip into bounded Glaze-style candidate surfaces and expanded the packaged local lexicon so ordinary typing produces useful completions across a much broader everyday vocabulary.
