@@ -222,13 +222,13 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         // both the service-side acceptance set and any visible strip before granting new candidates.
         presentedSuggestions = emptyList()
         keyboardView?.setSuggestions(emptyList())
+        keyboardView?.setSwipeTypingEnabled(false)
         if (info == null) {
             // Unknown editor metadata must not silently receive ordinary-field privileges. Treat it
             // as sensitive so backspace avoids surrounding-text inspection and suggestions remain
             // suppressed until Android provides a concrete EditorInfo for the active session.
             sensitiveInput = true
             suggestionsSuppressed = true
-            keyboardView?.setSwipeTypingEnabled(false)
             return
         }
 
