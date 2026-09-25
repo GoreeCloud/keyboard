@@ -263,6 +263,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         )
     }
 
+    override fun onHideKeyboard() {
+        requestHideSelf(0)
+    }
+
     private fun beginEditorSession(info: EditorInfo?) {
         typingSettings = settingsStore.load()
         shifted = false
