@@ -41,6 +41,16 @@ class KeyboardTypingErgonomicsRuntimeTest {
     }
 
     @Test
+    fun lettersLayerExposesAlwaysVisibleNumberRow() {
+        val view = createRenderedKeyboard()
+        val labels = view.accessibilityTargets().map { it.label }.toSet()
+
+        for (digit in "1234567890") {
+            assertTrue("Letters layer must expose digit $digit", digit.toString() in labels)
+        }
+    }
+
+    @Test
     fun lettersLayerExposesDirectPeriodAndCommaKeys() {
         val view = createRenderedKeyboard()
         val labels = view.accessibilityTargets().map { it.label }.toSet()

@@ -3,9 +3,9 @@
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Development / nonconformant  
-**Repository version:** `0.1.3-dev`  
+**Repository version:** `0.1.4-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
-**Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `cb57224dd904a54e35f0e01146d4109b357d6eb7` (PR #91), with exact-main Android CI #288 / run `36194656484` passed.native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `7313b5981fe309efbc4241bae5d79e61c630c751` (PR #85), with exact-main Android CI #275 / run `36186867768` passed.  
+**Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `cb57224dd904a54e35f0e01146d4109b357d6eb7` (PR #91), with exact-main Android CI #288 / run `36194656484` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Purpose and migration sources
@@ -42,7 +42,7 @@ Open Draft pull requests remain candidate-only. In particular, PR #78 and the ol
 ## Product capability backlog
 
 ### Local typing quality and correction
-Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. The current Development path now includes frequency-ordered local suggestions and conservative one-edit automatic correction.
+Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. The current Development path includes frequency-ordered local suggestions, conservative one-edit automatic correction, and a one-to-three candidate presentation contract for non-empty ordinary-text prefixes.
 
 ### Spacebar cursor control
 The privacy-bounded cursor-control work represented by legacy FR-011 and Draft PRs #63/#64 is not accepted on current `main`. Draft PR #78 is a separate newer direct-main accessibility candidate. Any accepted cursor-control implementation must preserve ordinary Space behavior, bounded/fail-closed movement, privacy boundaries, RTL/BiDi correctness, accessibility, and representative physical-device ergonomics.

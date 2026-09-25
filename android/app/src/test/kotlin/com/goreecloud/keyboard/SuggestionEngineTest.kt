@@ -15,7 +15,24 @@ class SuggestionEngineTest {
             limit = 2,
         )
 
-        assertEquals(listOf("good", "goal"), result)
+        assertEquals(listOf("go", "good"), result)
+    }
+
+    @Test
+    fun alwaysReturnsBetweenOneAndThreeCandidatesForTypedPrefix() {
+        val unmatched = engine.suggest(
+            prefix = "zxqv",
+            dictionary = listOf("the", "there", "keyboard"),
+            limit = 3,
+        )
+        val crowded = engine.suggest(
+            prefix = "a",
+            dictionary = listOf("a", "about", "after", "again", "always", "another"),
+            limit = 3,
+        )
+
+        assertEquals(listOf("zxqv"), unmatched)
+        assertEquals(3, crowded.size)
     }
 
     @Test
@@ -37,7 +54,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("hello"), result)
+        assertEquals(listOf("hellp", "hello"), result)
     }
 
     @Test
@@ -48,7 +65,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("the"), result)
+        assertEquals(listOf("teh", "the"), result)
     }
 
     @Test
@@ -98,7 +115,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("ab${deseretSmallLongI}x"), result)
+        assertEquals(listOf("abx", "ab${deseretSmallLongI}x"), result)
     }
 
     @Test

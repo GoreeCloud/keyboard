@@ -5,7 +5,7 @@
 **Lifecycle:** Development / nonconformant  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current governance baseline:** `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1` (PR #79).  
-**Current runtime-bearing baseline:** `cb57224dd904a54e35f0e01146d4109b357d6eb7` (PR #91); exact-main Android CI #288 / run `36194656484` passed.n Android CI #275 / run `36186867768` passed.  
+**Current runtime-bearing baseline:** `cb57224dd904a54e35f0e01146d4109b357d6eb7` (PR #91); exact-main Android CI #288 / run `36194656484` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
 
 ## Authority and interpretation
@@ -35,6 +35,19 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Visual keyboard polish and one-to-three suggestions / 0.1.4-dev
+- Added an always-visible number row to the ordinary letters layout and rebalanced the five-row geometry around the existing Glaze interaction floors.
+- Changed the spacebar's visible label to **English (US)**, matching conventional mobile-keyboard language affordances while preserving Space accessibility semantics.
+- Added subtle differentiated utility-key material for Shift, Backspace, Enter, Symbols, and Emoji while retaining neutral Glaze surfaces for ordinary text keys.
+- Replaced oversized standalone suggestion pills with a single integrated Glaze candidate bar using one-to-three equal touch segments and subtle separators.
+- Changed Quill candidate generation so every non-empty ordinary-text prefix exposes at least one and at most three visible candidates. The actively typed token becomes the fallback candidate when the packaged dictionary has no stronger match.
+- Preserved sensitive-editor and host no-suggestions suppression boundaries; the one-to-three contract applies only while ordinary suggestion presentation is authorized.
+- Increased preferred IME sizing for the five-row letters surface to 320 dp ordinarily and 364 dp under Touch Assistance, while Android retains final measurement authority.
+- Incremented the Development package to `versionCode 5` / `0.1.4-dev` and the side-by-side CI test package identity to `com.goreecloud.keyboard.dev.v5`.
+- Added unit/runtime coverage for the one-to-three candidate contract and always-visible number row.
+- These changes remain Development behavior and do not establish physical-device, Production, Release Candidate, or Stable acceptance.
+
+
 ### September 25, 2026 — Quill typing-quality stabilization / 0.1.3-dev
 - Replaced fixed `the / I / to` starter candidates with an empty clean-boundary strip so suggestions are driven by the word actually being typed.
 - Changed candidate ordering from shortest/alphabetical preference to packaged-dictionary frequency order, while keeping exact typed words first.
@@ -44,7 +57,8 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 - Replaced literal crossed-key swipe matching with QWERTY geometry-aware route scoring, ordered letter coverage, detour scoring, and packaged-dictionary frequency ranking.
 - Added unit coverage for frequency-ranked suggestions, autocorrect, expanded dictionary forms, and geometry-aware swipe decoding.
 - Incremented the Development package to `versionCode 4` / `0.1.3-dev` and the side-by-side test package identity to `com.goreecloud.keyboard.dev.v4` so this CI-signed build does not need to replace earlier Development or preinstalled system copies.
-- PR #91 merged to authoritative `main` as `cb57224dd904a54e35f0e01146d4109b357d6eb7`; exact-main Android CI #288 / run `36194656484` passed, including unit tests, APK build/provenance, Android 15 runtime instrumentation, and IME activation.\n- These changes remain Development behavior and do not establish physical-device, Production, Release Candidate, or Stable acceptance.
+- PR #91 merged to authoritative `main` as `cb57224dd904a54e35f0e01146d4109b357d6eb7`; exact-main Android CI #288 / run `36194656484` passed, including unit tests, APK build/provenance, Android 15 runtime instrumentation, and IME activation.
+- These changes remain Development behavior and do not establish physical-device, Production, Release Candidate, or Stable acceptance.
 
 
 ### September 25, 2026 — Development APK installability isolation
