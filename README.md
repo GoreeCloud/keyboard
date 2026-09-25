@@ -54,4 +54,4 @@ This repository contains original GoreeCloud-owned application code. Third-party
 
 ## Status
 
-**Development — native Android stabilization.** Source or CI validation does not by itself establish production acceptance, signed release, representative physical-device acceptance, Release Candidate status, or Stable qualification.
+**Forge — native Android stabilization; deployment state: development.** Source or CI validation does not by itself establish production acceptance, signed release, representative physical-device acceptance, Seal status, or Anchor qualification.
