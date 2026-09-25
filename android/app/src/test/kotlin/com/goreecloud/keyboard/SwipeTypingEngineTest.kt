@@ -10,7 +10,7 @@ class SwipeTypingEngineTest {
     @Test
     fun decodesCollapsedRepeatedLetters() {
         val result = engine.decode(
-            keyPath = listOf("h", "e", "l", "o"),
+            keyPath = listOf("h", "g", "f", "r", "e", "t", "y", "u", "i", "k", "l", "o"),
             dictionary = listOf("help", "hello", "hero"),
         )
 
