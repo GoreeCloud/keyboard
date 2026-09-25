@@ -26,9 +26,6 @@ internal class SwipeTypingEngine {
         val tracePoints = traceLabels.mapNotNull(::pointFor)
         if (tracePoints.size != traceLabels.size) return emptyList()
 
-        val first = traceLabels.first()
-        val last = traceLabels.last()
-
         return dictionary.asSequence()
             .filter { it.isNotBlank() }
             .distinctBy { it.lowercase() }
@@ -37,10 +34,16 @@ internal class SwipeTypingEngine {
                 val word = indexed.value
                 val wordLabels = normalizedWordTrace(word)
                 if (wordLabels.size < MIN_TRACE_KEYS) return@mapNotNull null
-                if (wordLabels.first() != first || wordLabels.last() != last) return@mapNotNull null
 
                 val wordPoints = wordLabels.mapNotNull(::pointFor)
                 if (wordPoints.size != wordLabels.size) return@mapNotNull null
+
+                val startDistance = distance(wordPoints.first(), tracePoints.first())
+                val endDistance = distance(wordPoints.last(), tracePoints.last())
+                if (
+                    startDistance > MAX_ENDPOINT_DISTANCE ||
+                    endDistance > MAX_ENDPOINT_DISTANCE
+                ) return@mapNotNull null
 
                 val orderedCost = orderedCoverageCost(wordPoints, tracePoints)
                 if (!orderedCost.isFinite() || orderedCost > MAX_ORDERED_COST) return@mapNotNull null
@@ -52,11 +55,13 @@ internal class SwipeTypingEngine {
 
                 val traceCoverage = averageDistanceToPolyline(tracePoints, wordPoints)
                 val lengthPenalty = abs(wordLabels.size - traceLabels.size) * LENGTH_DELTA_WEIGHT
+                val endpointPenalty = (startDistance + endDistance) * ENDPOINT_WEIGHT
                 val frequencyPenalty = indexed.index * FREQUENCY_WEIGHT
 
                 SwipeCandidate(
                     word = word,
                     score =
+                        endpointPenalty +
                         orderedCost * ORDERED_WEIGHT +
                         candidateCoverage * CANDIDATE_COVERAGE_WEIGHT +
                         traceCoverage * TRACE_COVERAGE_WEIGHT +
@@ -178,9 +183,11 @@ internal class SwipeTypingEngine {
 
     private companion object {
         const val MIN_TRACE_KEYS = 2
-        const val MAX_ORDERED_COST = 1.25
-        const val MAX_CANDIDATE_COVERAGE = 0.95
-        const val ORDERED_WEIGHT = 2.2
+        const val MAX_ENDPOINT_DISTANCE = 1.45
+        const val MAX_ORDERED_COST = 1.45
+        const val MAX_CANDIDATE_COVERAGE = 1.10
+        const val ENDPOINT_WEIGHT = 1.25
+        const val ORDERED_WEIGHT = 2.0
         const val CANDIDATE_COVERAGE_WEIGHT = 1.5
         const val TRACE_COVERAGE_WEIGHT = 0.35
         const val LENGTH_DELTA_WEIGHT = 0.07
