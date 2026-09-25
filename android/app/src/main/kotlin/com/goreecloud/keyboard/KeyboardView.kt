@@ -31,6 +31,7 @@ class KeyboardView @JvmOverloads constructor(
         fun onShift()
         fun onSuggestion(value: String)
         fun onLayerChanged(layer: KeyboardLayer)
+        fun onOpenSettings() = Unit
     }
 
     var listener: Listener? = null
@@ -46,6 +47,7 @@ class KeyboardView @JvmOverloads constructor(
         SYMBOLS,
         SYMBOLS_MORE,
         EMOJI,
+        SETTINGS,
         EMOJI_SEARCH_CLEAR,
         EMOJI_SEARCH_CLOSE,
     }
@@ -126,12 +128,14 @@ class KeyboardView @JvmOverloads constructor(
     private var alternatePopup: AlternatePopup? = null
     private var glazeV16PresentationContext = GlazeKeyboardV16PresentationContext()
     private var bottomNavigationInsetPx = 0
+    private var keyHeightPreference = KeyboardKeyHeight.COMPACT
     private var swipeTypingEnabled = false
     private var swipeGestureActive = false
     private val swipeKeyPath = mutableListOf<String>()
     private val swipePath = Path()
     private var swipeDownX = 0f
     private var swipeDownY = 0f
+    private var swipeDownTimeMs = 0L
 
     init {
         isClickable = true
@@ -195,6 +199,12 @@ class KeyboardView @JvmOverloads constructor(
         invalidate()
     }
 
+    fun setKeyHeightPreference(value: KeyboardKeyHeight) {
+        if (keyHeightPreference == value) return
+        keyHeightPreference = value
+        invalidateStructure()
+    }
+
     internal fun setGlazeV16PresentationSignals(signals: GlazeKeyboardV16PresentationSignals) {
         val resolved = GlazeKeyboardV16AndroidPresentationContext.resolve(signals)
         if (resolved == glazeV16PresentationContext) return
@@ -249,24 +259,29 @@ class KeyboardView @JvmOverloads constructor(
             row.forEach { key ->
                 val keyWidth = availableWidth * (key.weight / totalWeight)
                 val bounds = RectF(left, top, left + keyWidth, top + rowHeight)
-                canvas.drawRoundRect(bounds, keyRadius, keyRadius, keyPaint)
+                val visualInset = minOf(
+                    keyCapVerticalInsetDp() * density,
+                    (rowHeight - density).coerceAtLeast(0f) / 2f,
+                )
+                val visualBounds = RectF(bounds).apply { inset(0f, visualInset) }
+                canvas.drawRoundRect(visualBounds, keyRadius, keyRadius, keyPaint)
                 if (isUtilityKey(key)) {
                     canvas.drawRoundRect(
-                        bounds,
+                        visualBounds,
                         keyRadius,
                         keyRadius,
                         if (isSelectedUtilityKey(key)) selectedUtilityKeyOverlayPaint else utilityKeyOverlayPaint,
                     )
                 }
                 if (isPressedKey(bounds)) {
-                    canvas.drawRoundRect(bounds, keyRadius, keyRadius, pressedKeyPaint)
+                    canvas.drawRoundRect(visualBounds, keyRadius, keyRadius, pressedKeyPaint)
                 }
-                canvas.drawRoundRect(bounds, keyRadius, keyRadius, keyStrokePaint)
+                canvas.drawRoundRect(visualBounds, keyRadius, keyRadius, keyStrokePaint)
 
                 val label = renderedKeyLabel(key)
                 val labelPaint = keyLabelPaint(key)
-                val baseline = bounds.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2
-                canvas.drawText(label, bounds.centerX(), baseline, labelPaint)
+                val baseline = visualBounds.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2
+                canvas.drawText(label, visualBounds.centerX(), baseline, labelPaint)
                 hitKeys += HitKey(bounds, key)
                 left += keyWidth + gap
             }
@@ -276,6 +291,12 @@ class KeyboardView @JvmOverloads constructor(
             canvas.drawPath(swipePath, swipeTrailPaint)
         }
         alternatePopup?.let { drawAlternatePopup(canvas, it) }
+    }
+
+    private fun keyCapVerticalInsetDp(): Float = when (keyHeightPreference) {
+        KeyboardKeyHeight.COMPACT -> 5f
+        KeyboardKeyHeight.STANDARD -> 2.5f
+        KeyboardKeyHeight.TALL -> 0f
     }
 
     private fun centeredLetterRowInset(
@@ -430,26 +451,57 @@ class KeyboardView @JvmOverloads constructor(
             }
             return
         }
+
+        val density = resources.displayMetrics.density
+        val gap = GlazeKeyboardTokens.Space1Dp * density
+        val verticalInset = GlazeKeyboardTokens.Space1Dp * density
+        val radius = GlazeKeyboardTokens.RadiusMediumDp * density
+        val settingsHitBounds = RectF(
+            width - horizontalPadding - topArea,
+            0f,
+            width - horizontalPadding,
+            topArea,
+        )
+        val settingsVisualBounds = RectF(settingsHitBounds).apply { inset(0f, verticalInset) }
+        canvas.drawRoundRect(settingsVisualBounds, radius, radius, keyPaint)
+        canvas.drawRoundRect(settingsVisualBounds, radius, radius, utilityKeyOverlayPaint)
+        canvas.drawRoundRect(settingsVisualBounds, radius, radius, keyStrokePaint)
+        val settingsBaseline =
+            settingsVisualBounds.centerY() - (utilityTextPaint.descent() + utilityTextPaint.ascent()) / 2
+        canvas.drawText("⚙", settingsVisualBounds.centerX(), settingsBaseline, utilityTextPaint)
+        hitKeys += HitKey(settingsHitBounds, Key("⚙", action = Action.SETTINGS))
+
+        val contentRight = settingsHitBounds.left - gap
         if (layer != KeyboardLayer.LETTERS) {
-            val baseline = topArea / 2f - (suggestionHintPaint.descent() + suggestionHintPaint.ascent()) / 2
-            canvas.drawText("Symbols stay local", width / 2f, baseline, suggestionHintPaint)
+            val baseline =
+                topArea / 2f - (suggestionHintPaint.descent() + suggestionHintPaint.ascent()) / 2
+            canvas.drawText(
+                "Symbols · local",
+                (horizontalPadding + contentRight) / 2f,
+                baseline,
+                suggestionHintPaint,
+            )
             return
         }
 
         if (suggestions.isEmpty()) {
-            val baseline = topArea / 2f - (suggestionHintPaint.descent() + suggestionHintPaint.ascent()) / 2
-            canvas.drawText("Quill suggestions stay on-device", width / 2f, baseline, suggestionHintPaint)
+            val baseline =
+                topArea / 2f - (suggestionHintPaint.descent() + suggestionHintPaint.ascent()) / 2
+            canvas.drawText(
+                "Quill · on-device",
+                (horizontalPadding + contentRight) / 2f,
+                baseline,
+                suggestionHintPaint,
+            )
             return
         }
 
-        val verticalInset = GlazeKeyboardTokens.Space1Dp * resources.displayMetrics.density
         val stripBounds = RectF(
             horizontalPadding,
             verticalInset,
-            width - horizontalPadding,
+            contentRight,
             topArea - verticalInset,
         )
-        val radius = GlazeKeyboardTokens.RadiusMediumDp * resources.displayMetrics.density
         canvas.drawRoundRect(stripBounds, radius, radius, suggestionSurfacePaint)
 
         val cellWidth = stripBounds.width() / suggestions.size
@@ -459,9 +511,9 @@ class KeyboardView @JvmOverloads constructor(
             if (index > 0) {
                 canvas.drawLine(
                     bounds.left,
-                    bounds.top + GlazeKeyboardTokens.Space2Dp * resources.displayMetrics.density,
+                    bounds.top + GlazeKeyboardTokens.Space2Dp * density,
                     bounds.left,
-                    bounds.bottom - GlazeKeyboardTokens.Space2Dp * resources.displayMetrics.density,
+                    bounds.bottom - GlazeKeyboardTokens.Space2Dp * density,
                     suggestionDividerPaint,
                 )
             }
@@ -597,6 +649,7 @@ class KeyboardView @JvmOverloads constructor(
                 pressedKeyBounds = hit?.let { RectF(it.bounds) }
                 swipeDownX = event.x
                 swipeDownY = event.y
+                swipeDownTimeMs = event.eventTime
                 if (canParticipateInSwipe(hit)) {
                     swipeKeyPath += hit!!.key.label.lowercase()
                     swipePath.moveTo(hit.bounds.centerX(), hit.bounds.centerY())
@@ -620,8 +673,20 @@ class KeyboardView @JvmOverloads constructor(
                 val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
                 if (!swipeGestureActive && swipeKeyPath.isNotEmpty()) {
                     val travel = hypot(event.x - swipeDownX, event.y - swipeDownY)
-                    val threshold = ViewConfiguration.get(context).scaledTouchSlop * SWIPE_START_SLOP_MULTIPLIER
-                    if (travel >= threshold) {
+                    val density = resources.displayMetrics.density
+                    val threshold = max(
+                        ViewConfiguration.get(context).scaledTouchSlop * SWIPE_START_SLOP_MULTIPLIER,
+                        SWIPE_MIN_TRAVEL_DP * density,
+                    )
+                    val elapsedMs = event.eventTime - swipeDownTimeMs
+                    val movedToDifferentLetter =
+                        canParticipateInSwipe(hit) &&
+                            hit!!.key.label.lowercase() != swipeKeyPath.firstOrNull()
+                    if (
+                        travel >= threshold &&
+                        elapsedMs >= SWIPE_MIN_GESTURE_MS &&
+                        movedToDifferentLetter
+                    ) {
                         swipeGestureActive = true
                         removeCallbacks(showAlternatesRunnable)
                         pendingAlternateHit = null
@@ -676,7 +741,7 @@ class KeyboardView @JvmOverloads constructor(
                     }
                     val path = swipeKeyPath.toList()
                     cancelSwipeInteraction()
-                    if (path.size >= 2) {
+                    if (path.size >= SWIPE_MIN_PATH_KEYS) {
                         listener?.onSwipe(path)
                         performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                     }
@@ -807,6 +872,7 @@ class KeyboardView @JvmOverloads constructor(
         Action.SYMBOLS -> "Symbols"
         Action.SYMBOLS_MORE -> "More symbols"
         Action.EMOJI -> "Emoji"
+        Action.SETTINGS -> "Keyboard settings"
         Action.EMOJI_SEARCH_CLEAR -> "Clear emoji search"
         Action.EMOJI_SEARCH_CLOSE -> "Close emoji search"
     }
@@ -893,6 +959,7 @@ class KeyboardView @JvmOverloads constructor(
             Action.SYMBOLS -> switchLayer(KeyboardLayer.SYMBOLS)
             Action.SYMBOLS_MORE -> switchLayer(KeyboardLayer.SYMBOLS_MORE)
             Action.EMOJI -> switchLayer(KeyboardLayer.EMOJI)
+            Action.SETTINGS -> listener?.onOpenSettings()
             Action.EMOJI_SEARCH_CLEAR -> {
                 emojiSearchSession.clear()
                 announceForAccessibility("Emoji search cleared")
@@ -939,7 +1006,10 @@ class KeyboardView @JvmOverloads constructor(
         const val ACCESSIBILITY_SUGGESTION_BASE = 2_000
         const val ACCESSIBILITY_EMOJI_CATEGORY_BASE = 3_000
         const val ACCESSIBILITY_EMOJI_SEARCH_RESULT_BASE = 4_000
-        const val SWIPE_START_SLOP_MULTIPLIER = 1.35f
+        const val SWIPE_START_SLOP_MULTIPLIER = 2.0f
+        const val SWIPE_MIN_TRAVEL_DP = 20f
+        const val SWIPE_MIN_GESTURE_MS = 55L
+        const val SWIPE_MIN_PATH_KEYS = 3
         val DIGIT_ROW = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     }
 }
