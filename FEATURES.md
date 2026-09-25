@@ -16,8 +16,8 @@
 - Complete-String emoji commit behavior and bounded text-unit backspace tests that require every currently exposed emoji key to delete coherently.
 - Bounded Unicode backspace handling for combining marks, variation selectors, emoji modifiers, keycaps, tag sequences, common ZWJ emoji, CRLF, and regional-indicator runs using pair-from-the-start flag parity.
 - Fail-closed handling when bounded ordinary-field look-behind may begin inside a larger text unit; sensitive fields retain the stricter no-look-behind path.
-- Local-only GoreeCloud Quill suggestion boundary.
-- Frequency-ordered prefix suggestions, expanded packaged English inflections, Unicode-aware typo-correction candidates, and conservative automatic correction when a completed token is a confident one-edit misspelling.
+- Local-only GoreeCloud Quill suggestion boundary with an ordinary-text one-to-three candidate contract.
+- Frequency-ordered prefix suggestions, expanded packaged English inflections, Unicode-aware typo-correction candidates, conservative automatic correction when a completed token is a confident one-edit misspelling, and typed-token fallback so a non-empty ordinary prefix always has at least one visible candidate.
 - Bounded transient suggestion capture that suppresses misleading mid-word recapture when complete context is no longer known.
 - Suggestion commit authority bound to the exact candidates currently presented for the active editor session rather than accepting arbitrary callback values.
 - Sensitive-editor privacy gating for suggestion capture/display/acceptance and text look-behind deletion logic.
@@ -32,7 +32,7 @@
 - V1.2 neutral Frosted Neutral key surfaces consumed by the actual native `KeyboardView`, with Light/Dark runtime selection, explicit Deep Dark source values, 48/56 dp interaction floors, control geometry, and state calibration.
 - A V1.2 non-semantic material/atmosphere boundary that prohibits chromatic, brand, or semantic color from becoming the keyboard substrate and authorizes no editor/content sampling, remote derivation, persistence, semantic inference, telemetry, network lookup, or animated atmosphere.
 - A bounded GLAZE UI V1.6 presentation-context layer accepted through PR #73, using Android font scale, animator enablement, and touch-exploration signals without relabeling the V1.2 optical substrate as V1.6-complete.
-- Touch Assistance runtime sizing accepted through PR #77: the suggestion strip and alternate targets use the 56 dp interaction floor, and the four-row layout requests 308 dp preferred height when touch exploration is active and Android grants that size.
+- Touch Assistance keeps the 56 dp interaction floor for candidate/alternate targets. The current five-row letters layout requests 320 dp ordinary preferred height and 364 dp Touch Assistance preferred height while Android retains final measurement authority.
 - Platform Contract 0.4 declaration with current repository identity `GoreeCloud/keyboard` and all nine Integral Platform Systems represented.
 - No Android network permission in the current foundation; emoji recents, emoji search, suggestions, alternates, and portable preferences do not synchronize or emit telemetry.
 - Unit, build, governance, and Android emulator validation paths covering registration, privacy lifecycle, Unicode deletion, suggestion authority, emoji search, portable preference boundaries, Glaze UI mapping/context, accessibility, and native interaction.
