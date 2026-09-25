@@ -6,13 +6,13 @@ GoreeCloud Keyboard is currently a **Weave-stage** Android input-method implemen
 
 ## Install and enable the Development keyboard on Android
 
-Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev** with package ID `com.goreecloud.keyboard.dev.v5`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.6** with package ID `com.goreecloud.keyboard.dev.v7`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
 When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
 
-After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.6**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
 
-Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev when a text field is active.
+Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.6 when a text field is active.
 
 Exact settings labels vary by Android device and version.
 
@@ -28,7 +28,7 @@ The keyboard opens in its **letters** layer.
 - Tap the **English (US)** spacebar to insert a space.
 - Tap **↵** to send the Android Enter key action to the active editor.
 
-The temporary shift state resets after a shifted alphabetic character is entered.
+The temporary shift state resets after a shifted alphabetic character is entered. In ordinary text fields, the current Development candidate can also automatically shift at sentence starts when **Automatic capitalization** is enabled.
 
 ## Type numbers and symbols
 
@@ -65,11 +65,11 @@ The current picker is not a complete emoji catalog. Offline search over the pack
 
 For ordinary text fields, the integrated candidate bar stays empty at a clean word boundary. Once you type a non-empty word prefix, GoreeCloud Quill shows **at least one and at most three** local candidates.
 
-Candidates are frequency-ordered from the packaged local lexicon. If no dictionary candidate is stronger, the word you are actively typing remains available as the fallback candidate instead of letting the strip drop to zero.
+Candidates are frequency-ordered from the packaged local lexicon. Likely spelling corrections are presented ahead of the misspelled token when Quill has a bounded local correction; the word you are actively typing remains available as a fallback. After a committed word, the current Development candidate can also present up to three transient next-word predictions from its small first-party local prediction table.
 
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
-The current engine also performs conservative one-edit automatic correction at spaces and common punctuation boundaries when the local candidate is confident and the host text still matches the tracked prefix. Sensitive/no-suggestions editor policy remains authoritative. The current engine is local and bounded; it is not a cloud language model.
+The current engine also performs conservative one-edit automatic correction at spaces and common punctuation boundaries when the local candidate is confident and the host text still matches the tracked prefix. Common missing-apostrophe forms such as **dont → don't**, **doesnt → doesn't**, and **im → I'm** are handled locally, and canonical first-party names such as **GoreeCloud** and **Wardveil** retain their expected casing. Sensitive/no-suggestions editor policy remains authoritative. The current engine is local and bounded; it is not a cloud language model.
 
 ## Swipe typing
 
@@ -77,7 +77,7 @@ In ordinary non-sensitive text fields, you can slide across letter keys and rele
 
 Swipe typing is disabled in sensitive editors and while touch-exploration/screen-reader optimized presentation is active. The gesture path is not persisted, learned from, transmitted, or combined with surrounding editor text.
 
-Recognition quality remains Weave-stage Development behavior and is still subject to physical-device refinement.
+The current gesture-start threshold requires deliberate travel, elapsed time, and movement across multiple letter keys before the keyboard switches from tapping to swipe decoding. This specifically reduces accidental swipes during fast typing. Recognition quality remains Weave-stage Development behavior and is still subject to physical-device refinement.
 
 ## Sensitive text fields
 
@@ -90,6 +90,27 @@ This is a Development privacy boundary, not a claim that the keyboard can indepe
 The current Android application foundation does **not** request Android network permission. Current Quill suggestions, emoji categories, and emoji recents are local-only.
 
 Future network-backed capabilities, if implemented, require separate user-control, Privacy Shield, security, identity, and acceptance work and must be documented before they can be treated as current behavior.
+
+## Keyboard settings and app shortcut
+
+The Development package now exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.6**. Opening it launches the first-party Keyboard settings screen. The same settings screen is also reachable from the **⚙** control in the keyboard candidate row and from Android's input-method settings entry for GoreeCloud Keyboard.
+
+Current device-local settings include:
+
+- **Swipe typing**
+- **Word suggestions**
+- **Autocorrect**
+- **Next-word predictions**
+- **Automatic capitalization**
+- **Key height:** Compact, Standard, or Tall
+
+Key-height choices change the visible keycap height while preserving the larger touch-target geometry used for dependable typing and accessibility.
+
+## Built-in GoreeCloud dictionary
+
+The packaged local dictionary includes common English vocabulary, common derived/irregular forms, common contractions, and canonical GoreeCloud product/system terminology derived from the first-party branding catalog. It includes names such as **GoreeCloud**, **Glaze**, **Quill**, **Wardveil**, **Everkeep**, and the named GoreeCloud applications represented in that catalog.
+
+This dictionary is read-only in the current Development candidate. It is not learned from your typing, synchronized, uploaded, or built from editor contents.
 
 ## Appearance
 
