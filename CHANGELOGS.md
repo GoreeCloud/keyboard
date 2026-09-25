@@ -2,7 +2,7 @@
 
 **Record type:** Authoritative repository changelog index and current change history  
 **Repository:** `GoreeCloud/keyboard`  
-**Lifecycle:** Development / nonconformant  
+**Lifecycle:** Weave / nonconformant; deployment state: development  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current governance baseline:** `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1` (PR #79).  
 **Current runtime-bearing baseline:** `64d5ed5b600e247630accceaa3f5ba8be26b3143` (PR #93); exact-main Android CI #294 / run `36196662346` passed.  
@@ -34,6 +34,16 @@ Migrated repository archive:
 Together these six files preserve the complete non-empty Drive chronology, including merged milestones, failed/corrected validation attempts, Draft candidate evidence, Glaze transitions, local input/privacy work, accessibility work, and release-boundary statements.
 
 ## Current repository changelog
+
+### September 25, 2026 — Platform Contract 2.0 Weave control-plane migration
+- Migrated the repository manifest from legacy Platform Contract 0.4 lifecycle vocabulary to Contract 2.0.
+- Classified the current Keyboard line as **Weave** because integration, stabilization, accessibility hardening, physical-device acceptance, platform-system migration, and release-completeness work now dominate over initial construction.
+- Kept deployment state **development**, qualification state **in-progress**, next gate **Seal**, and conformance **nonconformant**.
+- Reconciled the manifest version to the implemented `0.1.4-dev` Android line.
+- Pinned Platform Contract validation to current central authority `32cfe6395f6e4bc4872a99e8d0c666ea0b1ed7b8`.
+- Corrected the active Development install identity in user-facing documentation to `com.goreecloud.keyboard.dev.v5`.
+- This control-plane migration does not itself establish physical-device acceptance, production acceptance, Seal qualification, or Anchor qualification.
+
 
 ### September 25, 2026 — Visual keyboard polish and one-to-three suggestions / 0.1.4-dev
 - Added an always-visible number row to the ordinary letters layout and rebalanced the five-row geometry around the existing Glaze interaction floors.
