@@ -15,7 +15,7 @@ class SuggestionEngineTest {
             limit = 2,
         )
 
-        assertEquals(listOf("go", "good"), result)
+        assertEquals(listOf("good", "go"), result)
     }
 
     @Test
@@ -54,7 +54,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("hellp", "hello"), result)
+        assertEquals(listOf("hello", "hellp"), result)
     }
 
     @Test
@@ -65,7 +65,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("teh", "the"), result)
+        assertEquals(listOf("the", "teh"), result)
     }
 
     @Test
@@ -115,7 +115,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("abx", "ab${deseretSmallLongI}x"), result)
+        assertEquals(listOf("ab${deseretSmallLongI}x", "abx"), result)
     }
 
     @Test
