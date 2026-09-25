@@ -47,6 +47,9 @@
     <string name="keyboard_settings_key_height_standard">Standard</string>
     <string name="keyboard_settings_key_height_tall">Tall</string>
     <string name="keyboard_settings_dictionary_section">Dictionary</string>
+    <string name="keyboard_settings_dictionary_title">Built-in GoreeCloud dictionary</string>
+    <string name="keyboard_settings_dictionary_badge">Local • read-only • no learning</string>
+    <string name="keyboard_settings_more_section">More</string>
     <string name="keyboard_settings_dictionary_summary">The built-in local dictionary includes common English, contractions, and canonical GoreeCloud product and system terms. It does not learn from what you type.</string>
     <string name="keyboard_settings_portable_preferences">Portable preference</string>
     <string name="keyboard_settings_android_settings">Android keyboard settings</string>
