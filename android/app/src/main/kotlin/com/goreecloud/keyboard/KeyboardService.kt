@@ -9,6 +9,7 @@ import android.view.inputmethod.EditorInfo
 
 class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var shifted = false
+
     // No active editor has granted ordinary-field behavior yet. Keep the process default fail-closed
     // until onStartInput/onStartInputView provide concrete EditorInfo for the current session.
     private var sensitiveInput = true
@@ -35,16 +36,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        // Editor authority changes before the input view is necessarily shown. Reset the privacy
-        // policy and transient composing state here so an editor switch cannot temporarily retain
-        // the previous field's sensitive/no-suggestions decision while the IME UI is hidden.
         beginEditorSession(attribute)
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-        // Android can show/restart the input view after onStartInput. Re-evaluate from the current
-        // EditorInfo rather than trusting cached policy from a previous visible field.
         beginEditorSession(info)
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setShifted(false)
@@ -54,15 +50,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onFinishInput() {
         super.onFinishInput()
-        // onFinishInput is Android's editor-session boundary. Do not rely only on the input view
-        // being hidden to clear transient composing context or the previous editor's policy state.
         resetEditorSession()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
-        // The view can finish independently of the editor session. Clear the same transient state
-        // here as a defense-in-depth UI boundary; onStartInputView will reapply current policy.
         resetEditorSession()
     }
 
@@ -77,29 +69,31 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onText(value: String) {
         if (value.isEmpty()) return
+
         val isLetterText = value.codePoints().allMatch { Character.isLetter(it) }
         val output = if (shifted && isLetterText) value.uppercase() else value
 
         if (!isLetterText && value in AUTOCORRECT_BOUNDARIES) {
             commitBoundary(value)
+            resetOneShotShift()
             return
         }
 
         currentInputConnection?.commitText(output, 1)
+
         if (!suggestionsSuppressed) {
             if (isLetterText) {
                 if (composingWord.isEmpty()) {
                     composingStartsCapitalized =
                         output.codePointAt(0).let { Character.isUpperCase(it) }
                 }
+
                 val normalized = output.lowercase()
                 if (!composingCaptureExhausted &&
                     SuggestionCapturePolicy.canAppend(composingWord.toString(), normalized)
                 ) {
                     composingWord.append(normalized)
                 } else {
-                    // Keep committed typing authoritative in the host, but stop retaining local
-                    // mid-word context once the bounded suggestion observation window is exhausted.
                     composingWord.clear()
                     composingStartsCapitalized = false
                     composingCaptureExhausted = true
@@ -108,21 +102,20 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                 clearComposingBoundary()
             }
         }
-        updateSuggestions()
 
-        if (shifted) {
-            shifted = false
-            keyboardView?.setShifted(false)
-        }
+        updateSuggestions()
+        resetOneShotShift()
     }
 
     override fun onSpace() {
         commitBoundary(" ")
+        resetOneShotShift()
     }
 
     override fun onSwipe(keyPath: List<String>) {
         if (sensitiveInput || keyPath.isEmpty()) return
         val connection = currentInputConnection ?: return
+
         val candidate = swipeTypingEngine.decode(
             keyPath = keyPath,
             dictionary = QuillLexicon.expandedEnglish,
@@ -139,8 +132,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         connection.commitText("$output ", 1)
         clearComposingBoundary()
-        shifted = false
-        keyboardView?.setShifted(false)
+        resetOneShotShift()
         updateSuggestions()
     }
 
@@ -158,11 +150,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         }
 
         if (deleteCodePoints <= 0) {
-            // The bounded lookbehind did not establish a safe complete prior text unit. Do not
-            // partially delete host text or guess a replacement composing prefix.
             failClosedBackspaceContext()
             return
         }
+
         connection.deleteSurroundingTextInCodePoints(deleteCodePoints, 0)
 
         if (!suggestionsSuppressed && !composingCaptureExhausted && composingWord.isNotEmpty()) {
@@ -170,8 +161,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             composingWord.delete(lastCodePointStart, composingWord.length)
             if (composingWord.isEmpty()) composingStartsCapitalized = false
         }
-        // If capture was exhausted, do not guess that backspace reconstructed a complete prefix.
-        // Stay suppressed until a word/editor boundary provides a clean local observation start.
+
         updateSuggestions()
     }
 
@@ -189,22 +179,18 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSuggestion(value: String) {
-        // Keep a second sensitive-input check here so a future policy regression cannot turn
-        // candidate acceptance into surrounding-text access for a protected editor.
         if (suggestionsSuppressed || sensitiveInput || composingCaptureExhausted) return
-        // The callback value itself is not replacement authority. It must still be one of the exact
-        // candidates presented for this editor session; a stale/forged callback cannot delete text.
         if (!SuggestionCommitPolicy.isPresentedCandidate(value, presentedSuggestions)) return
+
         val connection = currentInputConnection ?: return
         val prefix = composingWord.toString()
         val prefixCodePoints = prefix.codePointCount(0, prefix.length)
+
         if (prefixCodePoints > 0) {
             val beforeCursor = connection.getTextBeforeCursor(prefix.length, 0)
             if (!SuggestionCommitPolicy.matchesExpectedPrefix(prefix, beforeCursor)) {
-                // The host editor is authoritative for cursor/text state. If it no longer matches
-                // the local candidate prefix, do not delete or commit against stale context, and do
-                // not start a new mid-word prefix until the user reaches a clean boundary.
                 composingWord.clear()
+                composingStartsCapitalized = false
                 composingCaptureExhausted = true
                 presentedSuggestions = emptyList()
                 keyboardView?.setSuggestions(emptyList())
@@ -212,10 +198,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             }
             connection.deleteSurroundingTextInCodePoints(prefixCodePoints, 0)
         }
+
         connection.commitText("$value ", 1)
         clearComposingBoundary()
-        shifted = false
-        keyboardView?.setShifted(false)
+        resetOneShotShift()
         updateSuggestions()
     }
 
@@ -229,12 +215,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private fun beginEditorSession(info: EditorInfo?) {
         shifted = false
         composingWord.clear()
+        composingStartsCapitalized = false
         composingCaptureExhausted = false
-        // Presentation belongs to the previous editor until this exact session is evaluated. Clear
-        // both the service-side acceptance set and any visible strip before granting new candidates.
         presentedSuggestions = emptyList()
         keyboardView?.setSuggestions(emptyList())
         keyboardView?.setSwipeTypingEnabled(false)
+
         if (info == null) {
             // Unknown editor metadata must not silently receive ordinary-field privileges. Treat it
             // as sensitive so backspace avoids surrounding-text inspection and suggestions remain
@@ -252,18 +238,15 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private fun resetEditorSession() {
         shifted = false
-        // With no active editor, retain the most restrictive transient policy. A subsequent concrete
-        // EditorInfo is the only authority that may enable ordinary-field composing/surrounding text.
         sensitiveInput = true
         suggestionsSuppressed = true
         composingWord.clear()
+        composingStartsCapitalized = false
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setShifted(false)
         keyboardView?.setSwipeTypingEnabled(false)
-        // No active editor owns suggestion presentation after teardown. Clear the visible strip
-        // rather than repopulating bootstrap candidates until a subsequent editor session starts.
         keyboardView?.setSuggestions(emptyList())
     }
 
@@ -287,6 +270,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                 word = prefix,
                 dictionary = QuillLexicon.expandedEnglish,
             )
+
             if (correction != null) {
                 val beforeCursor = connection.getTextBeforeCursor(prefix.length, 0)
                 if (SuggestionCommitPolicy.matchesExpectedPrefix(prefix, beforeCursor)) {
@@ -295,8 +279,6 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                     connection.commitText(formatCandidateCase(correction) + separator, 1)
                     committedCorrection = true
                 } else {
-                    // The host editor moved or changed independently. Never delete text against a
-                    // stale local prefix merely to force an autocorrection.
                     composingCaptureExhausted = true
                 }
             }
@@ -305,6 +287,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         if (!committedCorrection) {
             connection.commitText(separator, 1)
         }
+
         clearComposingBoundary()
         updateSuggestions()
     }
@@ -327,12 +310,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     private fun updateSuggestions() {
-        if (suggestionsSuppressed || composingCaptureExhausted) {
-            presentedSuggestions = emptyList()
-            keyboardView?.setSuggestions(emptyList())
-            return
-        }
-        if (composingWord.isEmpty()) {
+        if (suggestionsSuppressed || composingCaptureExhausted || composingWord.isEmpty()) {
             presentedSuggestions = emptyList()
             keyboardView?.setSuggestions(emptyList())
             return
@@ -342,12 +320,20 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             prefix = composingWord.toString(),
             dictionary = QuillLexicon.expandedEnglish,
         ).map(::formatCandidateCase).take(3)
+
         keyboardView?.setSuggestions(presentedSuggestions)
+    }
+
+    private fun resetOneShotShift() {
+        if (!shifted) return
+        shifted = false
+        keyboardView?.setShifted(false)
     }
 
     private fun currentGlazeV16PresentationSignals(): GlazeKeyboardV16PresentationSignals {
         val accessibilityManager =
             getSystemService(ACCESSIBILITY_SERVICE) as? AccessibilityManager
+
         return GlazeKeyboardV16PresentationSignals(
             fontScale = resources.configuration.fontScale,
             animationsEnabled = ValueAnimator.areAnimatorsEnabled(),
