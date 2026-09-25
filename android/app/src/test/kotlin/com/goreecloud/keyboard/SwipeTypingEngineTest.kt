@@ -38,7 +38,18 @@ class SwipeTypingEngineTest {
     }
 
     @Test
-    fun requiresSameGestureEndpoints() {
+    fun toleratesNeighboringEndpointDrift() {
+        val result = engine.decode(
+            keyPath = listOf("g", "e", "l", "p"),
+            dictionary = listOf("hello", "help", "world"),
+        )
+
+        assertTrue("Nearby start/end drift should still produce useful local candidates", result.isNotEmpty())
+        assertTrue(result.first() in setOf("hello", "help"))
+    }
+
+    @Test
+    fun rejectsDistantGestureEndpoints() {
         val result = engine.decode(
             keyPath = listOf("h", "e", "l", "o"),
             dictionary = listOf("world", "yellow"),
