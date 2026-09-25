@@ -3,7 +3,7 @@
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Development / nonconformant  
-**Repository version:** `0.1.0-dev`  
+**Repository version:** `0.1.1-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `7313b5981fe309efbc4241bae5d79e61c630c751` (PR #85), with exact-main Android CI #275 / run `36186867768` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
