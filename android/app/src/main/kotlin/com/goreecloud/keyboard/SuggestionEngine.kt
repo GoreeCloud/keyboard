@@ -16,6 +16,7 @@ class SuggestionEngine {
     fun suggest(prefix: String, dictionary: Collection<String>, limit: Int = 3): List<String> {
         if (prefix.isBlank() || limit <= 0) return emptyList()
 
+        val effectiveLimit = limit.coerceAtMost(MAX_VISIBLE_SUGGESTIONS)
         val normalized = prefix.lowercase()
         val candidates = indexedCandidates(dictionary)
         val exact = candidates.firstOrNull { it.normalized == normalized }
@@ -31,7 +32,11 @@ class SuggestionEngine {
             .map { it.word }
             .toList()
 
-        val corrections = if (codePointCount(normalized) >= MIN_CORRECTION_LENGTH) {
+        val corrections = if (
+            exact == null &&
+            completions.size < effectiveLimit &&
+            codePointCount(normalized) >= MIN_CORRECTION_LENGTH
+        ) {
             correctionCandidates(normalized, candidates).map { it.word }
         } else {
             emptyList()
@@ -47,21 +52,21 @@ class SuggestionEngine {
             completions.isNotEmpty() -> {
                 // Prefer real dictionary completions over echoing an incomplete token. Keep the
                 // literal token available as a final fallback so the user can always preserve it.
-                result += completions.take((limit - 1).coerceAtLeast(1))
+                result += completions.take((effectiveLimit - 1).coerceAtLeast(1))
                 result += prefix
             }
 
             corrections.isNotEmpty() -> {
                 // Put likely spelling corrections in front so a misspelling is visible rather than
                 // presenting the misspelled token as though it were the best candidate.
-                result += corrections.take((limit - 1).coerceAtLeast(1))
+                result += corrections.take((effectiveLimit - 1).coerceAtLeast(1))
                 result += prefix
             }
 
             else -> result += prefix
         }
 
-        if (result.size < limit) {
+        if (result.size < effectiveLimit) {
             result += corrections.filterNot { candidate ->
                 result.any { it.equals(candidate, ignoreCase = true) }
             }
@@ -69,7 +74,7 @@ class SuggestionEngine {
 
         return result
             .distinctBy { it.lowercase() }
-            .take(limit.coerceAtMost(MAX_VISIBLE_SUGGESTIONS))
+            .take(effectiveLimit)
     }
 
     /**
