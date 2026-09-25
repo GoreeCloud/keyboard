@@ -49,9 +49,10 @@ internal object GlazeKeyboardV16PresentationPolicy {
     const val InheritedOpticalVersion = "1.2.0"
     const val InheritedOpticalSourceRevision = "f285b9145e27e6e7027b075c37299d101945c272"
 
-    private const val OrdinaryPreferredImeHeightDp = 320f
+    private const val OrdinaryPreferredImeHeightDp = 364f
     private const val KeyboardRowCount = 5f
-    private const val VerticalGapCount = 5f
+    private const val TopInteractionRowCount = 2f
+    private const val VerticalGapCount = 7f
 
     fun interactionFloorDp(context: GlazeKeyboardV16PresentationContext): Float =
         GlazeKeyboardTokens.interactionFloorDp(context.touchAssistance)
@@ -60,7 +61,7 @@ internal object GlazeKeyboardV16PresentationPolicy {
         val interactionFloorDp = interactionFloorDp(context)
         return maxOf(
             OrdinaryPreferredImeHeightDp,
-            interactionFloorDp +
+            interactionFloorDp * TopInteractionRowCount +
                 GlazeKeyboardTokens.Space2Dp +
                 GlazeKeyboardTokens.Space1Dp * VerticalGapCount +
                 interactionFloorDp * KeyboardRowCount,
