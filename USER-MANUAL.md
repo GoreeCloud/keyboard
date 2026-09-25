@@ -2,7 +2,7 @@
 
 ## Current availability
 
-GoreeCloud Keyboard is currently a **Development** Android input-method implementation. This manual describes behavior present in the repository source and Development builds. It does not claim a public production release, Stable qualification, representative physical-device acceptance, or current Apple-platform build.
+GoreeCloud Keyboard is currently a **Forge-stage** Android input-method implementation distributed only as Development builds. This manual describes behavior present in the repository source and Development builds. It does not claim a public production release, Anchor qualification, representative physical-device acceptance, or current Apple-platform build.
 
 ## Enable the keyboard on Android
 
@@ -39,7 +39,7 @@ Changing layers clears the temporary word context used for local suggestions. Sy
 
 ## Emoji
 
-Tap **☺** from the letters or symbols layers to open the current bounded local emoji surface. The compact category strip exposes **Smileys**, **People**, **Nature**, **Food**, and **Symbols**, with fuller spoken accessibility labels than the visible icon labels. Emoji keys commit their complete Unicode String value, including supported multi-code-point sequences such as skin-tone variants, ZWJ sequences, flags, and variation-selector forms.
+Tap **☺** from the letters or symbols layers to open the current bounded local emoji surface. The compact category strip exposes **Smileys**, **People**, **Nature**, **Food**, **Symbols**, and **Travel**, with fuller spoken accessibility labels than the visible icon labels. Emoji keys commit their complete Unicode String value, including supported multi-code-point sequences such as skin-tone variants, ZWJ sequences, flags, and variation-selector forms.
 
 After you commit at least one emoji, a **Recent** control appears. Current recents behavior is intentionally privacy-bounded:
 
@@ -53,7 +53,7 @@ After you commit at least one emoji, a **Recent** control appears. Current recen
 
 The persistence format is a small bounded local list; it does not include surrounding typed text, editor contents, message drafts, timestamps, application identity, or usage telemetry.
 
-The current picker is not a complete emoji catalog. Emoji search, cloud emoji lookup, GIF/sticker search, and synchronization are not implemented current behavior.
+The current picker is not a complete emoji catalog. It includes bounded, fully offline search over the packaged first-party emoji catalog; search text is transient, local-only, cleared on close, and is not sent through the active editor unless you deliberately select a result. Cloud emoji lookup, GIF/sticker search, and synchronization are not implemented current behavior.
 
 ## Local GoreeCloud Quill suggestions
 
@@ -77,15 +77,15 @@ Future network-backed capabilities, if implemented, require separate user-contro
 
 ## Appearance
 
-The current Development source targets GLAZE UI V1.1 (`1.1.0`) at Stable release commit `15cc76d2bcd4065552dc31c77145b63f34d9e7b2`. The live keyboard continues to follow Android night mode using inherited Light/Dark structural values.
+The current governed consumer target is **GLAZE UI V1.6 (`1.6.0`)** at exact Stable source `a7180679ea851389e0f3004515f9a25f420e716d`. The live keyboard already consumes bounded V1.6 Android presentation signals for font scale, animation enablement, and touch exploration, while its optical/material substrate still maps the previously reviewed V1.2 (`1.2.0`) implementation at `f285b9145e27e6e7027b075c37299d101945c272`.
 
-The source also defines the current V1.1 Deep Dark structural palette, but the IME does **not** automatically select Deep Dark and this Development slice adds no new appearance preference. The V1.1 Deep Teal + Soft Amber atmosphere contract is also present as non-semantic source metadata but is not rendered by the typing surface and does not inspect editor or typed content.
+The IME continues to follow Android Light/Dark night-mode state and does **not** automatically select Deep Dark. In this device-test candidate, Touch Assistance requests a 308 dp four-row keyboard height and compresses vertical row gaps before shrinking ordinary key rows, preserving the 56 dp interaction floor whenever the system grants sufficient height.
 
-Complete rendered/accessibility GLAZE UI V1.1 acceptance, runtime Deep Dark policy, Reduced Transparency/Motion, Increased Contrast/native equivalents, TalkBack/Switch Access, adaptive/form-factor validation, representative physical-device acceptance, Human Visual Excellence review, and production design acceptance remain incomplete.
+Complete V1.6 optical/component migration, Reduced Transparency/Motion, Increased Contrast/native equivalents, TalkBack/Switch Access, adaptive/form-factor validation, representative physical-device acceptance, Human Visual Excellence review, and production design acceptance remain incomplete.
 
 ## Current limitations
 
-The Development implementation does not yet claim complete gesture typing, multilingual input, emoji search, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, or Stable release acceptance.
+The Forge-stage implementation does not yet claim complete gesture typing, multilingual input, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, Seal qualification, or Anchor acceptance.
 
 ## Privacy and security expectations
 
