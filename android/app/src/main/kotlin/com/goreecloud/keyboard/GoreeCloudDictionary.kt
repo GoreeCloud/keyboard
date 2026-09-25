@@ -1,0 +1,97 @@
+package com.goreecloud.keyboard
+
+/**
+ * First-party GoreeCloud vocabulary packaged with Keyboard.
+ *
+ * The product/system terms are derived from the canonical GoreeCloud branding catalog and remain
+ * local, deterministic, read-only input data. This list is not learned from typing and is never
+ * synchronized or transmitted.
+ */
+internal object GoreeCloudDictionary {
+    const val BrandingCatalogBlob = "cda780a51f7bb5642ccd4de5c6383292245bf19c"
+
+    val canonicalTerms = listOf(
+        "GoreeCloud",
+        "Everkeep",
+        "Glaze",
+        "Quill",
+        "Wardveil",
+        "Observability",
+        "Mesh",
+        "Policy",
+        "Privacy",
+        "Shield",
+        "Security",
+        "Backups",
+        "Bookmarks",
+        "Browser",
+        "Calendar",
+        "Care",
+        "Changelogs",
+        "Code",
+        "Contacts",
+        "DNS",
+        "Documents",
+        "Download",
+        "Drive",
+        "Feed",
+        "Forms",
+        "Gallery",
+        "Gateway",
+        "Health",
+        "Home",
+        "Identity",
+        "Index",
+        "Keyboard",
+        "Launcher",
+        "Location",
+        "Mail",
+        "Manager",
+        "Maps",
+        "Memos",
+        "Messenger",
+        "Monitor",
+        "Music",
+        "Network",
+        "Notes",
+        "Notify",
+        "Office",
+        "Photos",
+        "Presentations",
+        "Reader",
+        "Router",
+        "Search",
+        "Since",
+        "Social",
+        "Spreadsheet",
+        "Sync",
+        "Tasks",
+        "Terminal",
+        "Vault",
+        "Video",
+        "Website",
+        "Writer",
+    )
+
+    val commonContractions = listOf(
+        "I'm",
+        "I've",
+        "I'll",
+        "don't",
+        "doesn't",
+        "can't",
+        "won't",
+        "isn't",
+        "aren't",
+        "wasn't",
+        "weren't",
+        "shouldn't",
+        "wouldn't",
+        "couldn't",
+        "you're",
+        "they're",
+        "we're",
+        "it's",
+        "that's",
+    )
+}
