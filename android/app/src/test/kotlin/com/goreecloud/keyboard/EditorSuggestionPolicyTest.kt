@@ -32,10 +32,10 @@ class EditorSuggestionPolicyTest {
     }
 
     @Test
-    fun honorsEditorNoPersonalizedLearningFlagAsTransientSuggestionPrivacyBoundary() {
+    fun noPersonalizedLearningDoesNotDisableTransientLocalSuggestions() {
         val inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
 
-        assertTrue(
+        assertFalse(
             EditorSuggestionPolicy.shouldSuppress(
                 inputType,
                 EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING,
