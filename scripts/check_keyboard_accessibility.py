@@ -43,7 +43,7 @@ def main() -> None:
             "internal fun performAccessibilityTarget(id: Int)",
             'Action.SHIFT -> "Shift"',
             'Action.BACKSPACE -> "Backspace"',
-            'Action.SPACE -> "Space"',
+            '"Space, English (US)"',
             'Action.ENTER -> "Enter"',
             "label = hit.entry.accessibilityLabel",
             'label = "Suggestion ${hit.value}"',
