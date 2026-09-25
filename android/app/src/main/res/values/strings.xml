@@ -26,4 +26,29 @@
     <string name="portable_preferences_import_rejected">Import rejected: %1$s</string>
     <string name="portable_preferences_import_too_large">Import rejected: the file exceeds the bounded size limit.</string>
     <string name="portable_preferences_import_failed">The category preference could not be imported.</string>
+
+    <string name="keyboard_settings_title">GoreeCloud Keyboard</string>
+    <string name="keyboard_settings_summary">On-device typing controls, appearance, predictions, and GoreeCloud dictionary settings.</string>
+    <string name="keyboard_settings_typing_section">Typing</string>
+    <string name="keyboard_settings_swipe">Swipe typing</string>
+    <string name="keyboard_settings_swipe_summary">Slide deliberately across at least three letter keys to enter a locally decoded word.</string>
+    <string name="keyboard_settings_suggestions">Word suggestions</string>
+    <string name="keyboard_settings_suggestions_summary">Show up to three local spelling and completion candidates while typing.</string>
+    <string name="keyboard_settings_autocorrect">Autocorrect</string>
+    <string name="keyboard_settings_autocorrect_summary">Correct confident local misspellings and common missing-apostrophe forms at word boundaries.</string>
+    <string name="keyboard_settings_predictions">Next-word predictions</string>
+    <string name="keyboard_settings_predictions_summary">Show local next-word predictions from the current editor session without learning or persistence.</string>
+    <string name="keyboard_settings_auto_capitalize">Automatic capitalization</string>
+    <string name="keyboard_settings_auto_capitalize_summary">Capitalize sentence starts and preserve canonical GoreeCloud naming where confidently known.</string>
+    <string name="keyboard_settings_appearance_section">Appearance</string>
+    <string name="keyboard_settings_key_height">Key height</string>
+    <string name="keyboard_settings_key_height_summary">Choose the visible keycap height. Touch targets remain large enough for dependable typing.</string>
+    <string name="keyboard_settings_key_height_compact">Compact</string>
+    <string name="keyboard_settings_key_height_standard">Standard</string>
+    <string name="keyboard_settings_key_height_tall">Tall</string>
+    <string name="keyboard_settings_dictionary_section">Dictionary</string>
+    <string name="keyboard_settings_dictionary_summary">The built-in local dictionary includes common English, contractions, and canonical GoreeCloud product and system terms. It does not learn from what you type.</string>
+    <string name="keyboard_settings_portable_preferences">Portable preference</string>
+    <string name="keyboard_settings_android_settings">Android keyboard settings</string>
+
 </resources>
