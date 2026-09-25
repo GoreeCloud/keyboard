@@ -3,7 +3,7 @@
 **Record type:** Repository implemented-feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Development / nonconformant  
-**Repository version:** `0.1.2-dev`  
+**Repository version:** `0.1.3-dev`  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Current runtime-bearing baseline:** `7313b5981fe309efbc4241bae5d79e61c630c751`, merge of PR #85 on September 25, 2026; exact-main Android CI #275 / run `36186867768` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
@@ -27,9 +27,9 @@ Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older o
 - No Android network permission in the current application foundation.
 
 ### Local suggestions and gesture typing
-- Packaged, local-only Quill English lexicon with deterministic prefix suggestions and bounded one-edit correction.
-- General starter suggestions are available in ordinary text editors before a prefix is entered; sensitive/no-suggestion editor policy remains authoritative.
-- First-party local swipe-typing gesture capture with an on-device dictionary decoder and visible gesture trail.
+- Packaged, local-only Quill English lexicon with frequency-ordered prefix suggestions, common derived forms, Unicode-aware typo correction, and conservative one-edit automatic correction at spaces and common punctuation boundaries.
+- The strip stays empty at clean word boundaries instead of showing fixed generic starter words; candidates appear from the actual locally typed prefix. Sensitive/no-suggestion editor policy remains authoritative.
+- First-party local swipe-typing gesture capture with a QWERTY geometry-aware on-device dictionary decoder and visible gesture trail.
 - Swipe typing is disabled for sensitive editors and while touch exploration/screen-reader optimized presentation is active.
 - Swipe decoding does not read surrounding editor text, persist gesture traces, learn from typing, use accounts/contacts/clipboard data, emit telemetry, or use network access.
 - Suggestion candidates are presented as bounded Glaze-style touch surfaces rather than text-only strip labels.
@@ -52,7 +52,7 @@ Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older o
 - Bounded one-edit typo-correction candidates using Unicode code points.
 - Bounded transient suggestion capture.
 - Suggestion commit authority restricted to the exact candidates currently presented for the active editor session.
-- Sensitive-editor, host no-suggestions, and host no-personalized-learning gating.
+- Sensitive-editor and host no-suggestions gating. Android no-personalized-learning requests remain non-learning while transient deterministic local candidates stay available.
 - Fail-closed editor lifecycle handling across authoritative start/finish transitions and no-active-editor state.
 
 ### Long-press alternates and accessibility foundations

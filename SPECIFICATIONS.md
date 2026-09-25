@@ -18,8 +18,8 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - Bounded first-party emoji input using complete Unicode `String` payloads, deterministic Smileys, People, Nature, Food, Symbols, and Travel categories, local Recent state, explicit Clear behavior, and bounded device-local private persistence.
 - Fully offline emoji search over only the packaged first-party catalog. Search query state is transient, bounded, cleared on close, cannot be mutated while closed, and is not sent through the active editor or Quill composing context.
 - Deterministic local long-press key alternates with viewport-bounded popup layout, exact shared render/hit-test geometry, pointer movement selection, cancellation, haptic feedback, and accessibility announcements.
-- Local-only GoreeCloud Quill suggestion boundary with deterministic prefix suggestions, bounded typo-correction candidates, Unicode-code-point-aware correction, bounded transient capture, and commit authority restricted to the exact candidates currently presented for the active editor session.
-- Sensitive-editor classification, host no-suggestions/no-personalized-learning policy, and fail-closed editor lifecycle handling that clear composing/suggestion state and prevent ordinary-field authority from leaking across editor transitions or no-active-editor states.
+- Local-only GoreeCloud Quill suggestion boundary with frequency-ordered prefix suggestions, expanded packaged English forms, Unicode-code-point-aware correction, conservative automatic correction at word boundaries, bounded transient capture, and commit authority restricted to the exact candidates currently presented for the active editor session.
+- Sensitive-editor classification, host no-suggestions policy, no-learning privacy handling, and fail-closed editor lifecycle behavior that clear composing/suggestion state and prevent ordinary-field authority from leaking across editor transitions or no-active-editor states.
 - Bounded Unicode-aware backspace for common emoji modifiers, ZWJ-linked emoji, regional-indicator flags, keycaps, variation selectors, combining marks, and CRLF. Ambiguous truncated ordinary-field look-behind fails closed; sensitive editors retain one-code-point deletion without text look-behind.
 - No Android network permission in the current application foundation.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category, with strict validation/checksum integrity, explicit user-controlled Storage Access Framework import/export, preview-before-write import, review/freeze-before-destination export, and no generic preference serialization.
@@ -59,7 +59,7 @@ Eligible letter and punctuation keys expose deterministic local alternates after
 
 ### Editor transitions
 
-Authoritative Android editor-session start/finish callbacks reset transient privacy/suggestion state. Missing or no-active-editor metadata remains sensitive and suggestions-suppressed. Ordinary editors can relax that policy only through a concrete editor transition. Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` and no-personalized-learning requests are honored without misclassifying ordinary fields as passwords.
+Authoritative Android editor-session start/finish callbacks reset transient privacy/suggestion state. Missing or no-active-editor metadata remains sensitive and suggestions-suppressed. Ordinary editors can relax that policy only through a concrete editor transition. Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` suppresses local candidates. `IME_FLAG_NO_PERSONALIZED_LEARNING` does not disable deterministic transient suggestions because the current Quill path does not persist a learned user model.
 
 ### Suggestion authority
 
@@ -121,9 +121,9 @@ Historical Glaze Motion evaluation remains test-only and provides no current V1.
 
 GoreeCloud Keyboard must evolve as a complete first-party input product rather than a minimal demo. Subject to separate implementation and acceptance, target capability families include:
 
-- stronger local autocorrect, prediction, and user/language dictionaries;
+- broader language dictionaries, context-aware prediction, user dictionaries, and higher-confidence multi-edit correction without default typed-content retention;
 - multilingual layouts and explicit language switching;
-- gesture/swipe typing;
+- multilingual and higher-order gesture/swipe recognition beyond the current local QWERTY shape decoder;
 - richer emoji, symbol, kaomoji, and specialized input discovery;
 - GoreeCloud Secure Paste and privacy-governed clipboard tools;
 - privacy-approved voice input/adapters;

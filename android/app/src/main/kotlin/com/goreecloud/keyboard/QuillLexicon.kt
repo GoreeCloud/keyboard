@@ -7,7 +7,7 @@ package com.goreecloud.keyboard
  * contents, telemetry, contacts, clipboard data, accounts, or network sources.
  */
 internal object QuillLexicon {
-    val starterSuggestions = listOf("the", "I", "to")
+    val starterSuggestions = emptyList<String>()
 
     val english = listOf(
         "the", "I", "to", "a", "and", "is", "in", "it", "you", "that", "of", "for", "on", "with",
@@ -92,4 +92,114 @@ internal object QuillLexicon {
         "thanks", "thank", "please", "goreecloud", "quill", "glaze", "wardveil", "camera", "gallery",
         "launcher", "gateway", "notify", "monitor", "browser", "notes", "memos"
     ).distinctBy { it.lowercase() }
+
+    /**
+     * Expanded on-device dictionary used by suggestions, autocorrect, and swipe decoding.
+     *
+     * The base list remains the frequency-ordered authority. Common English inflections are derived
+     * locally and appended after base entries so they are available without outranking more common
+     * explicitly listed words. No typed text is added to this dictionary.
+     */
+    val expandedEnglish: List<String> by lazy {
+        val words = LinkedHashSet<String>()
+        words += english
+        words += goreeCloudVocabulary
+        words += irregularForms
+        english.forEach { base ->
+            derivedForms(base).forEach(words::add)
+        }
+        words.toList()
+    }
+
+    private val goreeCloudVocabulary = listOf(
+        "goreecloud", "quill", "glaze", "wardveil", "privacy", "keyboard", "browser",
+        "launcher", "gallery", "camera", "gateway", "notify", "monitor", "memos", "notes",
+        "autocorrect", "swiping", "swiped", "suggestions", "suggested", "dictionary",
+    )
+
+    private val irregularForms = listOf(
+        "am", "is", "are", "was", "were", "been", "being",
+        "has", "had", "having",
+        "does", "did", "done", "doing",
+        "goes", "went", "gone", "going",
+        "says", "said", "saying",
+        "gets", "got", "getting",
+        "makes", "made", "making",
+        "takes", "took", "taken", "taking",
+        "comes", "came", "coming",
+        "sees", "saw", "seen", "seeing",
+        "writes", "wrote", "written", "writing",
+        "reads", "reading",
+        "shows", "showed", "showing",
+        "thinks", "thought", "thinking",
+        "knows", "knew", "known", "knowing",
+        "feels", "felt", "feeling",
+        "keeps", "kept", "keeping",
+        "leaves", "left", "leaving",
+        "finds", "found", "finding",
+        "brings", "brought", "bringing",
+        "builds", "built", "building",
+        "buys", "bought", "buying",
+        "sends", "sent", "sending",
+        "speaks", "spoke", "spoken", "speaking",
+        "runs", "ran", "running",
+        "begins", "began", "begun", "beginning",
+    )
+
+    private val nonInflecting = setOf(
+        "the", "and", "this", "that", "these", "those", "with", "from", "into", "about",
+        "there", "their", "where", "when", "then", "than", "what", "which", "while",
+        "because", "before", "after", "under", "above", "below", "between", "without",
+        "would", "could", "should", "might", "must", "will", "shall", "your", "our",
+        "his", "her", "its", "they", "them", "some", "many", "much", "very", "only",
+    )
+
+    private fun derivedForms(base: String): List<String> {
+        val word = base.lowercase()
+        if (word.length < 3 || word in nonInflecting) return emptyList()
+        if (!word.codePoints().allMatch { Character.isLetter(it) }) return emptyList()
+
+        val forms = LinkedHashSet<String>()
+        forms += pluralOrThirdPerson(word)
+        forms += presentParticiple(word)
+        forms += pastTense(word)
+        return forms.filter { it != word }
+    }
+
+    private fun pluralOrThirdPerson(word: String): String = when {
+        word.endsWith("ch") || word.endsWith("sh") ||
+            word.endsWith("s") || word.endsWith("x") || word.endsWith("z") -> word + "es"
+        word.endsWith("y") && word.length > 1 && !isVowel(word[word.length - 2]) ->
+            word.dropLast(1) + "ies"
+        else -> word + "s"
+    }
+
+    private fun presentParticiple(word: String): String = when {
+        word.endsWith("ie") -> word.dropLast(2) + "ying"
+        word.endsWith("e") &&
+            !word.endsWith("ee") &&
+            !word.endsWith("ye") &&
+            !word.endsWith("oe") -> word.dropLast(1) + "ing"
+        shouldDoubleFinalConsonant(word) -> word + word.last() + "ing"
+        else -> word + "ing"
+    }
+
+    private fun pastTense(word: String): String = when {
+        word.endsWith("e") -> word + "d"
+        word.endsWith("y") && word.length > 1 && !isVowel(word[word.length - 2]) ->
+            word.dropLast(1) + "ied"
+        shouldDoubleFinalConsonant(word) -> word + word.last() + "ed"
+        else -> word + "ed"
+    }
+
+    private fun shouldDoubleFinalConsonant(word: String): Boolean {
+        if (word.length !in 3..5) return false
+        val a = word[word.length - 3]
+        val b = word[word.length - 2]
+        val c = word[word.length - 1]
+        return !isVowel(a) && isVowel(b) && !isVowel(c) && c !in setOf('w', 'x', 'y')
+    }
+
+    private fun isVowel(value: Char): Boolean = value in "aeiou"
+
 }

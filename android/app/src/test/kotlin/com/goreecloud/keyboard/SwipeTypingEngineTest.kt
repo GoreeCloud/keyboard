@@ -8,7 +8,7 @@ class SwipeTypingEngineTest {
     private val engine = SwipeTypingEngine()
 
     @Test
-    fun decodesCollapsedRepeatedLetters() {
+    fun decodesARealisticCrossedKeyHelloGesture() {
         val result = engine.decode(
             keyPath = listOf("h", "g", "f", "r", "e", "t", "y", "u", "i", "k", "l", "o"),
             dictionary = listOf("help", "hello", "hero"),
@@ -18,13 +18,23 @@ class SwipeTypingEngineTest {
     }
 
     @Test
+    fun geometricRouteDistinguishesShowsFromNearbyShoes() {
+        val result = engine.decode(
+            keyPath = listOf("s", "d", "f", "g", "h", "y", "u", "i", "o", "w", "e", "d", "s"),
+            dictionary = listOf("shows", "shoes", "says"),
+        )
+
+        assertEquals("shows", result.first())
+    }
+
+    @Test
     fun toleratesOneAccidentalCrossedKey() {
         val result = engine.decode(
             keyPath = listOf("t", "h", "g", "e"),
             dictionary = listOf("the", "there", "time"),
         )
 
-        assertTrue(result.contains("the"))
+        assertEquals("the", result.first())
     }
 
     @Test
@@ -40,8 +50,8 @@ class SwipeTypingEngineTest {
     @Test
     fun remainsBoundedByRequestedLimit() {
         val result = engine.decode(
-            keyPath = listOf("t", "h", "e"),
-            dictionary = listOf("the", "tie", "tee", "time"),
+            keyPath = listOf("t", "h", "g", "e"),
+            dictionary = listOf("the", "there", "time"),
             limit = 2,
         )
 

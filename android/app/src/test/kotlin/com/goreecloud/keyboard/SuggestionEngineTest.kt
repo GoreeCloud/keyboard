@@ -1,28 +1,40 @@
 package com.goreecloud.keyboard
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SuggestionEngineTest {
+    private val engine = SuggestionEngine()
+
     @Test
-    fun returnsBoundedPrefixMatches() {
-        val engine = SuggestionEngine()
+    fun ranksPrefixMatchesByDictionaryFrequencyOrder() {
         val result = engine.suggest(
             prefix = "go",
-            dictionary = listOf("goreecloud", "good", "goal", "garden"),
-            limit = 2
+            dictionary = listOf("good", "goal", "goreecloud", "garden"),
+            limit = 2,
         )
 
-        assertEquals(listOf("goal", "good"), result)
+        assertEquals(listOf("good", "goal"), result)
+    }
+
+    @Test
+    fun exactTypedWordStaysFirst() {
+        val result = engine.suggest(
+            prefix = "how",
+            dictionary = listOf("however", "how", "house"),
+            limit = 3,
+        )
+
+        assertEquals("how", result.first())
     }
 
     @Test
     fun addsSingleSubstitutionCorrection() {
-        val engine = SuggestionEngine()
         val result = engine.suggest(
             prefix = "hellp",
             dictionary = listOf("hello", "hero", "world"),
-            limit = 3
+            limit = 3,
         )
 
         assertEquals(listOf("hello"), result)
@@ -30,43 +42,55 @@ class SuggestionEngineTest {
 
     @Test
     fun recognizesAdjacentTranspositionLocally() {
-        val engine = SuggestionEngine()
         val result = engine.suggest(
             prefix = "teh",
             dictionary = listOf("the", "then", "them"),
-            limit = 3
+            limit = 3,
         )
 
         assertEquals(listOf("the"), result)
     }
 
     @Test
-    fun doesNotRunCorrectionPassForVeryShortInput() {
-        val engine = SuggestionEngine()
-        val result = engine.suggest(
-            prefix = "gi",
-            dictionary = listOf("go", "hi", "git"),
-            limit = 3
+    fun conservativeAutocorrectFixesOneEditTypos() {
+        assertEquals(
+            "shows",
+            engine.bestAutocorrection(
+                word = "shws",
+                dictionary = listOf("shows", "shoes", "show"),
+            ),
         )
-
-        assertEquals(listOf("git"), result)
+        assertEquals(
+            "the",
+            engine.bestAutocorrection(
+                word = "teh",
+                dictionary = listOf("the", "then", "them"),
+            ),
+        )
     }
 
     @Test
-    fun rejectsCorrectionsMoreThanOneEditAway() {
-        val engine = SuggestionEngine()
-        val result = engine.suggest(
-            prefix = "cloud",
-            dictionary = listOf("clown", "could", "goreecloud"),
-            limit = 3
+    fun autocorrectDoesNotReplaceKnownWords() {
+        assertNull(
+            engine.bestAutocorrection(
+                word = "show",
+                dictionary = listOf("show", "shows", "shoes"),
+            ),
         )
+    }
 
-        assertEquals(emptyList<String>(), result)
+    @Test
+    fun doesNotAutocorrectVeryShortTokens() {
+        assertNull(
+            engine.bestAutocorrection(
+                word = "gi",
+                dictionary = listOf("go", "hi", "git"),
+            ),
+        )
     }
 
     @Test
     fun supplementaryCharacterInsertionCountsAsOneUnicodeEdit() {
-        val engine = SuggestionEngine()
         val deseretSmallLongI = String(Character.toChars(0x10428))
         val result = engine.suggest(
             prefix = "abx",
@@ -79,7 +103,6 @@ class SuggestionEngineTest {
 
     @Test
     fun returnsNothingForNonPositiveLimit() {
-        val engine = SuggestionEngine()
         assertEquals(emptyList<String>(), engine.suggest("go", listOf("good"), limit = 0))
     }
 }

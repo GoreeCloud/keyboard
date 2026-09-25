@@ -17,11 +17,11 @@
 - Bounded Unicode backspace handling for combining marks, variation selectors, emoji modifiers, keycaps, tag sequences, common ZWJ emoji, CRLF, and regional-indicator runs using pair-from-the-start flag parity.
 - Fail-closed handling when bounded ordinary-field look-behind may begin inside a larger text unit; sensitive fields retain the stricter no-look-behind path.
 - Local-only GoreeCloud Quill suggestion boundary.
-- Deterministic prefix suggestions and bounded one-edit typo-correction candidates using Unicode code points rather than raw UTF-16 units.
+- Frequency-ordered prefix suggestions, expanded packaged English inflections, Unicode-aware typo-correction candidates, and conservative automatic correction when a completed token is a confident one-edit misspelling.
 - Bounded transient suggestion capture that suppresses misleading mid-word recapture when complete context is no longer known.
 - Suggestion commit authority bound to the exact candidates currently presented for the active editor session rather than accepting arbitrary callback values.
 - Sensitive-editor privacy gating for suggestion capture/display/acceptance and text look-behind deletion logic.
-- Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` and no-personalized-learning privacy requests without misclassifying ordinary fields as passwords.
+- Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` requests suppress local candidates. `IME_FLAG_NO_PERSONALIZED_LEARNING` remains honored by the non-learning architecture without unnecessarily disabling transient deterministic suggestions.
 - Fail-closed editor lifecycle behavior across authoritative Android start/finish callbacks, including conservative no-active-editor and missing-editor-metadata state.
 - Deterministic local long-press alternates for common Latin diacritics and punctuation.
 - Viewport-bounded long-press popup placement and exact shared render/hit-test geometry with fail-closed gap/outside/non-finite/unused-cell handling, pointer movement selection, cancellation, haptic feedback, and accessibility announcements.
@@ -54,7 +54,7 @@
 ## Planned product capabilities — not current implementation claims
 
 - Privacy-bounded spacebar cursor control after accepted integration and representative ergonomics/RTL/accessibility validation; open Draft candidates are not current implementation authority.
-- Gesture/swipe typing.
+- Higher-order swipe recognition quality, multilingual gesture models, and representative physical-device acceptance beyond the current QWERTY shape-aware Development decoder.
 - Stronger local prediction/correction and user/language dictionaries.
 - Multilingual input and language switching.
 - User-controlled personalization and learned-language features where separately approved.
