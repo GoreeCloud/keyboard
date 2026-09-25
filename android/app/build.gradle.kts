@@ -17,6 +17,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Development APKs must install beside an OEM/system-signed GoreeCloud Keyboard
+            // without attempting to replace the authoritative production package.
+            applicationIdSuffix = ".dev"
+        }
+
         release {
             isMinifyEnabled = false
             proguardFiles(
