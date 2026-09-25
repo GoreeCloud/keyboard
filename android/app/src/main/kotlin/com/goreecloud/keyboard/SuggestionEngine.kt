@@ -32,8 +32,14 @@ class SuggestionEngine {
             .toList()
 
         val result = mutableListOf<String>()
-        exact?.let { result += it.word }
-        result += completions.take((limit - result.size).coerceAtLeast(0))
+        // Keep the actively typed token visible even when it is not in the packaged dictionary.
+        // This gives ordinary typing a stable primary candidate while still allowing Quill
+        // completions/corrections to occupy the remaining slots.
+        result += exact?.word ?: prefix
+        result += completions
+            .asSequence()
+            .filterNot { it.equals(result.first(), ignoreCase = true) }
+            .take((limit - result.size).coerceAtLeast(0))
         if (result.size >= limit) return result.take(limit)
 
         if (codePointCount(normalized) < MIN_CORRECTION_LENGTH) {
