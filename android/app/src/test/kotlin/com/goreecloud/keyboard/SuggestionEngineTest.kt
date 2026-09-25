@@ -1,6 +1,7 @@
 package com.goreecloud.keyboard
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SuggestionEngineTest {
@@ -53,7 +54,7 @@ class SuggestionEngineTest {
     }
 
     @Test
-    fun rejectsCorrectionsMoreThanOneEditAway() {
+    fun keepsOneActionableCandidateWhenDictionaryHasNoUsefulMatch() {
         val engine = SuggestionEngine()
         val result = engine.suggest(
             prefix = "cloud",
@@ -61,7 +62,43 @@ class SuggestionEngineTest {
             limit = 3
         )
 
-        assertEquals(emptyList<String>(), result)
+        assertEquals(listOf("cloud"), result)
+    }
+
+    @Test
+    fun neverExposesMoreThanThreeSuggestions() {
+        val engine = SuggestionEngine()
+        val result = engine.suggest(
+            prefix = "a",
+            dictionary = listOf("a", "able", "about", "above", "after", "again"),
+            limit = 20,
+        )
+
+        assertEquals(3, result.size)
+        assertEquals(listOf("a", "able", "about"), result)
+    }
+
+    @Test
+    fun uniqueOneEditCandidateMayAutocorrect() {
+        val engine = SuggestionEngine()
+
+        assertEquals(
+            "hello",
+            engine.autocorrection("hellp", listOf("hello", "help", "hero")),
+        )
+        assertEquals(
+            "the",
+            engine.autocorrection("teh", listOf("the", "then", "them")),
+        )
+    }
+
+    @Test
+    fun exactWordsPrefixCompletionsAndAmbiguousCorrectionsDoNotAutocorrect() {
+        val engine = SuggestionEngine()
+
+        assertNull(engine.autocorrection("hello", listOf("hello", "help")))
+        assertNull(engine.autocorrection("hell", listOf("hello", "help")))
+        assertNull(engine.autocorrection("cot", listOf("cat", "cut")))
     }
 
     @Test
