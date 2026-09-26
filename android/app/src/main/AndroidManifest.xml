@@ -3,9 +3,21 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/ic_goreecloud_keyboard"
+        android:roundIcon="@drawable/ic_goreecloud_keyboard"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.GoreeCloudKeyboard">
+
+        <activity
+            android:name=".KeyboardSettingsActivity"
+            android:exported="true"
+            android:label="@string/keyboard_settings_title">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".KeyboardPortablePreferencesActivity"

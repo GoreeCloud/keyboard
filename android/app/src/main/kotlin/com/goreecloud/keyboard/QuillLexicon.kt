@@ -7,7 +7,7 @@ package com.goreecloud.keyboard
  * contents, telemetry, contacts, clipboard data, accounts, or network sources.
  */
 internal object QuillLexicon {
-    val starterSuggestions = emptyList<String>()
+    val starterSuggestions = listOf("I", "The", "How")
 
     val english = listOf(
         "the", "I", "to", "a", "and", "is", "in", "it", "you", "that", "of", "for", "on", "with",
@@ -103,7 +103,11 @@ internal object QuillLexicon {
     val expandedEnglish: List<String> by lazy {
         val words = LinkedHashSet<String>()
         words += english
+        words += EverydayEnglishDictionary.terms
+        words += GoreeCloudDictionary.canonicalTerms
+        words += GoreeCloudDictionary.commonContractions
         words += goreeCloudVocabulary
+        words += brandVocabulary
         words += irregularForms
         english.forEach { base ->
             derivedForms(base).forEach(words::add)
@@ -111,10 +115,49 @@ internal object QuillLexicon {
         words.toList()
     }
 
+    /**
+     * Curated swipe vocabulary.
+     *
+     * Swipe decoding intentionally avoids mechanically generated inflections because a large tail
+     * of synthetic low-value candidates makes geometric ambiguity much harder to resolve. Common
+     * inflections remain present through the packaged everyday list and explicit irregular forms.
+     */
+    val swipeEnglish: List<String> by lazy {
+        val words = LinkedHashSet<String>()
+        words += english
+        words += EverydayEnglishDictionary.terms
+        words += GoreeCloudDictionary.canonicalTerms
+        words += GoreeCloudDictionary.commonContractions
+        words += goreeCloudVocabulary
+        words += brandVocabulary
+        words += irregularForms
+        words.toList()
+    }
+
     private val goreeCloudVocabulary = listOf(
         "goreecloud", "quill", "glaze", "wardveil", "privacy", "keyboard", "browser",
         "launcher", "gallery", "camera", "gateway", "notify", "monitor", "memos", "notes",
         "autocorrect", "swiping", "swiped", "suggestions", "suggested", "dictionary",
+    )
+
+    /**
+     * Curated static local brand/company/product vocabulary. No contacts, accounts, telemetry, or
+     * network sources are consulted; familiar display casing is preserved in suggestions.
+     */
+    private val brandVocabulary = listOf(
+        "Samsung", "Galaxy", "Xiaomi", "Redmi", "Poco", "MIUI", "HyperOS", "OnePlus",
+        "Oppo", "Vivo", "Realme", "Honor", "Huawei", "Motorola", "Nokia", "Google", "Pixel",
+        "Apple", "iPhone", "iPad", "MacBook", "Microsoft", "Windows", "Surface", "Xbox",
+        "Sony", "PlayStation", "Nintendo", "Switch", "Valve", "Steam",
+        "AMD", "Ryzen", "Radeon", "Intel", "Nvidia", "GeForce", "Qualcomm", "Snapdragon",
+        "MediaTek", "Dimensity", "Asus", "ROG", "Acer", "Lenovo", "ThinkPad", "IdeaPad",
+        "Dell", "Alienware", "HP", "Omen", "Logitech", "Corsair", "Razer", "SteelSeries",
+        "Kingston", "Crucial", "Seagate", "SanDisk", "Synology", "QNAP", "Ubiquiti", "Netgear",
+        "TPLink", "Cisco", "Broadcom", "ARM", "Ubuntu", "Debian", "Fedora", "Arch", "Linux",
+        "Chrome", "Chromium", "Firefox", "Brave", "GitHub", "GitLab", "Docker", "Kubernetes",
+        "Discord", "Reddit", "WhatsApp", "Telegram", "Signal", "Spotify", "Netflix", "Twitch",
+        "YouTube", "TikTok", "Instagram", "Facebook", "Meta", "OpenAI", "ChatGPT", "Amazon",
+        "AWS", "Alexa", "Tesla",
     )
 
     private val irregularForms = listOf(

@@ -3,6 +3,7 @@ package com.goreecloud.keyboard
 import android.Manifest
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.view.inputmethod.InputMethodManager
@@ -64,6 +65,26 @@ class KeyboardSystemRegistrationRuntimeTest {
         assertTrue(
             "Android must discover the installed GoreeCloud Keyboard service as an input method",
             installed,
+        )
+
+        val inputMethod = inputMethodManager.inputMethodList.first { inputMethod ->
+            inputMethod.packageName == context.packageName &&
+                inputMethod.serviceName == KeyboardService::class.java.name
+        }
+        assertEquals(
+            "IME settings must open the first-party Keyboard settings surface",
+            KeyboardSettingsActivity::class.java.name,
+            inputMethod.settingsActivity,
+        )
+
+        val launcher = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            setPackage(context.packageName)
+        }
+        val launcherActivities = packageManager.queryIntentActivities(launcher, 0)
+        assertTrue(
+            "The Development app must expose a launcher shortcut for Keyboard settings",
+            launcherActivities.any { it.activityInfo.name == KeyboardSettingsActivity::class.java.name },
         )
     }
 }

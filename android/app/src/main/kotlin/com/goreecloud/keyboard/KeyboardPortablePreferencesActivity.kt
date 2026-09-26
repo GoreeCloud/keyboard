@@ -8,7 +8,10 @@ import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
@@ -79,7 +82,25 @@ class KeyboardPortablePreferencesActivity : Activity() {
         }
         content.addView(statusView, matchWidth())
 
-        setContentView(content)
+        val scrollView = ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = true
+            addView(
+                content,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+            ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+                val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+                insets
+            }
+            ViewCompat.requestApplyInsets(this)
+        }
+
+        setContentView(scrollView)
         refreshCategory()
     }
 

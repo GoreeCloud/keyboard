@@ -2,6 +2,7 @@ package com.goreecloud.keyboard
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SuggestionEngineTest {
@@ -15,7 +16,7 @@ class SuggestionEngineTest {
             limit = 2,
         )
 
-        assertEquals(listOf("go", "good"), result)
+        assertEquals(listOf("good", "goal"), result)
     }
 
     @Test
@@ -54,7 +55,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("hellp", "hello"), result)
+        assertEquals(listOf("hello", "hellp"), result)
     }
 
     @Test
@@ -65,7 +66,7 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("teh", "the"), result)
+        assertEquals(listOf("the", "teh"), result)
     }
 
     @Test
@@ -82,6 +83,27 @@ class SuggestionEngineTest {
             engine.bestAutocorrection(
                 word = "teh",
                 dictionary = listOf("the", "then", "them"),
+            ),
+        )
+    }
+
+    @Test
+    fun highFrequencyNeighborKeySlipAutocorrectsBjtToBut() {
+        assertEquals(
+            "but",
+            engine.bestAutocorrection(
+                word = "bjt",
+                dictionary = QuillLexicon.expandedEnglish,
+            ),
+        )
+    }
+
+    @Test
+    fun closeRankNeighborKeyAlternativesRemainSuggestionOnly() {
+        assertNull(
+            engine.bestAutocorrection(
+                word = "bjt",
+                dictionary = listOf("but", "bit", "bat"),
             ),
         )
     }
@@ -115,11 +137,107 @@ class SuggestionEngineTest {
             limit = 3,
         )
 
-        assertEquals(listOf("abx", "ab${deseretSmallLongI}x"), result)
+        assertEquals(listOf("ab${deseretSmallLongI}x", "abx"), result)
+    }
+
+    @Test
+    fun builtInDictionaryKnowsModernKeyboardVocabulary() {
+        val result = engine.suggest(
+            prefix = "ico",
+            dictionary = QuillLexicon.expandedEnglish,
+            limit = 3,
+        )
+
+        assertEquals("icon", result.first())
+    }
+
+    @Test
+    fun contextCanPromoteARelevantCompletion() {
+        val result = engine.suggest(
+            prefix = "set",
+            dictionary = listOf("set", "setting", "settings", "settle"),
+            contextualPredictions = listOf("settings"),
+            limit = 3,
+        )
+
+        assertEquals("set", result.first())
+        assertEquals("settings", result[1])
+    }
+
+    @Test
+    fun commonIconPrefixProducesBuiltInIconSuggestion() {
+        val result = engine.suggest(
+            prefix = "ico",
+            dictionary = QuillLexicon.expandedEnglish,
+            limit = 3,
+        )
+
+        assertEquals("icon", result.first())
+    }
+
+    @Test
+    fun transientContextCanPromoteARelevantCompletion() {
+        val result = engine.suggest(
+            prefix = "se",
+            dictionary = listOf("second", "send", "settings", "see"),
+            contextualPredictions = listOf("settings"),
+            limit = 3,
+        )
+
+        assertEquals("settings", result.first())
+    }
+
+    @Test
+    fun fillsSuggestionStripWithRealCandidatesBeforeRawUnknownPrefix() {
+        val result = engine.suggest(
+            prefix = "predic",
+            dictionary = listOf("prediction", "predict", "predictive", "predicate"),
+            limit = 3,
+        )
+
+        assertEquals(3, result.size)
+        assertEquals("predict", result.first())
+        assertTrue("prediction" in result)
+        assertTrue("predic" !in result)
+    }
+
+    @Test
+    fun longerUnknownTokensCanReceiveUsefulSuggestionOnlyCorrections() {
+        val result = engine.suggest(
+            prefix = "sugestions",
+            dictionary = listOf("suggestions", "suggestion", "settings"),
+            limit = 3,
+        )
+
+        assertEquals("suggestions", result.first())
     }
 
     @Test
     fun returnsNothingForNonPositiveLimit() {
         assertEquals(emptyList<String>(), engine.suggest("go", listOf("good"), limit = 0))
     }
+    @Test
+    fun commonMissingLetterTypoOffersLaggingBeforeUnrelatedWords() {
+        val result = engine.suggest(
+            prefix = "laging",
+            dictionary = listOf("larding", "lasting", "landing", "lagging"),
+            limit = 3,
+        )
+
+        assertEquals("lagging", result.first())
+    }
+
+    @Test
+    fun largeDictionaryCacheDoesNotChangeResultsAcrossRepeatedQueries() {
+        val dictionary = buildList {
+            addAll(listOf("lag", "lagging", "jump", "hill"))
+            repeat(5_000) { index -> add("word$index") }
+        }
+
+        assertEquals(
+            engine.suggest("laging", dictionary, limit = 3),
+            engine.suggest("laging", dictionary, limit = 3),
+        )
+    }
+
 }

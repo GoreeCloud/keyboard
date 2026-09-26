@@ -22,7 +22,7 @@ lifecycle_metadata:
     - IMPLEMENTED-FEATURES.md
     - PLANNED-FEATURES.md
     - CHANGELOGS.md
-version: "0.1.4-dev"
+version: "0.1.22-dev"
 
 supported_platforms:
   - android
@@ -47,6 +47,8 @@ platform_systems:
       - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardService.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/InputPrivacyClassifier.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicy.kt
+      - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardClipboardController.kt
+      - android/app/src/main/kotlin/com/goreecloud/keyboard/EncryptedClipboardHistoryStore.kt
       - android/app/src/test/kotlin/com/goreecloud/keyboard/InputPrivacyClassifierTest.kt
       - android/app/src/test/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicyTest.kt
       - scripts/check_editor_privacy_lifecycle.py
@@ -56,7 +58,7 @@ platform_systems:
       - docs/development/portable-preference-user-transfer.md
       - docs/development/portable-preference-import-preview.md
       - docs/development/portable-preference-export-review.md
-    notes: Typed content is highly sensitive. Current source keeps password/sensitive editor handling fail-closed, honors host no-suggestions and no-personalized-learning requests, clears transient editor/suggestion state at authoritative lifecycle boundaries, keeps no-active-editor state conservative, has no Android network permission, and limits explicit user file transfer to the one-field emoji-category portability format. Accepted Privacy Shield integration and production privacy validation are not established.
+    notes: Typed and clipboard content are highly sensitive. Current source keeps password/sensitive editor handling fail-closed, honors host no-suggestions and no-personalized-learning requests, clears transient editor/suggestion state at authoritative lifecycle boundaries, keeps no-active-editor state conservative, has no Android network permission, and now includes an opt-in encrypted device-local text clipboard history with Android-marked sensitive clips excluded from persistence, per-app Allow/Ask/Paste-only/Block controls, and Paste Once. Clipboard payloads remain excluded from the portable preference format, synchronization, learning, and backup. Accepted Privacy Shield integration, privileged Secure Paste enforcement, and production privacy validation are not established.
   wardveil_security:
     result: applicable-blocked
     version: null
@@ -65,10 +67,11 @@ platform_systems:
       - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardService.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/InputPrivacyClassifier.kt
       - android/app/src/main/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicy.kt
+      - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardClipboardController.kt
       - scripts/check_editor_privacy_lifecycle.py
       - docs/development/portable-preference-import-preview.md
       - docs/development/portable-preference-export-review.md
-    notes: Keyboard has local sensitive-editor safeguards, fail-closed editor lifecycle behavior, no Android network permission, bounded explicit file transfer, preview-before-write import, and review-before-destination export, but accepted Wardveil Security integration and production validation are not established.
+    notes: Keyboard has local sensitive-editor safeguards, fail-closed editor lifecycle behavior, no Android network permission, bounded explicit file transfer, preview-before-write import, review-before-destination export, and a direct-text-only Clipboard surface that refuses URI coercion and excludes Android-marked sensitive clips from persisted history. Context-aware Wardveil clipboard payload inspection, accepted Wardveil Security integration, and production validation are not established.
   everkeep:
     result: applicable-blocked
     version: null
@@ -159,7 +162,7 @@ continuity:
 
 external_dependencies:
   - name: Android platform
-    purpose: InputMethodService lifecycle, editor metadata, InputConnection, Storage Access Framework document selection, native confirmation UI, accessibility, configuration, and application execution environment.
+    purpose: InputMethodService lifecycle, editor metadata, InputConnection, ClipboardManager/ClipData, Android Keystore, Storage Access Framework document selection, native confirmation UI, accessibility, configuration, and application execution environment.
     required: true
     version_constraint: ">=26"
 
@@ -187,6 +190,8 @@ conformance:
     - android/app/src/main/kotlin/com/goreecloud/keyboard/InputPrivacyClassifier.kt
     - android/app/src/main/kotlin/com/goreecloud/keyboard/EditorSuggestionPolicy.kt
     - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardAccessibilityDelegate.kt
+    - android/app/src/main/kotlin/com/goreecloud/keyboard/KeyboardClipboardController.kt
+    - android/app/src/main/kotlin/com/goreecloud/keyboard/EncryptedClipboardHistoryStore.kt
     - docs/glaze-ui-adoption.md
     - scripts/check_glaze_motion_evaluation.py
     - scripts/check_editor_privacy_lifecycle.py
@@ -198,7 +203,7 @@ conformance:
     - docs/development/portable-preference-export-review.md
   blockers:
     - Keyboard now contains a bounded GLAZE UI V1.6 Android presentation-context layer at current Stable source a7180679ea851389e0f3004515f9a25f420e716d, but the optical substrate still implements historical V1.2 / 1.2.0 semantics at f285b9145e27e6e7027b075c37299d101945c272. Complete V1.6 optical/component migration and fresh whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain incomplete.
-    - Privacy Shield integration and acceptance are not established for this highly sensitive input surface.
+    - Privacy Shield integration and acceptance are not established for this highly sensitive input surface. The 0.1.22 Draft candidate adds Keyboard-side per-app clipboard policy, opt-in encrypted local history, expiration, pin/delete, and Paste Once, but no privileged Secure Paste Broker or system-wide cross-application clipboard enforcement exists.
     - Wardveil Security integration and acceptance are not established.
     - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; explicit user file transfer is only one-field portability.
     - GoreeCloud Identity integration and acceptance are not established for future identity-aware capabilities.

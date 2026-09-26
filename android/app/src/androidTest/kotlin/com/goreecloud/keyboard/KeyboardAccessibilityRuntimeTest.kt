@@ -125,6 +125,56 @@ class KeyboardAccessibilityRuntimeTest {
     }
 
     @Test
+    fun utilityToolbarExposesOnlyImplementedActions() {
+        val view = createRenderedKeyboard(listOf("I", "The", "How"))
+        val labels = view.accessibilityTargets().map { it.label }.toSet()
+
+        assertTrue("Toolbar must expose Emoji", "Emoji" in labels)
+        assertTrue(
+            "Toolbar must expose the implemented Clipboard and Secure Paste surface",
+            "Clipboard and Secure Paste" in labels,
+        )
+        assertTrue("Toolbar must expose Keyboard settings", "Keyboard settings" in labels)
+        assertFalse(
+            "Toolbar must not expose a redundant close/hide Keyboard action",
+            "Hide keyboard" in labels,
+        )
+        assertEquals(
+            "Letters layer must expose Symbols only through the bottom ?123 key, not duplicate it in the toolbar",
+            1,
+            labels.count { it == "Symbols" },
+        )
+        assertFalse(
+            "GIF must not be exposed as a fake action without an implemented provider",
+            labels.any { it.contains("gif", ignoreCase = true) },
+        )
+        assertFalse(
+            "Voice must not be exposed as a fake action without a privacy-approved provider",
+            labels.any { it.contains("voice", ignoreCase = true) },
+        )
+        assertFalse(
+            "Translation must not be exposed as a fake action without an implemented provider",
+            labels.any { it.contains("translat", ignoreCase = true) },
+        )
+        assertFalse(
+            "Handwriting must not be exposed as a fake action without an implemented surface",
+            labels.any { it.contains("handwriting", ignoreCase = true) },
+        )
+    }
+
+    @Test
+    fun emojiExistsOnlyInTheToolbarOnLettersLayer() {
+        val view = createRenderedKeyboard()
+        val emojiTargets = view.accessibilityTargets().filter { it.label == "Emoji" }
+
+        assertEquals(
+            "Letters layer must expose one Emoji control so the bottom row does not duplicate the toolbar",
+            1,
+            emojiTargets.size,
+        )
+    }
+
+    @Test
     fun selectedVirtualStateTracksShiftAndEmojiCategoryPresentation() {
         val view = createRenderedKeyboard()
         view.setShifted(true)

@@ -1,94 +1,289 @@
 package com.goreecloud.keyboard
 
 import kotlin.math.abs
+import kotlin.math.hypot
+import kotlin.math.ln
 
 /**
- * Local-only suggestion and correction boundary for GoreeCloud Quill.
+ * Local-only spelling, completion, and correction ranking for GoreeCloud Keyboard.
  *
- * Candidate order is treated as a lightweight frequency signal: earlier dictionary entries are
- * preferred over later entries. Suggestions remain deterministic, in-process, non-learning, and
- * independent of network, telemetry, contacts, clipboard data, or surrounding editor text.
- *
- * Edit distance is measured in Unicode code points and supports adjacent transposition so common
- * typing errors such as "teh" can resolve to "the" without splitting supplementary characters.
+ * The engine combines deterministic dictionary frequency, prefix quality, bounded Unicode-aware
+ * edit distance, QWERTY proximity for likely tap slips, and optional transient next-word context.
+ * It performs no network access and does not inspect or persist editor text itself.
  */
 class SuggestionEngine {
-    fun suggest(prefix: String, dictionary: Collection<String>, limit: Int = 3): List<String> {
+    private var cachedDictionary: Collection<String>? = null
+    private var cachedIndex: CandidateIndex? = null
+
+    internal fun preload(dictionary: Collection<String>) {
+        indexFor(dictionary)
+    }
+
+    fun suggest(
+        prefix: String,
+        dictionary: Collection<String>,
+        contextualPredictions: Collection<String> = emptyList(),
+        limit: Int = 3,
+    ): List<String> {
         if (prefix.isBlank() || limit <= 0) return emptyList()
 
+        val effectiveLimit = limit.coerceAtMost(MAX_VISIBLE_SUGGESTIONS)
         val normalized = prefix.lowercase()
-        val candidates = indexedCandidates(dictionary)
-        val exact = candidates.firstOrNull { it.normalized == normalized }
+        val index = indexFor(dictionary)
+        val candidates = suggestionCandidates(normalized, index)
+        val exact = index.byNormalized[normalized]
+        val contextRank = contextualPredictions
+            .distinctBy { it.lowercase() }
+            .mapIndexed { index, value -> value.lowercase() to index }
+            .toMap()
 
-        val completions = candidates
-            .asSequence()
-            .filter { it.normalized != normalized && it.normalized.startsWith(normalized) }
+        val scored = candidates.asSequence()
+            .mapNotNull { candidate ->
+                scoreCandidate(
+                    typed = normalized,
+                    candidate = candidate,
+                    contextRank = contextRank,
+                )
+            }
             .sortedWith(
-                compareBy<Candidate> { it.rank }
-                    .thenBy { codePointCount(it.word) - codePointCount(normalized) }
-                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.word },
+                compareBy<ScoredCandidate> { it.score }
+                    .thenBy { it.candidate.rank }
+                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.candidate.word },
             )
-            .map { it.word }
             .toList()
 
         val result = mutableListOf<String>()
-        // Keep the actively typed token visible even when it is not in the packaged dictionary.
-        // This gives ordinary typing a stable primary candidate while still allowing Quill
-        // completions/corrections to occupy the remaining slots.
-        result += exact?.word ?: prefix
-        result += completions
-            .asSequence()
-            .filterNot { it.equals(result.first(), ignoreCase = true) }
-            .take((limit - result.size).coerceAtLeast(0))
-        if (result.size >= limit) return result.take(limit)
+        if (exact != null) result += exact.word
 
-        if (codePointCount(normalized) < MIN_CORRECTION_LENGTH) {
-            return result.take(limit)
+        scored.forEach { scoredCandidate ->
+            if (result.size >= effectiveLimit) return@forEach
+            val word = scoredCandidate.candidate.word
+            if (result.none { it.equals(word, ignoreCase = true) }) result += word
         }
 
-        val corrections = correctionCandidates(normalized, candidates)
-            .asSequence()
-            .filterNot { candidate -> result.any { it.equals(candidate.word, ignoreCase = true) } }
-            .map { it.word }
-            .take(limit - result.size)
-            .toList()
+        if (
+            exact == null &&
+            result.size < effectiveLimit &&
+            result.none { it.equals(prefix, ignoreCase = true) }
+        ) {
+            result += prefix
+        }
 
-        result += corrections
-        return result.take(limit)
+        if (result.isEmpty()) result += prefix
+
+        return result
+            .distinctBy { it.lowercase() }
+            .take(effectiveLimit)
     }
 
     /**
-     * Returns a conservative automatic correction for a completed typed word.
+     * Returns a conservative local automatic correction for a completed word.
      *
-     * Automatic replacement is intentionally stricter than the suggestion strip: the typed token
-     * must not already be known, must contain letters only, must be at least three code points, and
-     * the replacement must be exactly one bounded Damerau-Levenshtein edit away while retaining the
-     * first letter. Ambiguous one-edit candidates are resolved by dictionary rank, but a close
-     * runner-up suppresses automatic replacement rather than guessing.
+     * The correction must be unknown, alphabetic, at least three code points, within a short
+     * Damerau-Levenshtein radius, and clearly better than the runner-up. Neighbor-key substitutions
+     * are treated as more plausible than distant substitutions, while ambiguous candidates remain
+     * suggestions instead of being committed automatically.
      */
-    fun bestAutocorrection(word: String, dictionary: Collection<String>): String? {
+    fun bestAutocorrection(
+        word: String,
+        dictionary: Collection<String>,
+        contextualPredictions: Collection<String> = emptyList(),
+    ): String? {
         if (word.isBlank()) return null
         val normalized = word.lowercase()
         if (codePointCount(normalized) < MIN_CORRECTION_LENGTH) return null
         if (!normalized.codePoints().allMatch { Character.isLetter(it) }) return null
 
-        val candidates = indexedCandidates(dictionary)
-        if (candidates.any { it.normalized == normalized }) return null
+        val index = indexFor(dictionary)
+        if (index.byNormalized.containsKey(normalized)) return null
+        val candidates = correctionCandidates(normalized, index)
 
-        val corrections = correctionCandidates(normalized, candidates)
-            .filter { it.distance == 1 }
-            .filter { it.normalized.firstCodePointOrNull() == normalized.firstCodePointOrNull() }
+        val contextRank = contextualPredictions
+            .distinctBy { it.lowercase() }
+            .mapIndexed { index, value -> value.lowercase() to index }
+            .toMap()
+
+        val corrections = candidates.asSequence()
+            .mapNotNull { candidate ->
+                scoreCorrectionCandidate(
+                    typed = normalized,
+                    candidate = candidate,
+                    contextRank = contextRank,
+                )
+            }
+            .sortedWith(
+                compareBy<ScoredCandidate> { it.score }
+                    .thenBy { it.candidate.rank }
+                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.candidate.word },
+            )
+            .toList()
 
         val best = corrections.firstOrNull() ?: return null
+        if (best.score > AUTOCORRECT_MAX_SCORE) return null
+
         val runnerUp = corrections.getOrNull(1)
-        if (runnerUp != null && runnerUp.rank - best.rank < AUTOCORRECT_RANK_GAP) {
+        val requiredMargin = autocorrectScoreMargin(
+            typed = normalized,
+            best = best,
+            runnerUp = runnerUp,
+        )
+        if (runnerUp != null && runnerUp.score - best.score < requiredMargin) {
             return null
         }
-        return best.word
+        return best.candidate.word
     }
 
-    private fun indexedCandidates(dictionary: Collection<String>): List<Candidate> =
-        dictionary.asSequence()
+    /**
+     * Keep the default ambiguity margin conservative, but allow a clearly higher-frequency
+     * everyday word to win a single adjacent-key substitution when the lower-frequency runner-up
+     * is far behind in dictionary rank. This covers physical slips such as bjt -> but without
+     * weakening the guard for genuinely close alternatives.
+     */
+    private fun autocorrectScoreMargin(
+        typed: String,
+        best: ScoredCandidate,
+        runnerUp: ScoredCandidate?,
+    ): Double {
+        if (runnerUp == null) return 0.0
+
+        val rankAdvantage = runnerUp.candidate.rank - best.candidate.rank
+        val highConfidenceCommonSlip =
+            best.distance == 1 &&
+                best.candidate.rank <= COMMON_WORD_RANK_CEILING &&
+                rankAdvantage >= COMMON_WORD_RANK_ADVANTAGE &&
+                isSingleNeighborSubstitution(typed, best.candidate.normalized)
+
+        return if (highConfidenceCommonSlip) {
+            COMMON_WORD_AUTOCORRECT_SCORE_MARGIN
+        } else {
+            AUTOCORRECT_SCORE_MARGIN
+        }
+    }
+
+    private fun isSingleNeighborSubstitution(typed: String, candidate: String): Boolean {
+        val left = typed.codePoints().toArray()
+        val right = candidate.codePoints().toArray()
+        if (left.size != right.size) return false
+
+        var substitutions = 0
+        for (index in left.indices) {
+            if (left[index] == right[index]) continue
+            substitutions += 1
+            if (substitutions > 1 || !areNeighborKeys(left[index], right[index])) return false
+        }
+        return substitutions == 1
+    }
+
+    private fun scoreCandidate(
+        typed: String,
+        candidate: Candidate,
+        contextRank: Map<String, Int>,
+    ): ScoredCandidate? {
+        if (candidate.normalized == typed) return null
+
+        val completion = candidate.normalized.startsWith(typed)
+        val maximumDistance = maximumSuggestionDistance(typed)
+        val distance = if (completion) {
+            0
+        } else {
+            damerauLevenshteinDistance(typed, candidate.normalized, maximumDistance)
+        }
+
+        if (!completion && distance !in 1..maximumDistance) return null
+
+        val rankPenalty = frequencyPenalty(candidate.rank)
+        val contextBonus = contextRank[candidate.normalized]
+            ?.let { -CONTEXT_BONUS + it * CONTEXT_RANK_STEP }
+            ?: 0.0
+
+        val score = if (completion) {
+            val extra = (codePointCount(candidate.normalized) - codePointCount(typed)).coerceAtLeast(0)
+            COMPLETION_BASE_SCORE +
+                extra * COMPLETION_LENGTH_WEIGHT +
+                rankPenalty +
+                contextBonus
+        } else {
+            correctionScore(
+                typed = typed,
+                candidate = candidate,
+                distance = distance,
+                rankPenalty = rankPenalty,
+                contextBonus = contextBonus,
+            )
+        }
+
+        return ScoredCandidate(candidate, score, distance)
+    }
+
+    private fun scoreCorrectionCandidate(
+        typed: String,
+        candidate: Candidate,
+        contextRank: Map<String, Int>,
+    ): ScoredCandidate? {
+        val maximumDistance = maximumCorrectionDistance(typed)
+        if (abs(codePointCount(candidate.normalized) - codePointCount(typed)) > maximumDistance) {
+            return null
+        }
+
+        val distance = damerauLevenshteinDistance(
+            typed,
+            candidate.normalized,
+            maximumDistance,
+        )
+        if (distance !in 1..maximumDistance) return null
+
+        val firstTyped = typed.firstCodePointOrNull()
+        val firstCandidate = candidate.normalized.firstCodePointOrNull()
+        if (
+            firstTyped != null &&
+            firstCandidate != null &&
+            firstTyped != firstCandidate &&
+            !areNeighborKeys(firstTyped, firstCandidate)
+        ) {
+            return null
+        }
+
+        val contextBonus = contextRank[candidate.normalized]
+            ?.let { -CONTEXT_BONUS + it * CONTEXT_RANK_STEP }
+            ?: 0.0
+
+        return ScoredCandidate(
+            candidate = candidate,
+            score = correctionScore(
+                typed = typed,
+                candidate = candidate,
+                distance = distance,
+                rankPenalty = frequencyPenalty(candidate.rank),
+                contextBonus = contextBonus,
+            ),
+            distance = distance,
+        )
+    }
+
+    private fun correctionScore(
+        typed: String,
+        candidate: Candidate,
+        distance: Int,
+        rankPenalty: Double,
+        contextBonus: Double,
+    ): Double {
+        val commonPrefix = commonPrefixLength(typed, candidate.normalized)
+        val lengthDelta = abs(codePointCount(candidate.normalized) - codePointCount(typed))
+        val keyboardBonus = qwertyProximityBonus(typed, candidate.normalized)
+
+        return CORRECTION_DISTANCE_WEIGHT * distance +
+            lengthDelta * CORRECTION_LENGTH_WEIGHT -
+            commonPrefix * COMMON_PREFIX_BONUS -
+            keyboardBonus +
+            rankPenalty +
+            contextBonus
+    }
+
+    private fun indexFor(dictionary: Collection<String>): CandidateIndex {
+        val current = cachedIndex
+        if (cachedDictionary === dictionary && current != null) return current
+
+        val candidates = dictionary.asSequence()
             .filter { it.isNotBlank() }
             .distinctBy { it.lowercase() }
             .mapIndexed { rank, word ->
@@ -96,39 +291,137 @@ class SuggestionEngine {
                     word = word,
                     normalized = word.lowercase(),
                     rank = rank,
-                    distance = 0,
                 )
             }
             .toList()
+
+        val byNormalized = LinkedHashMap<String, Candidate>(candidates.size)
+        val byFirst = LinkedHashMap<Int, MutableList<Candidate>>()
+        val byLengthAndFirst = LinkedHashMap<Pair<Int, Int>, MutableList<Candidate>>()
+        candidates.forEach { candidate ->
+            byNormalized.putIfAbsent(candidate.normalized, candidate)
+            val first = candidate.normalized.firstCodePointOrNull() ?: return@forEach
+            val length = codePointCount(candidate.normalized)
+            byFirst.getOrPut(first) { mutableListOf() } += candidate
+            byLengthAndFirst.getOrPut(length to first) { mutableListOf() } += candidate
+        }
+
+        return CandidateIndex(
+            all = candidates,
+            byNormalized = byNormalized,
+            byFirst = byFirst,
+            byLengthAndFirst = byLengthAndFirst,
+        ).also { index ->
+            cachedDictionary = dictionary
+            cachedIndex = index
+        }
+    }
+
+    private fun suggestionCandidates(
+        typed: String,
+        index: CandidateIndex,
+    ): List<Candidate> {
+        val first = typed.firstCodePointOrNull() ?: return emptyList()
+        if (first !in 'a'.code..'z'.code) return index.all
+
+        val maximumDistance = maximumSuggestionDistance(typed)
+        val typedLength = codePointCount(typed)
+        val firstCandidates = plausibleFirstCodePoints(first)
+        val pool = LinkedHashSet<Candidate>()
+
+        index.byFirst[first]
+            ?.asSequence()
+            ?.filter { it.normalized.startsWith(typed) }
+            ?.forEach(pool::add)
+
+        for (length in (typedLength - maximumDistance).coerceAtLeast(1)..typedLength + maximumDistance) {
+            firstCandidates.forEach { firstCodePoint ->
+                index.byLengthAndFirst[length to firstCodePoint]?.forEach(pool::add)
+            }
+        }
+        return pool.toList()
+    }
 
     private fun correctionCandidates(
-        normalized: String,
-        candidates: List<Candidate>,
+        typed: String,
+        index: CandidateIndex,
     ): List<Candidate> {
-        val normalizedLength = codePointCount(normalized)
-        val maximumDistance = if (normalizedLength >= LONG_WORD_LENGTH) 2 else 1
+        val first = typed.firstCodePointOrNull() ?: return emptyList()
+        if (first !in 'a'.code..'z'.code) return index.all
 
-        return candidates.asSequence()
-            .filterNot { it.normalized.startsWith(normalized) }
-            .filter {
-                abs(codePointCount(it.normalized) - normalizedLength) <= maximumDistance
+        val maximumDistance = maximumCorrectionDistance(typed)
+        val typedLength = codePointCount(typed)
+        val firstCandidates = plausibleFirstCodePoints(first)
+        val pool = ArrayList<Candidate>()
+
+        for (length in (typedLength - maximumDistance).coerceAtLeast(1)..typedLength + maximumDistance) {
+            firstCandidates.forEach { firstCodePoint ->
+                index.byLengthAndFirst[length to firstCodePoint]?.let(pool::addAll)
             }
-            .mapNotNull { candidate ->
-                val distance = damerauLevenshteinDistance(
-                    normalized,
-                    candidate.normalized,
-                    maximumDistance,
-                )
-                if (distance in 1..maximumDistance) candidate.copy(distance = distance) else null
-            }
-            .sortedWith(
-                compareBy<Candidate> { it.distance }
-                    .thenBy { it.rank }
-                    .thenBy { abs(codePointCount(it.word) - normalizedLength) }
-                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.word },
-            )
-            .toList()
+        }
+        return pool
     }
+
+    private fun plausibleFirstCodePoints(first: Int): Set<Int> {
+        if (first !in 'a'.code..'z'.code) return setOf(first)
+        val result = linkedSetOf(first)
+        for (candidate in 'a'.code..'z'.code) {
+            if (candidate != first && areNeighborKeys(first, candidate)) result += candidate
+        }
+        return result
+    }
+
+    private fun maximumSuggestionDistance(value: String): Int {
+        val length = codePointCount(value)
+        return when {
+            length >= 9 -> 3
+            length >= 5 -> 2
+            else -> 1
+        }
+    }
+
+    private fun maximumCorrectionDistance(value: String): Int {
+        val length = codePointCount(value)
+        return when {
+            length >= VERY_LONG_WORD_LENGTH -> 3
+            length >= LONG_WORD_LENGTH -> 2
+            else -> 1
+        }
+    }
+
+    private fun qwertyProximityBonus(left: String, right: String): Double {
+        if (left.length != right.length) return 0.0
+        var bonus = 0.0
+        left.zip(right).forEach { (a, b) ->
+            if (a == b) return@forEach
+            val p1 = KEY_POINTS[a] ?: return@forEach
+            val p2 = KEY_POINTS[b] ?: return@forEach
+            val distance = hypot(p1.first - p2.first, p1.second - p2.second)
+            bonus += when {
+                distance <= 1.05 -> NEIGHBOR_KEY_BONUS
+                distance <= 1.6 -> NEAR_KEY_BONUS
+                else -> 0.0
+            }
+        }
+        return bonus
+    }
+
+    private fun areNeighborKeys(left: Int, right: Int): Boolean {
+        if (left !in 'a'.code..'z'.code || right !in 'a'.code..'z'.code) return false
+        val p1 = KEY_POINTS[left.toChar()] ?: return false
+        val p2 = KEY_POINTS[right.toChar()] ?: return false
+        return hypot(p1.first - p2.first, p1.second - p2.second) <= 1.25
+    }
+
+    private fun commonPrefixLength(left: String, right: String): Int {
+        val limit = minOf(left.length, right.length)
+        var index = 0
+        while (index < limit && left[index] == right[index]) index += 1
+        return index
+    }
+
+    private fun frequencyPenalty(rank: Int): Double =
+        ln(rank.toDouble() + 2.0) * FREQUENCY_LOG_WEIGHT
 
     private fun damerauLevenshteinDistance(left: String, right: String, maxDistance: Int): Int {
         val a = left.codePoints().toArray()
@@ -179,12 +472,54 @@ class SuggestionEngine {
         val word: String,
         val normalized: String,
         val rank: Int,
+    )
+
+    private data class CandidateIndex(
+        val all: List<Candidate>,
+        val byNormalized: Map<String, Candidate>,
+        val byFirst: Map<Int, List<Candidate>>,
+        val byLengthAndFirst: Map<Pair<Int, Int>, List<Candidate>>,
+    )
+
+    private data class ScoredCandidate(
+        val candidate: Candidate,
+        val score: Double,
         val distance: Int,
     )
 
     private companion object {
         const val MIN_CORRECTION_LENGTH = 3
         const val LONG_WORD_LENGTH = 6
-        const val AUTOCORRECT_RANK_GAP = 8
+        const val VERY_LONG_WORD_LENGTH = 10
+        const val MAX_VISIBLE_SUGGESTIONS = 3
+
+        const val COMPLETION_BASE_SCORE = 0.55
+        const val COMPLETION_LENGTH_WEIGHT = 0.08
+        const val CORRECTION_DISTANCE_WEIGHT = 1.55
+        const val CORRECTION_LENGTH_WEIGHT = 0.18
+        const val COMMON_PREFIX_BONUS = 0.07
+        const val NEIGHBOR_KEY_BONUS = 0.42
+        const val NEAR_KEY_BONUS = 0.18
+        const val CONTEXT_BONUS = 1.15
+        const val CONTEXT_RANK_STEP = 0.16
+        const val FREQUENCY_LOG_WEIGHT = 0.055
+
+        const val AUTOCORRECT_MAX_SCORE = 3.2
+        const val AUTOCORRECT_SCORE_MARGIN = 0.28
+        const val COMMON_WORD_AUTOCORRECT_SCORE_MARGIN = 0.12
+        const val COMMON_WORD_RANK_CEILING = 160
+        const val COMMON_WORD_RANK_ADVANTAGE = 120
+
+        val KEY_POINTS = buildMap {
+            "qwertyuiop".forEachIndexed { index, character ->
+                put(character, index.toDouble() to 0.0)
+            }
+            "asdfghjkl".forEachIndexed { index, character ->
+                put(character, index + 0.45 to 1.0)
+            }
+            "zxcvbnm".forEachIndexed { index, character ->
+                put(character, index + 0.95 to 2.0)
+            }
+        }
     }
 }

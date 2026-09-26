@@ -2,18 +2,215 @@ package com.goreecloud.keyboard
 
 import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.math.ln
+import kotlin.math.max
+import kotlin.math.min
+
+/*
+ * GoreeCloud modification/adaptation notice:
+ *
+ * Portions of the physical swipe-ranking design are a GoreeCloud-native adaptation of concepts
+ * and permissively licensed implementation work from two Apache-2.0 keyboards:
+ *
+ * - FlorisBoard StatisticalGlideTypingClassifier, Copyright (C) 2025 The FlorisBoard Contributors:
+ *   endpoint pruning, ideal word gestures, uniform resampling, shape-vs-location separation,
+ *   path-length pruning, duplicate-letter gesture variants, and frequency-aware ranking.
+ * - AnySoftKeyboard gesture-typing work: meaningful-point filtering, curvature/corner emphasis,
+ *   start/end proximity handling, and direction-aware path comparison.
+ *
+ * This GoreeCloud file has been substantially modified/reimplemented for GoreeCloud's own data
+ * structures, thresholds, privacy boundary, context reranking, UI, tests, and lifecycle. Exact
+ * inspected upstream revisions and notices are recorded in THIRD-PARTY-NOTICES.md. The applicable
+ * Apache License 2.0 text is preserved at LICENSES/Apache-2.0.txt.
+ */
+
+data class SwipePoint(val x: Float, val y: Float)
+
+data class SwipeGesture(
+    val keyPath: List<String>,
+    val points: List<SwipePoint>,
+    val keyCenters: Map<String, SwipePoint>,
+)
 
 /**
- * Local gesture decoder for GoreeCloud Quill.
+ * Local-only gesture decoder for GoreeCloud Keyboard.
  *
- * The decoder treats the traversed QWERTY keys as an ordered geometric path rather than a literal
- * character sequence. Candidate words are ranked by how well their letter path follows the gesture,
- * by ordered letter coverage, by excess detour, and finally by packaged-dictionary frequency.
- *
- * Gesture traces remain transient. This engine performs no editor reads, persistence, learning,
- * telemetry, account/contact/clipboard access, or network access.
+ * The physical path is never persisted or transmitted. Physical-device decoding uses the actual
+ * pointer samples and rendered QWERTY key centers. The key-path overload remains as a deterministic
+ * fallback and unit-test surface.
  */
 internal class SwipeTypingEngine {
+    private var cachedDictionary: Collection<String>? = null
+    private var cachedIndex: SwipeDictionaryIndex? = null
+
+    fun preload(dictionary: Collection<String>) {
+        indexFor(dictionary)
+    }
+
+    fun decode(
+        gesture: SwipeGesture,
+        dictionary: Collection<String>,
+        limit: Int = 3,
+    ): List<String> {
+        if (limit <= 0) return emptyList()
+
+        val traceLabels = normalizeTrace(gesture.keyPath)
+        if (traceLabels.size < MIN_TRACE_KEYS) return emptyList()
+
+        val centers = gesture.keyCenters
+            .mapKeys { it.key.lowercase() }
+            .mapValues { Point(it.value.x.toDouble(), it.value.y.toDouble()) }
+        if (centers.size < MIN_LAYOUT_KEYS) {
+            return decode(gesture.keyPath, dictionary, limit)
+        }
+
+        val scale = keyboardScale(centers)
+        if (!scale.isFinite() || scale <= 0.0) {
+            return decode(gesture.keyPath, dictionary, limit)
+        }
+
+        val simplified = simplifyTrace(
+            gesture.points.map { Point(it.x.toDouble(), it.y.toDouble()) },
+            minimumSpacing = scale * MIN_TRACE_SAMPLE_SPACING,
+        )
+        if (simplified.size < MIN_TRACE_POINTS) {
+            return decode(gesture.keyPath, dictionary, limit)
+        }
+
+        val observed = resamplePolyline(simplified, STATISTICAL_SAMPLE_POINTS)
+        val normalizedObserved = normalizePolyline(observed)
+        val observedCorners = extractCorners(simplified)
+        val observedLength = polylineLength(simplified).coerceAtLeast(scale * 0.5)
+
+        val likelyStarts = nearestKeyLabels(
+            point = observed.first(),
+            centers = centers,
+            count = START_KEY_CANDIDATES,
+        )
+        val likelyEnds = nearestKeyLabels(
+            point = observed.last(),
+            centers = centers,
+            count = END_KEY_CANDIDATES,
+        )
+
+        val physicalCandidates = indexedCandidates(
+            dictionary = dictionary,
+            likelyStarts = likelyStarts,
+            likelyEnds = likelyEnds,
+        ).asSequence()
+            .mapNotNull { indexed ->
+                val word = indexed.word
+                val wordLabels = indexed.labels
+
+                val variants = idealGestureVariants(word, centers, scale)
+                if (variants.isEmpty()) return@mapNotNull null
+
+                var bestScore = Double.POSITIVE_INFINITY
+                for (variant in variants) {
+                    val idealLength = polylineLength(variant)
+                    if (idealLength <= 0.0) continue
+
+                    val lengthRatioPenalty = abs(
+                        ln((idealLength / observedLength).coerceAtLeast(0.0001)),
+                    )
+                    if (lengthRatioPenalty > MAX_LOG_LENGTH_RATIO) continue
+
+                    val ideal = resamplePolyline(variant, STATISTICAL_SAMPLE_POINTS)
+                    val startDistance = distance(ideal.first(), observed.first()) / scale
+                    val endDistance = distance(ideal.last(), observed.last()) / scale
+                    if (
+                        startDistance > MAX_PHYSICAL_START_DISTANCE ||
+                        endDistance > MAX_PHYSICAL_END_DISTANCE
+                    ) {
+                        continue
+                    }
+
+                    val normalizedIdeal = normalizePolyline(ideal)
+                    val shapeDistance = meanPointDistance(normalizedIdeal, normalizedObserved)
+                    if (!shapeDistance.isFinite() || shapeDistance > MAX_NORMALIZED_SHAPE_DISTANCE) {
+                        continue
+                    }
+
+                    val locationDistance = meanPointDistance(ideal, observed) / scale
+                    val directionMismatch = directionMismatchCost(ideal, observed)
+                    if (
+                        !directionMismatch.isFinite() ||
+                        directionMismatch > MAX_DIRECTION_MISMATCH
+                    ) {
+                        continue
+                    }
+
+                    val idealCorners = extractCorners(variant)
+                    val cornerCoverage = if (
+                        idealCorners.size >= 2 &&
+                        observedCorners.size >= 2
+                    ) {
+                        orderedCoverageCost(idealCorners, observedCorners) / scale
+                    } else {
+                        0.0
+                    }
+                    if (!cornerCoverage.isFinite() || cornerCoverage > MAX_CORNER_COVERAGE) {
+                        continue
+                    }
+
+                    val orderedKeyMissRatio =
+                        orderedKeyMissRatio(traceLabels, wordLabels)
+                    if (orderedKeyMissRatio > MAX_ORDERED_KEY_MISS_RATIO) continue
+
+                    val sequencePenalty =
+                        sequenceDistance(traceLabels, wordLabels) * SEQUENCE_DISTANCE_WEIGHT
+                    val orderedKeyPenalty =
+                        orderedKeyMissRatio * ORDERED_KEY_COVERAGE_WEIGHT
+                    val rankPenalty =
+                        ln(indexed.rank.toDouble() + 2.0) * FREQUENCY_LOG_WEIGHT
+                    val endpointPenalty =
+                        startDistance * START_ENDPOINT_WEIGHT +
+                            endDistance * END_ENDPOINT_WEIGHT
+
+                    val score =
+                        shapeDistance * SHAPE_WEIGHT +
+                            locationDistance * LOCATION_WEIGHT +
+                            directionMismatch * DIRECTION_WEIGHT +
+                            cornerCoverage * CORNER_WEIGHT +
+                            lengthRatioPenalty * LENGTH_WEIGHT +
+                            endpointPenalty +
+                            sequencePenalty +
+                            orderedKeyPenalty +
+                            rankPenalty
+
+                    if (score < bestScore) bestScore = score
+                }
+
+                if (!bestScore.isFinite() || bestScore > MAX_TOTAL_SCORE) {
+                    return@mapNotNull null
+                }
+
+                SwipeCandidate(
+                    word = word,
+                    score = bestScore,
+                    rank = indexed.rank,
+                )
+            }
+            .sortedWith(
+                compareBy<SwipeCandidate> { it.score }
+                    .thenBy { it.rank }
+                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.word },
+            )
+            .take(limit)
+            .map { it.word }
+            .toList()
+
+        if (physicalCandidates.size >= limit) return physicalCandidates
+        val fallbackCandidates = decode(
+            keyPath = gesture.keyPath,
+            dictionary = dictionary,
+            limit = limit,
+        )
+        return (physicalCandidates + fallbackCandidates)
+            .distinctBy { it.lowercase() }
+            .take(limit)
+    }
+
     fun decode(
         keyPath: List<String>,
         dictionary: Collection<String>,
@@ -23,46 +220,77 @@ internal class SwipeTypingEngine {
 
         val traceLabels = normalizeTrace(keyPath)
         if (traceLabels.size < MIN_TRACE_KEYS) return emptyList()
+
         val tracePoints = traceLabels.mapNotNull(::pointFor)
         if (tracePoints.size != traceLabels.size) return emptyList()
 
-        val first = traceLabels.first()
-        val last = traceLabels.last()
+        val likelyStarts = nearestKeyLabels(
+            tracePoints.first(),
+            KEY_POINTS,
+            START_KEY_CANDIDATES,
+        )
+        val likelyEnds = nearestKeyLabels(
+            tracePoints.last(),
+            KEY_POINTS,
+            END_KEY_CANDIDATES,
+        )
 
-        return dictionary.asSequence()
-            .filter { it.isNotBlank() }
-            .distinctBy { it.lowercase() }
-            .withIndex()
+        return indexedCandidates(
+            dictionary = dictionary,
+            likelyStarts = likelyStarts,
+            likelyEnds = likelyEnds,
+        ).asSequence()
             .mapNotNull { indexed ->
-                val word = indexed.value
-                val wordLabels = normalizedWordTrace(word)
-                if (wordLabels.size < MIN_TRACE_KEYS) return@mapNotNull null
-                if (wordLabels.first() != first || wordLabels.last() != last) return@mapNotNull null
+                val word = indexed.word
+                val wordLabels = indexed.labels
 
                 val wordPoints = wordLabels.mapNotNull(::pointFor)
                 if (wordPoints.size != wordLabels.size) return@mapNotNull null
 
                 val orderedCost = orderedCoverageCost(wordPoints, tracePoints)
-                if (!orderedCost.isFinite() || orderedCost > MAX_ORDERED_COST) return@mapNotNull null
+                if (!orderedCost.isFinite() || orderedCost > FALLBACK_MAX_ORDERED_COST) {
+                    return@mapNotNull null
+                }
 
                 val candidateCoverage = averageDistanceToPolyline(wordPoints, tracePoints)
-                if (!candidateCoverage.isFinite() || candidateCoverage > MAX_CANDIDATE_COVERAGE) {
+                if (
+                    !candidateCoverage.isFinite() ||
+                    candidateCoverage > FALLBACK_MAX_CANDIDATE_COVERAGE
+                ) {
                     return@mapNotNull null
                 }
 
                 val traceCoverage = averageDistanceToPolyline(tracePoints, wordPoints)
-                val lengthPenalty = abs(wordLabels.size - traceLabels.size) * LENGTH_DELTA_WEIGHT
-                val frequencyPenalty = indexed.index * FREQUENCY_WEIGHT
+                val directionMismatch = directionMismatchCost(
+                    resamplePolyline(wordPoints, FALLBACK_SAMPLE_POINTS),
+                    resamplePolyline(tracePoints, FALLBACK_SAMPLE_POINTS),
+                )
+                val startDistance = distance(wordPoints.first(), tracePoints.first())
+                val endDistance = distance(wordPoints.last(), tracePoints.last())
+                val orderedKeyMissRatio = orderedKeyMissRatio(traceLabels, wordLabels)
+                if (orderedKeyMissRatio > MAX_ORDERED_KEY_MISS_RATIO) return@mapNotNull null
+                val sequencePenalty =
+                    sequenceDistance(traceLabels, wordLabels) * FALLBACK_SEQUENCE_WEIGHT
+                val orderedKeyPenalty =
+                    orderedKeyMissRatio * FALLBACK_ORDERED_KEY_COVERAGE_WEIGHT
+                val lengthPenalty =
+                    abs(wordLabels.size - traceLabels.size) * FALLBACK_LENGTH_WEIGHT
+                val frequencyPenalty =
+                    ln(indexed.rank.toDouble() + 2.0) * FALLBACK_FREQUENCY_WEIGHT
 
                 SwipeCandidate(
                     word = word,
                     score =
-                        orderedCost * ORDERED_WEIGHT +
-                        candidateCoverage * CANDIDATE_COVERAGE_WEIGHT +
-                        traceCoverage * TRACE_COVERAGE_WEIGHT +
-                        lengthPenalty +
-                        frequencyPenalty,
-                    rank = indexed.index,
+                        orderedCost * FALLBACK_ORDERED_WEIGHT +
+                            candidateCoverage * FALLBACK_CANDIDATE_COVERAGE_WEIGHT +
+                            traceCoverage * FALLBACK_TRACE_COVERAGE_WEIGHT +
+                            directionMismatch * FALLBACK_DIRECTION_WEIGHT +
+                            (startDistance + endDistance) * FALLBACK_ENDPOINT_WEIGHT +
+                            sequencePenalty +
+                            orderedKeyPenalty +
+                            lengthPenalty +
+                            frequencyPenalty,
+                    rank = indexed.rank,
                 )
             }
             .sortedWith(
@@ -75,11 +303,52 @@ internal class SwipeTypingEngine {
             .toList()
     }
 
+    private fun indexedCandidates(
+        dictionary: Collection<String>,
+        likelyStarts: Set<String>,
+        likelyEnds: Set<String>,
+    ): List<IndexedSwipeWord> {
+        val index = indexFor(dictionary)
+        val result = ArrayList<IndexedSwipeWord>()
+        likelyStarts.forEach { start ->
+            likelyEnds.forEach { end ->
+                index.byEndpoints[start to end]?.let(result::addAll)
+            }
+        }
+        return result.sortedBy { it.rank }
+    }
+
+    private fun indexFor(dictionary: Collection<String>): SwipeDictionaryIndex {
+        val current = cachedIndex
+        if (cachedDictionary === dictionary && current != null) return current
+
+        val seen = HashSet<String>()
+        val byEndpoints = LinkedHashMap<Pair<String, String>, MutableList<IndexedSwipeWord>>()
+        dictionary.forEachIndexed { rank, word ->
+            if (word.isBlank()) return@forEachIndexed
+            val normalized = word.lowercase()
+            if (!seen.add(normalized)) return@forEachIndexed
+            val labels = normalizedWordTrace(word)
+            if (labels.size < MIN_TRACE_KEYS) return@forEachIndexed
+            byEndpoints.getOrPut(labels.first() to labels.last()) { mutableListOf() } +=
+                IndexedSwipeWord(
+                    word = word,
+                    labels = labels,
+                    rank = rank,
+                )
+        }
+
+        return SwipeDictionaryIndex(byEndpoints = byEndpoints).also { index ->
+            cachedDictionary = dictionary
+            cachedIndex = index
+        }
+    }
+
     private fun normalizeTrace(keyPath: List<String>): List<String> {
         val result = mutableListOf<String>()
-        for (label in keyPath) {
+        keyPath.forEach { label ->
             val normalized = label.lowercase()
-            if (normalized.length != 1 || normalized[0] !in 'a'..'z') continue
+            if (normalized.length != 1 || normalized[0] !in 'a'..'z') return@forEach
             if (result.lastOrNull() != normalized) result += normalized
         }
         return result
@@ -95,14 +364,210 @@ internal class SwipeTypingEngine {
         return result
     }
 
-    /**
-     * Greedily matches each intended letter to the nearest remaining gesture point. This strongly
-     * penalizes candidates whose letters appear along the right route but in the wrong order.
-     */
-    private fun orderedCoverageCost(candidate: List<Point>, observed: List<Point>): Double {
+    private fun idealGestureVariants(
+        word: String,
+        centers: Map<String, Point>,
+        scale: Double,
+    ): List<List<Point>> {
+        val basic = mutableListOf<Point>()
+        val duplicateAware = mutableListOf<Point>()
+        var previous: String? = null
+        var hasDuplicate = false
+
+        for (character in word.lowercase()) {
+            if (character !in 'a'..'z') return emptyList()
+            val label = character.toString()
+            val center = centers[label] ?: return emptyList()
+            basic += center
+
+            if (previous == label) {
+                hasDuplicate = true
+                val radius = scale * DUPLICATE_LETTER_LOOP_RADIUS
+                duplicateAware += Point(center.x + radius, center.y)
+                duplicateAware += Point(center.x, center.y - radius)
+                duplicateAware += Point(center.x - radius, center.y)
+                duplicateAware += Point(center.x, center.y + radius)
+            }
+            duplicateAware += center
+            previous = label
+        }
+
+        return buildList {
+            if (basic.size >= 2) add(basic)
+            if (hasDuplicate && duplicateAware.size >= 2) add(duplicateAware)
+        }
+    }
+
+    private fun nearestKeyLabels(
+        point: Point,
+        centers: Map<String, Point>,
+        count: Int,
+    ): Set<String> =
+        centers.entries
+            .asSequence()
+            .filter { it.key.length == 1 && it.key[0] in 'a'..'z' }
+            .sortedBy { (_, center) -> distance(point, center) }
+            .take(count.coerceAtLeast(1))
+            .mapTo(linkedSetOf()) { it.key }
+
+    private fun simplifyTrace(
+        points: List<Point>,
+        minimumSpacing: Double,
+    ): List<Point> {
+        if (points.size <= 2) return points
+        val result = mutableListOf(points.first())
+
+        points.drop(1).dropLast(1).forEach { point ->
+            if (distance(result.last(), point) >= minimumSpacing) result += point
+            if (result.size >= MAX_TRACE_POINTS - 1) return@forEach
+        }
+
+        if (result.last() != points.last()) result += points.last()
+        return result
+    }
+
+    private fun extractCorners(points: List<Point>): List<Point> {
+        if (points.size <= 2) return points
+
+        val result = mutableListOf(points.first())
+        for (index in 1 until points.lastIndex) {
+            val previous = points[index - 1]
+            val current = points[index]
+            val next = points[index + 1]
+
+            val ax = current.x - previous.x
+            val ay = current.y - previous.y
+            val bx = next.x - current.x
+            val by = next.y - current.y
+            val aLength = hypot(ax, ay)
+            val bLength = hypot(bx, by)
+            if (aLength <= EPSILON || bLength <= EPSILON) continue
+
+            val cosine = ((ax * bx + ay * by) / (aLength * bLength)).coerceIn(-1.0, 1.0)
+            val turnStrength = 1.0 - cosine
+            if (turnStrength >= CORNER_TURN_STRENGTH) result += current
+        }
+
+        result += points.last()
+        return result
+    }
+
+    private fun resamplePolyline(
+        points: List<Point>,
+        count: Int,
+    ): List<Point> {
+        if (points.isEmpty() || count <= 0) return emptyList()
+        if (points.size == 1 || count == 1) return List(count) { points.first() }
+
+        val cumulative = DoubleArray(points.size)
+        for (index in 1 until points.size) {
+            cumulative[index] =
+                cumulative[index - 1] + distance(points[index - 1], points[index])
+        }
+
+        val totalLength = cumulative.last()
+        if (totalLength <= EPSILON) return List(count) { points.first() }
+
+        val result = ArrayList<Point>(count)
+        var segment = 0
+        repeat(count) { sampleIndex ->
+            val target =
+                totalLength * sampleIndex.toDouble() / (count - 1).coerceAtLeast(1).toDouble()
+
+            while (
+                segment < points.lastIndex - 1 &&
+                cumulative[segment + 1] < target
+            ) {
+                segment += 1
+            }
+
+            val start = points[segment]
+            val end = points[min(segment + 1, points.lastIndex)]
+            val segmentStart = cumulative[segment]
+            val segmentEnd = cumulative[min(segment + 1, cumulative.lastIndex)]
+            val segmentLength = (segmentEnd - segmentStart).coerceAtLeast(EPSILON)
+            val t = ((target - segmentStart) / segmentLength).coerceIn(0.0, 1.0)
+
+            result += Point(
+                x = start.x + (end.x - start.x) * t,
+                y = start.y + (end.y - start.y) * t,
+            )
+        }
+        return result
+    }
+
+    private fun normalizePolyline(points: List<Point>): List<Point> {
+        if (points.isEmpty()) return emptyList()
+
+        val minX = points.minOf { it.x }
+        val maxX = points.maxOf { it.x }
+        val minY = points.minOf { it.y }
+        val maxY = points.maxOf { it.y }
+        val side = max(maxX - minX, maxY - minY).coerceAtLeast(EPSILON)
+        val centerX = (minX + maxX) / 2.0
+        val centerY = (minY + maxY) / 2.0
+
+        return points.map { point ->
+            Point(
+                x = (point.x - centerX) / side,
+                y = (point.y - centerY) / side,
+            )
+        }
+    }
+
+    private fun meanPointDistance(
+        left: List<Point>,
+        right: List<Point>,
+    ): Double {
+        if (left.isEmpty() || left.size != right.size) return Double.POSITIVE_INFINITY
+
+        var total = 0.0
+        for (index in left.indices) {
+            total += distance(left[index], right[index])
+        }
+        return total / left.size
+    }
+
+    private fun directionMismatchCost(
+        candidate: List<Point>,
+        observed: List<Point>,
+    ): Double {
+        if (candidate.size < 2 || candidate.size != observed.size) {
+            return Double.POSITIVE_INFINITY
+        }
+
+        var total = 0.0
+        var compared = 0
+        for (index in 0 until candidate.lastIndex) {
+            val candidateDx = candidate[index + 1].x - candidate[index].x
+            val candidateDy = candidate[index + 1].y - candidate[index].y
+            val observedDx = observed[index + 1].x - observed[index].x
+            val observedDy = observed[index + 1].y - observed[index].y
+
+            val candidateLength = hypot(candidateDx, candidateDy)
+            val observedLength = hypot(observedDx, observedDy)
+            if (candidateLength <= EPSILON || observedLength <= EPSILON) continue
+
+            val cosine = (
+                (candidateDx * observedDx + candidateDy * observedDy) /
+                    (candidateLength * observedLength)
+                ).coerceIn(-1.0, 1.0)
+
+            total += (1.0 - cosine) * 0.5
+            compared += 1
+        }
+
+        return if (compared == 0) Double.POSITIVE_INFINITY else total / compared
+    }
+
+    private fun orderedCoverageCost(
+        candidate: List<Point>,
+        observed: List<Point>,
+    ): Double {
+        if (candidate.isEmpty() || observed.isEmpty()) return Double.POSITIVE_INFINITY
+
         var searchStart = 0
         var total = 0.0
-
         candidate.forEachIndexed { candidateIndex, target ->
             if (candidateIndex == 0) {
                 total += distance(target, observed.first())
@@ -130,37 +595,123 @@ internal class SwipeTypingEngine {
         return total / candidate.size
     }
 
-    private fun averageDistanceToPolyline(points: List<Point>, polyline: List<Point>): Double {
+    private fun averageDistanceToPolyline(
+        points: List<Point>,
+        polyline: List<Point>,
+    ): Double {
         if (points.isEmpty() || polyline.isEmpty()) return Double.POSITIVE_INFINITY
         if (polyline.size == 1) {
             return points.sumOf { distance(it, polyline.first()) } / points.size
         }
 
         var total = 0.0
-        for (point in points) {
+        points.forEach { point ->
             var best = Double.POSITIVE_INFINITY
             for (index in 0 until polyline.lastIndex) {
-                best = minOf(best, distanceToSegment(point, polyline[index], polyline[index + 1]))
+                best = min(
+                    best,
+                    distanceToSegment(point, polyline[index], polyline[index + 1]),
+                )
             }
             total += best
         }
         return total / points.size
     }
 
-    private fun distanceToSegment(point: Point, start: Point, end: Point): Double {
+    private fun distanceToSegment(
+        point: Point,
+        start: Point,
+        end: Point,
+    ): Double {
         val dx = end.x - start.x
         val dy = end.y - start.y
-        if (dx == 0.0 && dy == 0.0) return distance(point, start)
+        if (abs(dx) <= EPSILON && abs(dy) <= EPSILON) return distance(point, start)
 
         val projection = (
             (point.x - start.x) * dx +
                 (point.y - start.y) * dy
             ) / (dx * dx + dy * dy)
         val t = projection.coerceIn(0.0, 1.0)
+
         return hypot(
             point.x - (start.x + t * dx),
             point.y - (start.y + t * dy),
         )
+    }
+
+    private fun orderedKeyMissRatio(
+        observed: List<String>,
+        candidate: List<String>,
+    ): Double {
+        if (observed.isEmpty() || candidate.isEmpty()) return 1.0
+
+        // Longest-common-subsequence coverage tolerates a missed neighboring endpoint without
+        // discarding all later ordered evidence. A greedy scan cannot recover after the first
+        // unmatched candidate key (for example g-e-l-p observed for h-e-l-p).
+        val rows = Array(observed.size + 1) { IntArray(candidate.size + 1) }
+        for (i in observed.indices) {
+            for (j in candidate.indices) {
+                rows[i + 1][j + 1] = if (observed[i] == candidate[j]) {
+                    rows[i][j] + 1
+                } else {
+                    maxOf(rows[i][j + 1], rows[i + 1][j])
+                }
+            }
+        }
+
+        val matched = rows[observed.size][candidate.size]
+        return 1.0 - matched.toDouble() / candidate.size.toDouble()
+    }
+
+    private fun sequenceDistance(
+        observed: List<String>,
+        candidate: List<String>,
+    ): Double {
+        if (observed.isEmpty() || candidate.isEmpty()) return 1.0
+
+        val matrix = Array(observed.size + 1) { IntArray(candidate.size + 1) }
+        for (i in observed.indices) matrix[i + 1][0] = i + 1
+        for (j in candidate.indices) matrix[0][j + 1] = j + 1
+
+        for (i in observed.indices) {
+            for (j in candidate.indices) {
+                val substitution = if (observed[i] == candidate[j]) 0 else 1
+                matrix[i + 1][j + 1] = minOf(
+                    matrix[i][j + 1] + 1,
+                    matrix[i + 1][j] + 1,
+                    matrix[i][j] + substitution,
+                )
+            }
+        }
+
+        return matrix[observed.size][candidate.size].toDouble() /
+            max(observed.size, candidate.size).toDouble()
+    }
+
+    private fun polylineLength(points: List<Point>): Double {
+        if (points.size < 2) return 0.0
+        var total = 0.0
+        for (index in 0 until points.lastIndex) {
+            total += distance(points[index], points[index + 1])
+        }
+        return total
+    }
+
+    private fun keyboardScale(centers: Map<String, Point>): Double {
+        val pairs = listOf(
+            "q" to "w",
+            "w" to "e",
+            "a" to "s",
+            "s" to "d",
+            "z" to "x",
+            "x" to "c",
+        )
+        val distances = pairs.mapNotNull { (left, right) ->
+            val a = centers[left] ?: return@mapNotNull null
+            val b = centers[right] ?: return@mapNotNull null
+            distance(a, b)
+        }
+        return distances.takeIf { it.isNotEmpty() }?.average() ?: Double.NaN
     }
 
     private fun distance(left: Point, right: Point): Double =
@@ -170,6 +721,16 @@ internal class SwipeTypingEngine {
 
     private data class Point(val x: Double, val y: Double)
 
+    private data class IndexedSwipeWord(
+        val word: String,
+        val labels: List<String>,
+        val rank: Int,
+    )
+
+    private data class SwipeDictionaryIndex(
+        val byEndpoints: Map<Pair<String, String>, List<IndexedSwipeWord>>,
+    )
+
     private data class SwipeCandidate(
         val word: String,
         val score: Double,
@@ -177,14 +738,51 @@ internal class SwipeTypingEngine {
     )
 
     private companion object {
+        const val EPSILON = 0.000001
         const val MIN_TRACE_KEYS = 2
-        const val MAX_ORDERED_COST = 1.25
-        const val MAX_CANDIDATE_COVERAGE = 0.95
-        const val ORDERED_WEIGHT = 2.2
-        const val CANDIDATE_COVERAGE_WEIGHT = 1.5
-        const val TRACE_COVERAGE_WEIGHT = 0.35
-        const val LENGTH_DELTA_WEIGHT = 0.07
-        const val FREQUENCY_WEIGHT = 0.0008
+        const val MIN_TRACE_POINTS = 3
+        const val MIN_LAYOUT_KEYS = 20
+        const val MAX_TRACE_POINTS = 96
+        const val MIN_TRACE_SAMPLE_SPACING = 0.10
+
+        const val STATISTICAL_SAMPLE_POINTS = 72
+        const val START_KEY_CANDIDATES = 4
+        const val END_KEY_CANDIDATES = 4
+        const val DUPLICATE_LETTER_LOOP_RADIUS = 0.18
+
+        const val MAX_LOG_LENGTH_RATIO = 0.82
+        const val MAX_PHYSICAL_START_DISTANCE = 1.55
+        const val MAX_PHYSICAL_END_DISTANCE = 2.15
+        const val MAX_NORMALIZED_SHAPE_DISTANCE = 0.52
+        const val MAX_DIRECTION_MISMATCH = 0.72
+        const val MAX_CORNER_COVERAGE = 1.45
+        const val MAX_TOTAL_SCORE = 6.15
+        const val MAX_ORDERED_KEY_MISS_RATIO = 0.50
+
+        const val SHAPE_WEIGHT = 3.20
+        const val LOCATION_WEIGHT = 1.05
+        const val DIRECTION_WEIGHT = 1.55
+        const val CORNER_WEIGHT = 0.80
+        const val LENGTH_WEIGHT = 0.60
+        const val START_ENDPOINT_WEIGHT = 1.15
+        const val END_ENDPOINT_WEIGHT = 0.72
+        const val SEQUENCE_DISTANCE_WEIGHT = 0.48
+        const val ORDERED_KEY_COVERAGE_WEIGHT = 1.10
+        const val FREQUENCY_LOG_WEIGHT = 0.005
+        const val CORNER_TURN_STRENGTH = 0.035
+
+        const val FALLBACK_SAMPLE_POINTS = 24
+        const val FALLBACK_MAX_ORDERED_COST = 1.55
+        const val FALLBACK_MAX_CANDIDATE_COVERAGE = 1.20
+        const val FALLBACK_ORDERED_WEIGHT = 2.0
+        const val FALLBACK_CANDIDATE_COVERAGE_WEIGHT = 1.45
+        const val FALLBACK_TRACE_COVERAGE_WEIGHT = 0.30
+        const val FALLBACK_DIRECTION_WEIGHT = 0.75
+        const val FALLBACK_ENDPOINT_WEIGHT = 1.05
+        const val FALLBACK_SEQUENCE_WEIGHT = 0.52
+        const val FALLBACK_ORDERED_KEY_COVERAGE_WEIGHT = 1.05
+        const val FALLBACK_LENGTH_WEIGHT = 0.06
+        const val FALLBACK_FREQUENCY_WEIGHT = 0.018
 
         val KEY_POINTS = buildMap {
             "qwertyuiop".forEachIndexed { index, character ->

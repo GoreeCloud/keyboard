@@ -12,13 +12,17 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 
 - Native Android `InputMethodService` integration and declarative/runtime input-method registration checks.
 - First-party `KeyboardView` rendering and pointer-input handling.
-- QWERTY letters with shift, backspace, space, and enter.
+- Five-row QWERTY letters with an always-visible number row, Shift, Backspace, language-labeled Space, Enter, and direct comma/period punctuation.
 - First-party letters/symbols mode switching with `?123`, `ABC`, and `=\\<` controls.
 - Primary symbol page with digits and common punctuation plus a secondary first-party page with brackets, operators, currency marks, and common typographic symbols.
 - Bounded first-party emoji input using complete Unicode `String` payloads, deterministic Smileys, People, Nature, Food, Symbols, and Travel categories, local Recent state, explicit Clear behavior, and bounded device-local private persistence.
 - Fully offline emoji search over only the packaged first-party catalog. Search query state is transient, bounded, cleared on close, cannot be mutated while closed, and is not sent through the active editor or Quill composing context.
 - Deterministic local long-press key alternates with viewport-bounded popup layout, exact shared render/hit-test geometry, pointer movement selection, cancellation, haptic feedback, and accessibility announcements.
-- Local-only GoreeCloud Quill suggestion boundary with frequency-ordered prefix suggestions, expanded packaged English forms, Unicode-code-point-aware correction, conservative automatic correction at word boundaries, bounded transient capture, a one-to-three candidate contract for non-empty ordinary-text prefixes, typed-token fallback when no dictionary candidate is stronger, and commit authority restricted to the exact candidates currently presented for the active editor session.
+- Local-only GoreeCloud Quill suggestion boundary with frequency-ordered prefix suggestions, expanded packaged English forms, correction-first presentation for bounded likely misspellings, Unicode-code-point-aware correction, conservative automatic correction at word boundaries, bounded transient capture, a one-to-three candidate contract for non-empty ordinary-text prefixes, typed-token fallback, and commit authority restricted to the exact candidates currently presented for the active editor session.
+- A packaged read-only GoreeCloud dictionary derived from the canonical first-party branding catalog, broader everyday-English vocabulary, and common local English contractions. Optional user learning is stored separately and is disabled by default.
+- The packaged everyday-English vocabulary explicitly covers modern keyboard/input terminology including icon/icons, toolbar, emoji, grammar, prediction, autocorrect, haptics, gesture, editor, layout, and related common terms; this static dictionary remains independent of optional learned data.
+- A bounded first-party next-word/grammar layer using a small ordinary-editor context window, transient Keyboard session history, and optional device-local learned counters when explicitly enabled. It supports starter predictions before typing, phrase/context continuations, common missing-apostrophe repairs, a conservative table of high-confidence common spelling repairs, context-dependent modal repairs such as `should of` → `should have`, canonical GoreeCloud casing, and automatic sentence-start capitalization.
+- Local swipe typing with real transient pointer samples and rendered QWERTY key geometry. The 0.1.11 candidate uses a GoreeCloud-native statistical classifier informed by permissively licensed FlorisBoard/SwiftFloris and AnySoftKeyboard work: endpoint pruning, uniform path resampling, normalized shape comparison, physical-location comparison, path-length filtering, repeated-letter ideal-gesture variants, frequency-aware ranking, transient-context re-ranking limited to classifier-approved candidates, and up to three post-swipe correction candidates.
 - Sensitive-editor classification, host no-suggestions policy, no-learning privacy handling, and fail-closed editor lifecycle behavior that clear composing/suggestion state and prevent ordinary-field authority from leaking across editor transitions or no-active-editor states.
 - Bounded Unicode-aware backspace for common emoji modifiers, ZWJ-linked emoji, regional-indicator flags, keycaps, variation selectors, combining marks, and CRLF. Ambiguous truncated ordinary-field look-behind fails closed; sensitive editors retain one-code-point deletion without text look-behind.
 - No Android network permission in the current application foundation.
@@ -28,10 +32,48 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - V1.2 Light/Dark/Deep Dark source palettes, 4/8 dp spacing, 12 dp control radius, 48/56 dp target floors, optical geometry references, and pressed/selected/focus state calibration are repository-local and unit-tested. Runtime appearance selection remains Light/Dark from Android night mode only.
 - A V1.2 non-semantic atmosphere/material boundary prohibits chromatic, brand, or semantic color from defining the keyboard substrate and enables no editor/content sampling, remote color derivation, persistent sample history, semantic inference, telemetry, network lookup, or animated atmosphere.
 - A bounded V1.6 Android presentation-context layer accepted through PR #73 consumes Android font scale, animator enablement, and touch-exploration state without expanding editor-data authority or relabeling the V1.2 optical substrate as V1.6-complete.
-- The current surface preserves the 56 dp Touch Assistance interaction floor for candidate/alternate targets and uses a five-row letters layout with 320 dp ordinary preferred height and 364 dp Touch Assistance preferred height; Android retains final IME measurement authority.
+- The current surface preserves the 56 dp Touch Assistance interaction floor for candidate/alternate targets and uses a five-row letters layout with 320 dp ordinary preferred height and 364 dp Touch Assistance preferred height; Android retains final IME measurement authority. The current Development candidate provides Compact, Standard, and Tall visible keycap-height choices while retaining the full underlying touch targets.
 - Experimental Glaze Motion evaluation remains historical/test-only and is not a production dependency or current V1.6 acceptance source.
-- Platform Contract 0.4 declares the current repository identity `GoreeCloud/keyboard` and all nine Integral Platform Systems while preserving Development/nonconformant state.
+- Platform Contract 2.0 declares repository identity `GoreeCloud/keyboard`, lifecycle `weave`, deployment state `development`, qualification state `in-progress`, next gate `seal`, and all nine Integral Platform Systems while preserving nonconformant state.
 - Android unit/build/governance and emulator validation infrastructure covers registration, native interaction, editor privacy lifecycle, emoji search, Unicode deletion, suggestion authority, portable preferences, Glaze UI mapping/context, alternate-popup geometry/hit testing, and accessibility foundations.
+
+- A launcher-visible first-party Keyboard settings activity with a Glaze-style card hierarchy plus an in-keyboard Settings control. Device-local preferences cover swipe typing, suggestions, autocorrect, next-word predictions, automatic capitalization, key-press vibration, off-by-default learning, toolbar style, and Compact/Standard/Tall visible key heights.
+- Launcher settings and portable-preference activities apply Android system-bar insets so content is kept clear of status and navigation bars.
+- Settings and portable-preference Activities apply Android system-bar insets to their root content so status/navigation bars do not overlap the interactive settings UI.
+- A dedicated implemented-action toolbar between the prediction bar and number row exposing Emoji and Settings only. It uses a unified rounded Glaze surface and first-party drawn emoji-face/settings-slider glyphs, defaults to icons-only, and can optionally show labels. Symbols remain on the bottom-row mode key, Emoji is not duplicated on the bottom row, the redundant Hide Keyboard action is absent, and Clipboard/GIF actions are not exposed until their governed capabilities exist.
+- Backspace prefers bounded Unicode-aware deletion and falls back to an Android DEL key event when an editor cannot satisfy the preferred text/deletion APIs, without expanding surrounding-text authority. Backspace deletes immediately on press and repeats at a bounded interval while held, stopping on release, cancellation, or drag-away; small release drift remains tolerant for deliberate taps, and Backspace/Enter use first-party vector-style icon geometry.
+- Swipe decoding uses a curated packaged local vocabulary, minimum travel/time/path activation gating, sampled physical gesture geometry, statistical shape/location scoring, endpoint/length pruning, repeated-letter variants, frequency/context ranking, and bounded post-swipe alternatives; it remains Development quality pending representative physical-device acceptance.
+- The Development build uses the canonical GoreeCloud Keyboard app icon from the first-party branding catalog mapping.
+
+## First-run setup and IME recovery candidate
+
+0.1.21 is retained as rejected representative-device evidence because the installed launcher/setup app could stop immediately even though its earlier Android 15 IME service lane was green. The 0.1.22 candidate therefore adds forced first-run launcher instrumentation, an Android 12/API 31 launch/process/IME lane, and fail-closed reads of Android enabled/default IME status.
+
+Draft PR #97 / 0.1.22-dev adds a first-run setup flow to the existing launcher settings activity. Before presenting the full settings surface on first use, the wizard shows whether the exact version-scoped Development IME package is enabled and currently selected in Android, provides direct actions to open Android input-method settings and the input-method picker, and lets the user choose initial correction, prediction, capitalization, double-space, swipe/trail, cursor-control, number-row, key-height, toolbar, Emoji, long-press, haptic/sound, optional local-learning, Clipboard-history, and Clipboard-retention preferences. Setup completion is persisted only after the user finishes the wizard, and the wizard can be rerun later from Settings.
+
+The 0.1.22 candidate also keeps Android attached to a stable `KeyboardInputSurfaceHost` root. Keyboard, Clipboard, and local saved-clip edit surfaces are swapped inside that root rather than replacing the `InputMethodService` input view. Editor-session start restores the Keyboard surface, and input-view finish/destroy discards any unfinished Clipboard edit state. This is the recovery path for the representative-device 0.1.20 failure where the Keyboard stopped appearing after auxiliary Clipboard-surface use.
+
+## Keyboard-side clipboard candidate
+
+Draft PR #97 / 0.1.22-dev implements a bounded Keyboard-side clipboard product surface without adding Android network permission. A first-party Clipboard toolbar action opens an IME-local panel. The panel can deliberately read the current direct-text clipboard item while the IME is active; it refuses URI coercion and intent execution. Per-current-app local policy supports **Allow**, **Ask**, **Paste only**, and **Block**. Ask requires an explicit **Allow once** action before Keyboard reads the current clipboard for that app session.
+
+Clipboard history is a separate opt-in capability. When enabled, Keyboard stores at most 24 non-sensitive text entries in app-private preferences after AES-GCM encryption with a non-exportable Android Keystore key. The manager separates history into dedicated **Pinned** and **Recent** collections. Unpinned entries expire after the selected 10-minute, 1-hour, or 24-hour window; pinned entries remain until explicitly unpinned or deleted. Saved history entries can be edited through an IME-local edit surface, with Save rewriting only the encrypted GoreeCloud history entry and Cancel discarding the in-memory buffer. Android-marked sensitive clips are never persisted and can only be consumed through Paste Once.
+
+The panel supports tap-to-paste and long-press management. Conservative local smart-content detection can expose reusable phone numbers, email addresses, web links, street addresses, dates, and times found inside ordinary non-sensitive clips. Detected fragments are computed in memory from the displayed clip, are not separately persisted, and do not enter suggestion, correction, prediction, personalization, or learning.
+
+Clipboard payloads do not enter portable preference export, backup, synchronization, Identity, Mesh, telemetry, or network paths. Paste Once removes the selected local-history entry and clears Android's current system clipboard only when the clipboard still contains the exact value the user deliberately selected. The Keyboard cannot revoke another application's Android clipboard API authority and therefore does not claim system-wide Secure Paste enforcement.
+
+## Optional local learning
+
+**Learn from what you type** is disabled by default. When explicitly enabled, Keyboard may persist only normalized word-frequency and adjacent-word-frequency counters in app-private device storage. It must not persist full sentences, arbitrary surrounding editor text, clipboard contents, account/contact data, field identity, or network-derived data.
+
+Learning and use of learned personalization are prohibited in sensitive editors, host no-suggestions editors, and editors requesting `IME_FLAG_NO_PERSONALIZED_LEARNING`. Storage is bounded, local-only, unsynchronized, and user-clearable from Keyboard Settings. Disabling learning stops new collection but does not silently delete existing learned counters; the user retains an explicit clear action.
+
+## Open-source implementation provenance
+
+The 0.1.9 Development candidate selectively reimplements compatible ideas from permissively licensed keyboard projects rather than adopting an entire third-party product. The statistical swipe classifier is a GoreeCloud-native adaptation informed by Apache-2.0 FlorisBoard/SwiftFloris statistical glide work and the Apache-2.0 AnySoftKeyboard gesture-typing lineage. AOSP LatinIME is used as an architectural reference for suggestion/prediction separation. HeliBoard was researched for behavior and UX concepts only; no HeliBoard GPL-3.0 source was copied in this pass.
+
+Required provenance and license boundaries are recorded in `THIRD-PARTY-NOTICES.md`; the Apache-2.0 license text used by the permissive references is preserved under `LICENSES/Apache-2.0.txt`. Mechanical translation does not erase upstream obligations, so future direct source adoption must continue to preserve exact provenance, notices, and compatible licensing.
 
 ## Native input behavior
 
@@ -59,7 +101,7 @@ Eligible letter and punctuation keys expose deterministic local alternates after
 
 ### Editor transitions
 
-Authoritative Android editor-session start/finish callbacks reset transient privacy/suggestion state. Missing or no-active-editor metadata remains sensitive and suggestions-suppressed. Ordinary editors can relax that policy only through a concrete editor transition. Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` suppresses local candidates. `IME_FLAG_NO_PERSONALIZED_LEARNING` does not disable deterministic transient suggestions because the current Quill path does not persist a learned user model.
+Authoritative Android editor-session start/finish callbacks reset transient privacy/suggestion state. Missing or no-active-editor metadata remains sensitive and suggestions-suppressed. Ordinary editors can relax that policy only through a concrete editor transition. Host `TYPE_TEXT_FLAG_NO_SUGGESTIONS` suppresses local candidates. `IME_FLAG_NO_PERSONALIZED_LEARNING` does not disable deterministic transient suggestions, but it prohibits both collection into and use of the optional persisted local learning store.
 
 ### Suggestion authority
 
@@ -73,7 +115,7 @@ Keyboard input is highly sensitive. Current source minimizes observation, keeps 
 
 GLAZE UI presentation adds no observation authority. No production claim is made for future cloud-assisted input, clipboard history, voice input, synchronization, or account-backed personalization until explicit Privacy Shield policy, consent, retention, user-control, implementation, and runtime acceptance exist.
 
-### GoreeCloud Secure Paste — planned
+### GoreeCloud Secure Paste — privileged enforcement still planned
 
 GoreeCloud Keyboard is the planned primary user-facing IME surface for GoreeCloud Secure Paste. The intended architecture replaces passive cross-application clipboard reads with explicit user-mediated paste through a privileged Android/framework Secure Paste Broker governed by Privacy Shield. A normal Android IME cannot globally revoke another application's clipboard API authority and must not be represented as doing so.
 
@@ -101,7 +143,7 @@ Keyboard may publish minimized operational/version/capability state to Manager w
 
 ### GoreeCloud Policy and Observability
 
-GoreeCloud Policy and GoreeCloud Observability are applicable under the current Platform Contract 0.4 model but remain blocked pending accepted integration. Policy must not manufacture privacy/security authority outside producer contracts. Observability must remain privacy-safe and must not collect typed text, editor contents, clipboard payloads, credentials, or hidden input history.
+GoreeCloud Policy and GoreeCloud Observability are applicable under the current Platform Contract 2.0 model but remain blocked pending accepted integration. Policy must not manufacture privacy/security authority outside producer contracts. Observability must remain privacy-safe and must not collect typed text, editor contents, clipboard payloads, credentials, or hidden input history.
 
 ## GLAZE UI / Design Center
 

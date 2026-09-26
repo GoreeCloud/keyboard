@@ -3,7 +3,7 @@
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Weave / nonconformant; deployment state: development  
-**Repository version:** `0.1.4-dev`  
+**Repository version:** `0.1.20-dev` Draft candidate; authoritative `main` remains separately governed.  
 **Migration state:** Complete on authoritative `main`; PR #79 merged as `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`, exact-main Android CI #264 passed, and the mapped legacy Drive roadmap/changelog sources were permanently retired and independently verified absent on September 22, 2026.  
 **Evidence baseline:** repository-native governance accepted on `main` at `6071bf3b7fddf36ddaa172b7ca858948f95ae6d1`; current runtime-bearing capability baseline is `64d5ed5b600e247630accceaa3f5ba8be26b3143` (PR #93), with exact-main Android CI #294 / run `36196662346` passed.  
 **Governing standard:** Standard — Repository Feature Tracking and Changelog Governance v1.0.
@@ -42,25 +42,27 @@ Open Draft pull requests remain candidate-only. In particular, PR #78 and the ol
 ## Product capability backlog
 
 ### Local typing quality and correction
-Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. The current Weave-stage Development path includes frequency-ordered local suggestions, conservative one-edit automatic correction, and a one-to-three candidate presentation contract for non-empty ordinary-text prefixes.
+Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. Draft PR #97 now includes a 0.1.22 crash-recovery candidate. It retains the frequency-ranked 46,691-word FrequencyWords/OpenSubtitles supplement, indexed suggestion/swipe lookup, coalesced rapid-typing suggestion refreshes, small-release-drift preservation, bounded key-gap recovery, and the unified functional icon system, while adding contraction-aware typo repair, one-edit missed-space recovery, canonical first-party dictionary priority, and explicit common hyphenated-compound suggestions. It still adds no network permission, remote dictionary lookup, Contacts access, voice, telemetry, or external-dictionary runtime authority. This remains candidate-only until accepted on authoritative main.
 
 ### Spacebar cursor control
-The privacy-bounded cursor-control work represented by legacy FR-011 and Draft PRs #63/#64 is not accepted on current `main`. Draft PR #78 is a separate newer direct-main accessibility candidate. Any accepted cursor-control implementation must preserve ordinary Space behavior, bounded/fail-closed movement, privacy boundaries, RTL/BiDi correctness, accessibility, and representative physical-device ergonomics.
+The privacy-bounded cursor-control work represented by legacy FR-011 and Draft PRs #63/#64 is not accepted on current `main`. Draft PR #97 carries the 0.1.13 reimplementation, retained in the 0.1.22 candidate adapted to the current Keyboard runtime: one-finger horizontal Space drags emit bounded DPAD cursor steps without surrounding-text reads, ordinary Space taps are preserved, vertical/equal-axis and multi-pointer gestures fail closed, Emoji-layer and touch-exploration presentation disable the gesture, and a device-local default-on setting controls it. Pure policy and rendered Android runtime tests are included. The capability remains candidate-only until accepted on authoritative `main`, and representative physical-device, RTL/BiDi, accessibility, editor/OEM, and latency acceptance remain open.
 
 ### Multilingual input, language switching, and RTL/BiDi
 Implement first-party multilingual layouts, explicit language switching, locale-aware typing, script-appropriate editing, and RTL/BiDi correctness. Draft PR #65 and its stacked successors remain candidate history rather than accepted current behavior.
 
 ### Gesture/swipe typing
-A Weave-stage Development foundation now provides bounded local gesture capture and QWERTY geometry-aware packaged-dictionary decoding with no network, persistence, learning, editor reads, or clipboard/contact/account authority. Sensitive editors and touch-exploration presentation disable the gesture path. Continue improving recognition quality, multilingual models, ambiguity handling, accessibility behavior, performance, physical-device ergonomics, and representative acceptance before any broader maturity claim.
+A Weave-stage Development foundation now provides bounded local gesture capture and rendered-QWERTY geometry-aware packaged-dictionary decoding. Draft PR #97 further reworks physical swipe recognition using GoreeCloud-native adaptations of permissively licensed FlorisBoard and AnySoftKeyboard concepts, with exact provenance recorded in THIRD-PARTY-NOTICES.md. Gesture traces remain transient and non-networked; sensitive editors and touch-exploration presentation disable the path. Continue improving recognition quality, multilingual models, ambiguity handling, accessibility behavior, performance, physical-device ergonomics, and representative acceptance before any broader maturity claim.
 
 ### Emoji, symbols, alternates, and discovery
 Expand the accepted local emoji/symbol/alternate foundations with broader Unicode/grapheme correctness, richer discovery, complete catalog/search/composition behavior, accessibility, and representative device acceptance.
 
 ### Configurable utility toolbar
-A toolbar must expose only real underlying actions. The old Draft PR #60 stack is not current implementation authority. Future toolbar work may expose implemented capabilities such as Emoji, Symbols, Settings, or other actions only after the underlying feature itself is accepted.
+A toolbar must expose only real underlying actions. The old Draft PR #60 stack is not current implementation authority. Draft PR #97 now carries a candidate toolbar exposing only real **Emoji**, **Clipboard**, and **Settings** actions; Symbols/Letters remain on the bottom-row mode key. The candidate uses a quiet Glaze toolbar surface with first-party rounded-outline glyphs, defaults to icons-only, preserves 48 dp toolbar interaction targets behind compact visual containers, and offers optional Icons + labels presentation. It remains candidate-only until accepted on authoritative main.
+
+The Clipboard action now has a real Keyboard-side implementation rather than a placeholder: tap-to-paste, Paste Once, opt-in encrypted local history, dedicated Pinned and Recent collections, pin/unpin, long-press management, encrypted saved-clip editing, delete, clear-unpinned, 10-minute/1-hour/24-hour retention, Android-sensitive non-persistence, current-app Allow/Ask/Paste-only/Block policy, and local smart-content extraction for phone numbers, email addresses, web links, street addresses, dates, and times. Derived smart fragments are not separately persisted. The 0.1.22 crash-recovery candidate also keeps the IME on a stable root surface after Clipboard/edit use and adds a first-run wizard for enabling/selecting the exact Development IME and choosing initial preferences. GIF/media insertion remains future work and still requires an explicit provider, network/retention behavior, search/content-safety boundary, user controls, and privacy/security acceptance.
 
 ### GoreeCloud Secure Paste
-Implement GoreeCloud Secure Paste only with an intentional user-mediated paste flow, Privacy Shield authorization, and a privileged platform Secure Paste Broker capable of system-level enforcement. A normal Android IME cannot revoke other applications' clipboard API authority. Clipboard history remains separately governed.
+Draft PR #97 now implements the **Keyboard-side** portion of the intended Secure Paste experience, including an intentional paste surface and per-app local policy. The remaining system-wide obligation is still blocked on Privacy Shield authorization and a privileged GoreeCloud Secure Paste Broker capable of controlling cross-application clipboard authority outside the IME. A normal Android IME cannot revoke another application's clipboard API authority. The current encrypted history feature is separately governed, opt-in, device-local, excluded from backup/sync/learning, and must not be misrepresented as privileged Secure Paste enforcement.
 
 ### Voice input and translation
 Add voice input and translation only with explicit provider/model authority, data-flow and retention rules, consent, offline/degraded behavior, privacy/security controls, and user control.
@@ -93,7 +95,7 @@ Every legacy Drive roadmap identifier is accounted for below.
 | FR-014 | Remains planned. |
 | FR-015 | Partial Development foundation implemented; richer discovery/correctness/acceptance remains open. |
 | FR-016 | Remains open; the Draft toolbar stack is not accepted current behavior. |
-| FR-017 | Remains blocked on privileged Secure Paste broker + Privacy Shield and security acceptance. |
+| FR-017 | Partial Draft candidate implementation: Keyboard-side intentional paste, per-app local policy, Paste Once, encrypted temporary history, Pinned/Recent collections, saved-clip editing, and local smart-content extraction exist in PR #97; privileged Secure Paste Broker, Privacy Shield authorization, Wardveil acceptance, and system-wide enforcement remain blocked. |
 | FR-018 | Remains planned. |
 | FR-019 | Remains planned. |
 | FR-020 | Partial local Quill foundation implemented; broader assistance remains open. |
