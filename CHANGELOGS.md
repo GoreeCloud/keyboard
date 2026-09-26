@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Physical-device IME recovery, first-run setup, and expanded Clipboard / 0.1.21-dev
+- Records representative-device rejection of the 0.1.20 candidate because the installed keyboard could stop appearing; the prior 0.1.20 exact-head green CI evidence is retained as automated evidence only and is not physical-device acceptance.
+- Replaces auxiliary `InputMethodService.setInputView(...)` root swaps with a stable `KeyboardInputSurfaceHost`. Keyboard, Clipboard, and Clipboard-edit surfaces now swap inside one Android-owned IME root, and every new editor session explicitly restores the Keyboard surface.
+- Adds Android runtime coverage for returning from an auxiliary surface to the Keyboard surface.
+- Adds a launcher first-run setup wizard. It checks whether the exact version-scoped Development IME is enabled and selected, links to Android keyboard settings/input-method selection, and lets the user choose initial correction, prediction, capitalization, double-space, swipe/trail, cursor-control, number-row, key-height, toolbar, Emoji, long-press, haptic/sound, optional local-learning, Clipboard-history, and Clipboard-retention preferences.
+- Adds persistent local setup-completion state and a Settings action for rerunning the setup flow.
+- Expands the Keyboard-side Clipboard manager with dedicated **Pinned** and **Recent** sections, tap-to-paste cards, long-press Pin/Unpin/Delete management, encrypted saved-clip editing, and an IME-local edit surface whose unfinished buffer is discarded on lifecycle exit.
+- Adds local smart-content extraction for phone numbers, email addresses, web links, street addresses, dates, and times. Detected fragments are computed in memory from the displayed clip, can be pasted independently, are not separately persisted, and never enter prediction/learning.
+- Adds edit-retention regression coverage for pinned and temporary clips, setup-completion persistence coverage, smart-content detector coverage, and the stable input-surface regression.
+- Advances the side-by-side Development package to `versionCode 22` / `0.1.21-dev` / `com.goreecloud.keyboard.dev.v22`.
+- This remains Draft / Weave Development work. Fresh exact-head Android CI, Android 15 IME/runtime validation, and new representative physical-device acceptance are required before any merge or maturity claim.
+
 ### September 26, 2026 — Draft PR #97 Keyboard-side Clipboard, contraction repair, and compound guidance / 0.1.20-dev
 - Adds a real first-party **Clipboard** toolbar action and rounded-outline Clipboard glyph; the toolbar now exposes only implemented Emoji, Clipboard, and Settings actions.
 - Adds an IME-local Clipboard panel with user-mediated direct-text paste, **Paste Once**, pin/unpin, delete, clear-unpinned history, and explicit current-app **Allow / Ask / Paste only / Block** controls. The default Ask state requires **Allow once** before Keyboard reads the current clipboard for that app session.
