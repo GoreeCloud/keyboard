@@ -12,6 +12,7 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
+import android.view.SoundEffectConstants
 import android.view.View
 import android.view.ViewConfiguration
 import androidx.core.view.ViewCompat
@@ -96,6 +97,11 @@ class KeyboardView @JvmOverloads constructor(
         textAlign = Paint.Align.CENTER
         textSize = 13f * resources.displayMetrics.scaledDensity
     }
+    private val longPressHintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.RIGHT
+        textSize = 9f * resources.displayMetrics.scaledDensity
+        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+    }
     private val alternatePopupPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val alternateSelectedPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val suggestionSurfacePaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -142,7 +148,13 @@ class KeyboardView @JvmOverloads constructor(
     private var keyHeightPreference = KeyboardKeyHeight.COMPACT
     private var toolbarStyle = KeyboardToolbarStyle.ICONS_ONLY
     private var keyPressHapticsEnabled = true
+    private var keyPressSoundEnabled = false
+    private var emojiToolbarEnabled = true
+    private var longPressHintsEnabled = true
+    private var longPressDelayPreference = KeyboardLongPressDelay.SYSTEM
+    private var numberRowVisible = true
     private var swipeTypingEnabled = false
+    private var swipeTrailEnabled = true
     private var swipeGestureActive = false
     private val swipeKeyPath = mutableListOf<String>()
     private val swipeTouchPoints = mutableListOf<SwipePoint>()
@@ -232,6 +244,34 @@ class KeyboardView @JvmOverloads constructor(
         invalidate()
     }
 
+    internal fun setSwipeTrailEnabled(enabled: Boolean) {
+        if (swipeTrailEnabled == enabled) return
+        swipeTrailEnabled = enabled
+        if (!enabled) invalidate()
+    }
+
+    internal fun setNumberRowVisible(visible: Boolean) {
+        if (numberRowVisible == visible) return
+        numberRowVisible = visible
+        invalidateStructure()
+    }
+
+    internal fun setEmojiToolbarEnabled(enabled: Boolean) {
+        if (emojiToolbarEnabled == enabled) return
+        emojiToolbarEnabled = enabled
+        invalidateStructure()
+    }
+
+    internal fun setLongPressHintsEnabled(enabled: Boolean) {
+        if (longPressHintsEnabled == enabled) return
+        longPressHintsEnabled = enabled
+        invalidate()
+    }
+
+    internal fun setLongPressDelay(value: KeyboardLongPressDelay) {
+        longPressDelayPreference = value
+    }
+
     internal fun setKeyHeightPreference(value: KeyboardKeyHeight) {
         if (keyHeightPreference == value) return
         keyHeightPreference = value
@@ -247,6 +287,11 @@ class KeyboardView @JvmOverloads constructor(
     internal fun setKeyPressHapticsEnabled(enabled: Boolean) {
         keyPressHapticsEnabled = enabled
         isHapticFeedbackEnabled = enabled
+    }
+
+    internal fun setKeyPressSoundEnabled(enabled: Boolean) {
+        keyPressSoundEnabled = enabled
+        isSoundEffectsEnabled = enabled
     }
 
     internal fun setGlazeV16PresentationSignals(signals: GlazeKeyboardV16PresentationSignals) {
@@ -304,7 +349,7 @@ class KeyboardView @JvmOverloads constructor(
 
         rows.forEachIndexed { rowIndex, row ->
             val totalWeight = row.sumOf { it.weight.toDouble() }.toFloat()
-            val rowHorizontalPadding = horizontalPadding + centeredLetterRowInset(rowIndex, row, gap, horizontalPadding)
+            val rowHorizontalPadding = horizontalPadding + centeredLetterRowInset(row, gap, horizontalPadding)
             val availableWidth = width - rowHorizontalPadding * 2 - gap * (row.size - 1)
             var left = rowHorizontalPadding
             val top = keyboardTop + rowIndex * (rowHeight + gap)
@@ -337,7 +382,7 @@ class KeyboardView @JvmOverloads constructor(
             }
         }
 
-        if (swipeGestureActive) {
+        if (swipeGestureActive && swipeTrailEnabled) {
             canvas.drawPath(swipePath, swipeTrailPaint)
         }
         alternatePopup?.let { drawAlternatePopup(canvas, it) }
@@ -350,12 +395,11 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private fun centeredLetterRowInset(
-        rowIndex: Int,
         row: List<Key>,
         gap: Float,
         horizontalPadding: Float,
     ): Float {
-        if (layer != KeyboardLayer.LETTERS || rowIndex != 2 || row.any { it.action != Action.TEXT }) {
+        if (layer != KeyboardLayer.LETTERS || row.size != 9 || row.any { it.action != Action.TEXT }) {
             return 0f
         }
         val topRowKeyWidth = (width - horizontalPadding * 2 - gap * 9) / 10f
@@ -384,19 +428,25 @@ class KeyboardView @JvmOverloads constructor(
             KeyboardLayout.characterRows(layer)
         }
         return when (layer) {
-            KeyboardLayer.LETTERS -> listOf(
-                DIGIT_ROW.map(::textKey),
-                characterRows[0].map(::textKey),
-                characterRows[1].map(::textKey),
-                listOf(Key("⇧", 1.25f, Action.SHIFT)) + characterRows[2].map(::textKey) + listOf(Key("⌫", 1.25f, Action.BACKSPACE)),
-                listOf(
-                    Key("?123", 1.2f, Action.SYMBOLS),
-                    textKey(",").copy(weight = 0.9f),
-                    Key("space", 4.6f, Action.SPACE),
-                    textKey(".").copy(weight = 0.9f),
-                    Key("↵", 1.2f, Action.ENTER),
-                ),
-            )
+            KeyboardLayer.LETTERS -> buildList {
+                if (numberRowVisible) add(DIGIT_ROW.map(::textKey))
+                add(characterRows[0].map(::textKey))
+                add(characterRows[1].map(::textKey))
+                add(
+                    listOf(Key("⇧", 1.25f, Action.SHIFT)) +
+                        characterRows[2].map(::textKey) +
+                        listOf(Key("⌫", 1.25f, Action.BACKSPACE)),
+                )
+                add(
+                    listOf(
+                        Key("?123", 1.2f, Action.SYMBOLS),
+                        textKey(",").copy(weight = 0.9f),
+                        Key("space", 4.6f, Action.SPACE),
+                        textKey(".").copy(weight = 0.9f),
+                        Key("↵", 1.2f, Action.ENTER),
+                    ),
+                )
+            }
             KeyboardLayer.SYMBOLS -> listOf(
                 characterRows[0].map(::textKey),
                 characterRows[1].map(::textKey),
@@ -429,8 +479,17 @@ class KeyboardView @JvmOverloads constructor(
                 val paint = keyLabelPaint(key)
                 val baseline = bounds.centerY() - (paint.descent() + paint.ascent()) / 2
                 canvas.drawText(label, bounds.centerX(), baseline, paint)
+                drawLongPressHint(canvas, key, bounds)
             }
         }
+    }
+
+    private fun drawLongPressHint(canvas: Canvas, key: Key, bounds: RectF) {
+        if (!longPressHintsEnabled || key.action != Action.TEXT || layer == KeyboardLayer.EMOJI) return
+        val hint = KeyAlternates.forKey(key.label).firstOrNull() ?: return
+        val density = resources.displayMetrics.density
+        val baseline = bounds.top - longPressHintPaint.ascent() + 2f * density
+        canvas.drawText(hint, bounds.right - 6f * density, baseline, longPressHintPaint)
     }
 
     private fun drawBackspaceIcon(canvas: Canvas, bounds: RectF) {
@@ -542,6 +601,7 @@ class KeyboardView @JvmOverloads constructor(
         spaceLabelPaint.color = palette.onSurfaceMutedArgb
         suggestionPaint.color = palette.onSurfaceArgb
         suggestionHintPaint.color = palette.onSurfaceMutedArgb
+        longPressHintPaint.color = palette.onSurfaceMutedArgb
         alternatePopupPaint.color = palette.canvasArgb
         alternateSelectedPaint.color = palette.surfaceArgb
         suggestionSurfacePaint.color = palette.surfaceArgb
@@ -620,10 +680,10 @@ class KeyboardView @JvmOverloads constructor(
         val verticalInset = GlazeKeyboardTokens.Space1Dp * density
         val outerRadius = GlazeKeyboardTokens.OpticalContainerDp * density
         val buttonRadius = GlazeKeyboardTokens.RadiusMediumDp * density
-        val actions = listOf(
-            Key("emoji", action = Action.EMOJI),
-            Key("settings", action = Action.SETTINGS),
-        )
+        val actions = buildList {
+            if (emojiToolbarEnabled) add(Key("emoji", action = Action.EMOJI))
+            add(Key("settings", action = Action.SETTINGS))
+        }
 
         val surfaceBounds = RectF(
             horizontalPadding,
@@ -876,7 +936,7 @@ class KeyboardView @JvmOverloads constructor(
                 }
                 if (hit != null && hit.key.action != Action.BACKSPACE && alternatesFor(hit).isNotEmpty()) {
                     pendingAlternateHit = hit
-                    postDelayed(showAlternatesRunnable, ViewConfiguration.getLongPressTimeout().toLong())
+                    postDelayed(showAlternatesRunnable, longPressDelayMs())
                 }
                 invalidate()
                 return true
@@ -1309,8 +1369,18 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private fun performKeyPressHaptic() {
-        if (!keyPressHapticsEnabled) return
-        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+        if (keyPressHapticsEnabled) {
+            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+        }
+        if (keyPressSoundEnabled) {
+            playSoundEffect(SoundEffectConstants.CLICK)
+        }
+    }
+
+    private fun longPressDelayMs(): Long = when (longPressDelayPreference) {
+        KeyboardLongPressDelay.FAST -> 300L
+        KeyboardLongPressDelay.SYSTEM -> ViewConfiguration.getLongPressTimeout().toLong()
+        KeyboardLongPressDelay.RELAXED -> 650L
     }
 
     private fun invalidateStructure() {
