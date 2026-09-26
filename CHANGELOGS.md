@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Draft PR #97 privacy-bounded spacebar cursor-control candidate / 0.1.13-dev
+- Advanced the side-by-side Development package to `versionCode 14` / `0.1.13-dev` / `com.goreecloud.keyboard.dev.v14`.
+- Reimplemented the earlier Draft PR #63/#64 spacebar cursor-control concept against the current PR #97 runtime instead of merging the stale stacked branch.
+- A one-finger horizontal-dominant drag beginning on the rendered Space key now emits bounded Android DPAD LEFT/RIGHT cursor movement through the active `InputConnection`; ordinary Space taps remain on the normal key path.
+- Vertical-dominant/equal-axis movement and multi-pointer interaction fail closed. Cursor mode consumes the remainder of the gesture so release cannot also insert Space.
+- The gesture performs no surrounding-text reconstruction, clipboard read, persistence, telemetry, network request, or new permission. After movement, transient Quill composing/prediction state is invalidated rather than reconstructed from host text.
+- Cursor control is disabled in the local Emoji layer and while Android touch exploration is active.
+- Added a default-on device-local **Spacebar cursor control** setting under Gesture typing.
+- Added pure gesture-policy tests and rendered Android runtime tests covering normal Space taps, horizontal cursor drags, vertical fail-closed behavior, and the disabled preference path.
+- Added a current development design record at `docs/development/spacebar-cursor-control.md`.
+- This remains Draft / Weave Development work pending fresh exact-head CI and representative physical-device cursor, RTL/BiDi, accessibility, editor/OEM, and latency validation.
+
 ### September 25, 2026 — Draft PR #97 expanded local settings candidate / 0.1.12-dev
 - Advanced the side-by-side Development package to `versionCode 13` / `0.1.12-dev` / `com.goreecloud.keyboard.dev.v13`.
 - Expanded the first-party settings surface with functional, device-local controls for the ordinary number row, password-field number-row override, double-space period, swipe-trail visibility, Emoji-toolbar visibility, long-press alternate hints, Fast/System/Relaxed long-press delay, and opt-in Android key-click sound.
