@@ -35,6 +35,17 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Draft PR #97 physical typing feedback correction / 0.1.17-dev
+- Treats the latest representative-device feedback as a continuing Weave-stage quality gate: swipe typing is improved but still inconsistent, fast ordinary typing can still be misclassified as swipe intent, common-word recognition/autocorrect can miss obvious neighbor-key slips such as `bjt → but`, and local grammar assistance remains too limited.
+- Advanced the side-by-side Development package to `versionCode 18` / `0.1.17-dev` / `com.goreecloud.keyboard.dev.v18` so this CI-signed device-test build can install beside the earlier 0.1.16 candidate.
+- Refined `SuggestionEngine` autocorrect confidence so the normal ambiguity margin remains conservative, while a one-key QWERTY-neighbor substitution may use a smaller margin only when the winning word is genuinely high-frequency and has a large packaged-dictionary rank advantage over the runner-up. This explicitly covers the reported `bjt → but` class without globally relaxing autocorrect.
+- Added regressions requiring the real first-party dictionary to correct `bjt` to `but` while preserving suggestion-only behavior when competing neighbor-key words have close ranks.
+- Expanded the deterministic local grammar boundary with narrow standard-English subject/auxiliary agreement repairs such as `I is → I am`, `they is → they are`, `she are → she is`, `you has → you have`, and `it have → it has`.
+- Strengthened rapid-typing/swipe separation: a gesture started within the existing fast-typing guard window now requires at least 40 dp travel and 96 ms duration, and a two-letter path additionally requires a strong 64 dp travel signal. Deliberate longer two-key swipes remain eligible.
+- Modestly widened swipe start/end candidate neighborhoods from three to four keys and increased ordered key-sequence influence in the physical statistical scorer, retaining shape/location/direction/corner scoring and the bounded indexed dictionary path.
+- No network permission, remote language model, telemetry, Contacts access, clipboard authority, or new typed-text persistence was introduced.
+- This remains Draft / Weave Development work. Fresh exact-head source/build/emulator validation and representative physical-device retesting remain required before acceptance.
+
 ### September 26, 2026 — Draft PR #97 unified functional iconography / 0.1.16-dev
 - Advanced the side-by-side Development package to `versionCode 17` / `0.1.16-dev` / `com.goreecloud.keyboard.dev.v17`; corrected the stale debug launcher label so the installed development app identifies itself as **GoreeCloud Keyboard Dev 0.1.16**.
 - Implemented a first-party shared functional glyph system for Shift, Backspace, Enter, Emoji, and Settings instead of mixing text symbols and unrelated custom icon styles.
