@@ -134,6 +134,7 @@ internal object QuillGrammarModel {
     fun boundaryCorrection(word: String, history: List<String>): String? {
         val normalized = word.lowercase().replace('’', '\'')
         QuillPredictionModel.boundaryCorrection(normalized)?.let { return it }
+        commonMisspellings[normalized]?.let { return it }
 
         val previous = history.lastOrNull()?.lowercase()?.replace('’', '\'')
         if (
