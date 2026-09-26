@@ -47,6 +47,40 @@ class ClipboardHistoryRulesTest {
     }
 
     @Test
+    fun editingPinnedClipPreservesPinAndNoExpiry() {
+        val now = 200_000L
+        val result = ClipboardHistoryRules.edit(
+            entries = listOf(entry("old", id = "x", pinned = true, expires = null)),
+            id = "x",
+            text = "new",
+            nowMillis = now,
+            retentionMillis = 60_000L,
+        ).single()
+
+        assertEquals("new", result.text)
+        assertTrue(result.pinned)
+        assertEquals(null, result.expiresAtMillis)
+        assertEquals(now, result.createdAtMillis)
+    }
+
+    @Test
+    fun editingTemporaryClipRefreshesItsExpiry() {
+        val now = 300_000L
+        val retention = 90_000L
+        val result = ClipboardHistoryRules.edit(
+            entries = listOf(entry("old", id = "x", expires = 1L)),
+            id = "x",
+            text = "new",
+            nowMillis = now,
+            retentionMillis = retention,
+        ).single()
+
+        assertEquals("new", result.text)
+        assertFalse(result.pinned)
+        assertEquals(now + retention, result.expiresAtMillis)
+    }
+
+    @Test
     fun perAppAskPolicyIsAvailableAsAFirstClassState() {
         assertEquals("ASK", ClipboardAppPolicy.ASK.name)
     }
