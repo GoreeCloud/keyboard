@@ -55,10 +55,17 @@ internal class KeyboardClipboardController(
         inputViewVisible = false
         unregisterListener()
         currentEntry = null
+        sessionAuthorizedPackage = null
     }
 
     fun closePanel() {
-        if (currentEntry?.sensitive == true) currentEntry = null
+        if (
+            currentEntry?.sensitive == true ||
+            effectivePolicy() == ClipboardAppPolicy.ASK
+        ) {
+            currentEntry = null
+        }
+        sessionAuthorizedPackage = null
     }
 
     fun openSnapshot(): KeyboardClipboardSnapshot {
