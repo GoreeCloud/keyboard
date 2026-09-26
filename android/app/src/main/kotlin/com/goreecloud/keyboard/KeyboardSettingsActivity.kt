@@ -238,10 +238,38 @@ class KeyboardSettingsActivity : Activity() {
             ), matchWidth())
             addDivider()
             addView(settingRow(
+                getString(R.string.keyboard_settings_auto_capitalize),
+                getString(R.string.keyboard_settings_auto_capitalize_summary),
+                current.autoCapitalizeEnabled,
+                settingsStore::setAutoCapitalizeEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_double_space_period),
+                getString(R.string.keyboard_settings_double_space_period_summary),
+                current.doubleSpacePeriodEnabled,
+                settingsStore::setDoubleSpacePeriodEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
                 getString(R.string.keyboard_settings_swipe),
                 getString(R.string.keyboard_settings_swipe_summary),
                 current.swipeTypingEnabled,
                 settingsStore::setSwipeTypingEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_swipe_trail),
+                getString(R.string.keyboard_settings_swipe_trail_summary),
+                current.swipeTrailEnabled,
+                settingsStore::setSwipeTrailEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_spacebar_cursor),
+                getString(R.string.keyboard_settings_spacebar_cursor_summary),
+                current.spacebarCursorControlEnabled,
+                settingsStore::setSpacebarCursorControlEnabled,
             ), matchWidth())
             addDivider()
             addView(settingRow(
@@ -250,6 +278,44 @@ class KeyboardSettingsActivity : Activity() {
                 current.numberRowEnabled,
                 settingsStore::setNumberRowEnabled,
             ), matchWidth())
+            addDivider()
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_settings_key_height)
+                textSize = 17f
+                setTextColor(palette.onSurfaceArgb)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            }, matchWidth())
+            addView(buildHeightSegment(current.keyHeight), matchWidth())
+            addDivider()
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_settings_toolbar_style)
+                textSize = 17f
+                setTextColor(palette.onSurfaceArgb)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            }, matchWidth())
+            addView(buildToolbarStyleSegment(current.toolbarStyle), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_emoji_toolbar),
+                getString(R.string.keyboard_settings_emoji_toolbar_summary),
+                current.emojiToolbarEnabled,
+                settingsStore::setEmojiToolbarEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_long_press_hints),
+                getString(R.string.keyboard_settings_long_press_hints_summary),
+                current.longPressHintsEnabled,
+                settingsStore::setLongPressHintsEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_settings_long_press_delay)
+                textSize = 17f
+                setTextColor(palette.onSurfaceArgb)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            }, matchWidth())
+            addView(buildLongPressDelaySegment(current.longPressDelay), matchWidth())
             addDivider()
             addView(settingRow(
                 getString(R.string.keyboard_settings_haptics),
@@ -610,6 +676,14 @@ class KeyboardSettingsActivity : Activity() {
         root.addView(clipboardCard, matchWidth().apply { bottomMargin = dp(22) })
 
         root.addView(sectionLabel(getString(R.string.keyboard_settings_more_section)), matchWidth())
+
+        root.addView(actionButton(
+            label = getString(R.string.keyboard_settings_run_setup),
+            onClick = {
+                setupStep = 0
+                renderSetupWizard()
+            },
+        ), matchWidth().apply { bottomMargin = dp(10) })
 
         root.addView(actionButton(
             label = getString(R.string.keyboard_settings_portable_preferences),
