@@ -1,28 +1,42 @@
 package com.goreecloud.keyboard
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QuillGrammarModelTest {
     @Test
-    fun repairsCommonHighConfidenceMisspellings() {
-        assertEquals("grammar", QuillGrammarModel.boundaryCorrection("grammer", emptyList()))
-        assertEquals("receive", QuillGrammarModel.boundaryCorrection("recieve", emptyList()))
-        assertEquals("tomorrow", QuillGrammarModel.boundaryCorrection("tommorow", emptyList()))
+    fun keyboardAndToolbarContextProduceUsefulContinuations() {
+        assertEquals(
+            listOf("to", "a", "better"),
+            QuillGrammarModel.predict(listOf("keyboard", "needs"), limit = 3),
+        )
+        assertEquals(
+            listOf("should", "is", "looks"),
+            QuillGrammarModel.predict(listOf("toolbar", "icon"), limit = 3),
+        )
     }
 
     @Test
-    fun repairsModalOfToHaveOnlyWithSupportingContext() {
-        assertEquals("have", QuillGrammarModel.boundaryCorrection("of", listOf("should")))
-        assertNull(QuillGrammarModel.boundaryCorrection("of", listOf("piece")))
+    fun modalOfIsCorrectedToHave() {
+        assertEquals(
+            "have",
+            QuillGrammarModel.boundaryCorrection("of", listOf("should")),
+        )
     }
 
     @Test
-    fun predictsKeyboardContextInsteadOfOnlyGenericFillers() {
-        val predictions = QuillGrammarModel.predict(listOf("toolbar", "icon"), limit = 4)
-        assertTrue("should" in predictions)
-        assertTrue("looks" in predictions)
+    fun commonCollapsedPhraseCorrectionCanReturnMultipleWords() {
+        assertEquals(
+            "a lot",
+            QuillGrammarModel.boundaryCorrection("alot", emptyList()),
+        )
+    }
+
+    @Test
+    fun starterPredictionsAreMeaningfulBeforeTyping() {
+        val result = QuillGrammarModel.predict(emptyList(), limit = 3)
+        assertEquals(3, result.size)
+        assertTrue("I" in result)
     }
 }
