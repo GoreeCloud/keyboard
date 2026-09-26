@@ -43,7 +43,7 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 - Removed Emoji from the ordinary/symbol bottom rows and removed the duplicated Symbols mode action from the toolbar. The candidate toolbar now exposes Emoji, Settings, and Hide Keyboard only; Clipboard/GIF remain unimplemented rather than decorative.
 - Replaced generic Backspace/Enter text glyph rendering with first-party vector-style icon geometry.
 - Expanded built-in conversational prediction context and combined opt-in learned word/bigram ranking with the existing static GoreeCloud/everyday-English lexicon.
-- Changed swipe handling to decode up to three local candidates and expose post-swipe correction alternatives rather than hiding ambiguity after the first match.
+- Changed swipe handling to decode a bounded candidate pool, use transient local next-word context only to re-rank candidates already accepted by gesture geometry, and expose up to three post-swipe correction alternatives rather than hiding ambiguity after the first match.
 - Preserved version-scoped debug install isolation, no Android network permission, sensitive-field suppression, and Development/Weave nonconformant status.
 - This entry describes the open Draft PR #97 candidate and is not accepted authoritative-main implementation until governed merge/readback and fresh exact-main validation occur.
 
