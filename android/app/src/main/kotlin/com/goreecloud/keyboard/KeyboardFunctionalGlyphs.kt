@@ -121,6 +121,44 @@ internal object KeyboardFunctionalGlyphs {
         canvas.drawPath(smile, strokePaint)
     }
 
+    fun drawClipboard(canvas: Canvas, bounds: RectF, paint: Paint) {
+        val unit = minOf(bounds.width(), bounds.height())
+        val cx = bounds.centerX()
+        val cy = bounds.centerY()
+        val radius = unit * 0.045f
+
+        canvas.drawRoundRect(
+            RectF(
+                cx - unit * 0.19f,
+                cy - unit * 0.18f,
+                cx + unit * 0.19f,
+                cy + unit * 0.24f,
+            ),
+            radius,
+            radius,
+            paint,
+        )
+
+        canvas.drawRoundRect(
+            RectF(
+                cx - unit * 0.09f,
+                cy - unit * 0.26f,
+                cx + unit * 0.09f,
+                cy - unit * 0.155f,
+            ),
+            radius,
+            radius,
+            paint,
+        )
+
+        val lineLeft = cx - unit * 0.11f
+        val lineRight = cx + unit * 0.11f
+        val firstY = cy - unit * 0.035f
+        val gap = unit * 0.085f
+        canvas.drawLine(lineLeft, firstY, lineRight, firstY, paint)
+        canvas.drawLine(lineLeft, firstY + gap, lineRight, firstY + gap, paint)
+    }
+
     fun drawSettings(canvas: Canvas, bounds: RectF, paint: Paint) {
         val unit = minOf(bounds.width(), bounds.height())
         val cx = bounds.centerX()
