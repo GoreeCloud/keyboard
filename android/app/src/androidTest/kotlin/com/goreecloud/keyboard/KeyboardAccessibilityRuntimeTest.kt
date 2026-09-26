@@ -131,7 +131,10 @@ class KeyboardAccessibilityRuntimeTest {
 
         assertTrue("Toolbar must expose Emoji", "Emoji" in labels)
         assertTrue("Toolbar must expose Keyboard settings", "Keyboard settings" in labels)
-        assertTrue("Toolbar must expose Hide keyboard", "Hide keyboard" in labels)
+        assertFalse(
+            "Toolbar must not expose a redundant close/hide Keyboard action",
+            "Hide keyboard" in labels,
+        )
         assertEquals(
             "Letters layer must expose Symbols only through the bottom ?123 key, not duplicate it in the toolbar",
             1,
