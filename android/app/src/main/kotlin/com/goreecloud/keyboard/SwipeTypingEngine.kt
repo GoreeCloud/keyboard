@@ -3,6 +3,16 @@ package com.goreecloud.keyboard
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.ln
+import kotlin.math.max
+import kotlin.math.min
+
+/*
+ * Physical swipe-ranking design is a GoreeCloud-native rewrite informed by the Apache-2.0
+ * FlorisBoard/SwiftFloris StatisticalGlideTypingClassifier, which in turn credits the
+ * AnySoftKeyboard statistical gesture-typing work. This file does not copy their UI, branding,
+ * data model, or source layout; provenance and license references are recorded in
+ * THIRD-PARTY-NOTICES.md.
+ */
 
 internal data class SwipePoint(val x: Float, val y: Float)
 
@@ -33,21 +43,23 @@ internal class SwipeTypingEngine {
         val centers = gesture.keyCenters
             .mapKeys { it.key.lowercase() }
             .mapValues { Point(it.value.x.toDouble(), it.value.y.toDouble()) }
+        if (centers.size < MIN_LAYOUT_KEYS) return decode(gesture.keyPath, dictionary, limit)
 
         val scale = keyboardScale(centers)
-        val sampledTrace = simplifyTrace(
+        if (!scale.isFinite() || scale <= 0.0) return decode(gesture.keyPath, dictionary, limit)
+
+        val simplified = simplifyTrace(
             gesture.points.map { Point(it.x.toDouble(), it.y.toDouble()) },
             minimumSpacing = scale * MIN_TRACE_SAMPLE_SPACING,
         )
-        val gestureCorners = extractCorners(sampledTrace)
+        if (simplified.size < MIN_TRACE_POINTS) return decode(gesture.keyPath, dictionary, limit)
 
-        if (
-            sampledTrace.size < MIN_TRACE_POINTS ||
-            !scale.isFinite() ||
-            scale <= 0.0
-        ) {
-            return decode(gesture.keyPath, dictionary, limit)
-        }
+        val observed = resamplePolyline(simplified, STATISTICAL_SAMPLE_POINTS)
+        val normalizedObserved = normalizePolyline(observed)
+        val observedLength = polylineLength(simplified).coerceAtLeast(scale * 0.5)
+
+        val likelyStarts = nearestKeyLabels(observed.first(), centers, ENDPOINT_KEY_CANDIDATES)
+        val likelyEnds = nearestKeyLabels(observed.last(), centers, ENDPOINT_KEY_CANDIDATES)
 
         return dictionary.asSequence()
             .filter { it.isNotBlank() }
@@ -57,83 +69,53 @@ internal class SwipeTypingEngine {
                 val word = indexed.value
                 val wordLabels = normalizedWordTrace(word)
                 if (wordLabels.size < MIN_TRACE_KEYS) return@mapNotNull null
-
-                val wordPoints = wordLabels.mapNotNull(centers::get)
-                if (wordPoints.size != wordLabels.size) return@mapNotNull null
-
-                val startDistance = distance(wordPoints.first(), sampledTrace.first()) / scale
-                val endDistance = distance(wordPoints.last(), sampledTrace.last()) / scale
-                if (
-                    startDistance > MAX_PHYSICAL_START_DISTANCE ||
-                    endDistance > MAX_PHYSICAL_END_DISTANCE
-                ) return@mapNotNull null
-
-                val orderedCost = orderedCoverageCost(wordPoints, sampledTrace) / scale
-                if (!orderedCost.isFinite() || orderedCost > MAX_PHYSICAL_ORDERED_COST) {
+                if (wordLabels.first() !in likelyStarts || wordLabels.last() !in likelyEnds) {
                     return@mapNotNull null
                 }
 
-                val candidateCoverage =
-                    averageDistanceToPolyline(wordPoints, sampledTrace) / scale
-                if (
-                    !candidateCoverage.isFinite() ||
-                    candidateCoverage > MAX_PHYSICAL_CANDIDATE_COVERAGE
-                ) return@mapNotNull null
+                val variants = idealGestureVariants(word, centers, scale)
+                if (variants.isEmpty()) return@mapNotNull null
 
-                val traceCoverage =
-                    averageDistanceToPolyline(sampledTrace, wordPoints) / scale
-                val shapeCost = normalizedShapeCost(
-                    candidate = wordPoints,
-                    observed = sampledTrace,
-                    scale = scale,
-                )
-                if (!shapeCost.isFinite() || shapeCost > MAX_PHYSICAL_SHAPE_COST) {
+                var bestScore = Double.POSITIVE_INFINITY
+                for (variant in variants) {
+                    val idealLength = polylineLength(variant)
+                    if (idealLength <= 0.0) continue
+
+                    val lengthRatioPenalty = abs(
+                        kotlin.math.ln((idealLength / observedLength).coerceAtLeast(0.0001)),
+                    )
+                    if (lengthRatioPenalty > MAX_LOG_LENGTH_RATIO) continue
+
+                    val ideal = resamplePolyline(variant, STATISTICAL_SAMPLE_POINTS)
+                    val normalizedIdeal = normalizePolyline(ideal)
+
+                    val shapeDistance = meanPointDistance(normalizedIdeal, normalizedObserved)
+                    val locationDistance = meanPointDistance(ideal, observed) / scale
+                    val endpointDistance = (
+                        distance(ideal.first(), observed.first()) +
+                            distance(ideal.last(), observed.last())
+                        ) / scale
+                    val sequencePenalty =
+                        sequenceDistance(traceLabels, wordLabels) * STATISTICAL_SEQUENCE_WEIGHT
+                    val rankPenalty =
+                        ln(indexed.index.toDouble() + 2.0) * STATISTICAL_FREQUENCY_LOG_WEIGHT
+
+                    val score =
+                        shapeDistance * STATISTICAL_SHAPE_WEIGHT +
+                            locationDistance * STATISTICAL_LOCATION_WEIGHT +
+                            endpointDistance * STATISTICAL_ENDPOINT_WEIGHT +
+                            lengthRatioPenalty * STATISTICAL_LENGTH_WEIGHT +
+                            sequencePenalty +
+                            rankPenalty
+
+                    if (score < bestScore) bestScore = score
+                }
+
+                if (!bestScore.isFinite() || bestScore > MAX_STATISTICAL_SCORE) {
                     return@mapNotNull null
                 }
 
-                val candidateCorners = extractCorners(wordPoints)
-                val directionCost = directionalShapeCost(
-                    candidate = candidateCorners,
-                    observed = gestureCorners,
-                )
-                if (!directionCost.isFinite() || directionCost > MAX_DIRECTION_COST) {
-                    return@mapNotNull null
-                }
-
-                val observedLength = polylineLength(sampledTrace) / scale
-                val candidateLength = polylineLength(wordPoints) / scale
-                val routeLengthPenalty =
-                    if (observedLength > 0.0 && candidateLength > 0.0) {
-                        abs(ln((observedLength / candidateLength).coerceAtLeast(0.001))) *
-                            PHYSICAL_ROUTE_LENGTH_WEIGHT
-                    } else {
-                        0.0
-                    }
-
-                val sequencePenalty =
-                    sequenceDistance(traceLabels, wordLabels) * SEQUENCE_DISTANCE_WEIGHT
-                val lengthPenalty =
-                    abs(wordLabels.size - traceLabels.size) * PHYSICAL_LENGTH_DELTA_WEIGHT
-                val endpointPenalty =
-                    (startDistance + endDistance) * PHYSICAL_ENDPOINT_WEIGHT
-                val frequencyPenalty =
-                    ln(indexed.index.toDouble() + 2.0) * PHYSICAL_FREQUENCY_LOG_WEIGHT
-
-                SwipeCandidate(
-                    word = word,
-                    score =
-                        endpointPenalty +
-                        orderedCost * PHYSICAL_ORDERED_WEIGHT +
-                        candidateCoverage * PHYSICAL_CANDIDATE_COVERAGE_WEIGHT +
-                        traceCoverage * PHYSICAL_TRACE_COVERAGE_WEIGHT +
-                        shapeCost * PHYSICAL_SHAPE_WEIGHT +
-                        directionCost * PHYSICAL_DIRECTION_WEIGHT +
-                        routeLengthPenalty +
-                        sequencePenalty +
-                        lengthPenalty +
-                        frequencyPenalty,
-                    rank = indexed.index,
-                )
+                SwipeCandidate(word = word, score = bestScore, rank = indexed.index)
             }
             .sortedWith(
                 compareBy<SwipeCandidate> { it.score }
@@ -232,6 +214,129 @@ internal class SwipeTypingEngine {
             if (result.lastOrNull() != label) result += label
         }
         return result
+    }
+
+    private fun idealGestureVariants(
+        word: String,
+        centers: Map<String, Point>,
+        scale: Double,
+    ): List<List<Point>> {
+        val basic = mutableListOf<Point>()
+        val looped = mutableListOf<Point>()
+        var previous: String? = null
+        var hasDuplicate = false
+
+        for (character in word.lowercase()) {
+            if (character !in 'a'..'z') return emptyList()
+            val label = character.toString()
+            val center = centers[label] ?: return emptyList()
+            basic += center
+
+            if (previous == label) {
+                hasDuplicate = true
+                val r = scale * DUPLICATE_LETTER_LOOP_RADIUS
+                looped += Point(center.x + r, center.y + r)
+                looped += Point(center.x + r, center.y - r)
+                looped += Point(center.x - r, center.y - r)
+                looped += Point(center.x - r, center.y + r)
+            }
+            looped += center
+            previous = label
+        }
+
+        val variants = mutableListOf<List<Point>>()
+        if (basic.size >= 2) variants += basic
+        if (hasDuplicate && looped.size >= 2) variants += looped
+        return variants
+    }
+
+    private fun nearestKeyLabels(
+        point: Point,
+        centers: Map<String, Point>,
+        count: Int,
+    ): Set<String> =
+        centers.entries
+            .sortedBy { (_, center) -> distance(point, center) }
+            .take(count.coerceAtLeast(1))
+            .mapTo(linkedSetOf()) { it.key }
+
+    private fun resamplePolyline(points: List<Point>, count: Int): List<Point> {
+        if (points.isEmpty() || count <= 0) return emptyList()
+        if (points.size == 1 || count == 1) return List(count) { points.first() }
+
+        val segmentLengths = DoubleArray(points.size - 1)
+        var total = 0.0
+        for (index in 0 until points.lastIndex) {
+            val length = distance(points[index], points[index + 1])
+            segmentLengths[index] = length
+            total += length
+        }
+        if (total <= 0.000001) return List(count) { points.first() }
+
+        val result = ArrayList<Point>(count)
+        var segmentIndex = 0
+        var segmentStartDistance = 0.0
+        for (sample in 0 until count) {
+            val target = if (count == 1) 0.0 else total * sample / (count - 1).toDouble()
+            while (
+                segmentIndex < segmentLengths.lastIndex &&
+                segmentStartDistance + segmentLengths[segmentIndex] < target
+            ) {
+                segmentStartDistance += segmentLengths[segmentIndex]
+                segmentIndex += 1
+            }
+
+            val startPoint = points[segmentIndex]
+            val endPoint = points[segmentIndex + 1]
+            val segmentLength = segmentLengths[segmentIndex]
+            val t = if (segmentLength <= 0.000001) {
+                0.0
+            } else {
+                ((target - segmentStartDistance) / segmentLength).coerceIn(0.0, 1.0)
+            }
+            result += Point(
+                x = startPoint.x + (endPoint.x - startPoint.x) * t,
+                y = startPoint.y + (endPoint.y - startPoint.y) * t,
+            )
+        }
+        return result
+    }
+
+    private fun normalizePolyline(points: List<Point>): List<Point> {
+        if (points.isEmpty()) return emptyList()
+        val minX = points.minOf { it.x }
+        val maxX = points.maxOf { it.x }
+        val minY = points.minOf { it.y }
+        val maxY = points.maxOf { it.y }
+        val side = max(maxX - minX, maxY - minY).coerceAtLeast(0.000001)
+        val centerX = (minX + maxX) / 2.0
+        val centerY = (minY + maxY) / 2.0
+        return points.map { point ->
+            Point(
+                x = (point.x - centerX) / side,
+                y = (point.y - centerY) / side,
+            )
+        }
+    }
+
+    private fun meanPointDistance(left: List<Point>, right: List<Point>): Double {
+        if (left.isEmpty() || right.isEmpty() || left.size != right.size) {
+            return Double.POSITIVE_INFINITY
+        }
+        var total = 0.0
+        for (index in left.indices) {
+            total += distance(left[index], right[index])
+        }
+        return total / left.size
+    }
+
+    private fun polylineLength(points: List<Point>): Double {
+        if (points.size < 2) return 0.0
+        var total = 0.0
+        for (index in 0 until points.lastIndex) {
+            total += distance(points[index], points[index + 1])
+        }
+        return total
     }
 
     private fun simplifyTrace(points: List<Point>, minimumSpacing: Double): List<Point> {
@@ -508,8 +613,22 @@ internal class SwipeTypingEngine {
     private companion object {
         const val MIN_TRACE_KEYS = 2
         const val MIN_TRACE_POINTS = 3
+        const val MIN_LAYOUT_KEYS = 20
         const val MAX_TRACE_POINTS = 72
-        const val MIN_TRACE_SAMPLE_SPACING = 0.16
+        const val MIN_TRACE_SAMPLE_SPACING = 0.12
+
+        // Statistical physical-gesture path, rewritten from permissively licensed FOSS concepts.
+        const val STATISTICAL_SAMPLE_POINTS = 64
+        const val ENDPOINT_KEY_CANDIDATES = 3
+        const val DUPLICATE_LETTER_LOOP_RADIUS = 0.22
+        const val MAX_LOG_LENGTH_RATIO = 1.05
+        const val MAX_STATISTICAL_SCORE = 5.40
+        const val STATISTICAL_SHAPE_WEIGHT = 2.65
+        const val STATISTICAL_LOCATION_WEIGHT = 1.15
+        const val STATISTICAL_ENDPOINT_WEIGHT = 0.90
+        const val STATISTICAL_LENGTH_WEIGHT = 0.70
+        const val STATISTICAL_SEQUENCE_WEIGHT = 0.35
+        const val STATISTICAL_FREQUENCY_LOG_WEIGHT = 0.010
 
         const val MAX_PHYSICAL_START_DISTANCE = 1.45
         const val MAX_PHYSICAL_END_DISTANCE = 2.05
