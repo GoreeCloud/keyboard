@@ -7,6 +7,7 @@
 - Runtime input-method registration checks through Android `InputMethodManager`.
 - QWERTY letter entry.
 - Shift, backspace, space, and enter controls.
+- A unified first-party functional glyph family for Shift, Backspace, Enter, Emoji, and Settings with 1.85 dp rounded strokes, compact optical geometry, monochrome default presentation, selected-state accent treatment, and stable accessibility semantics.
 - Letters/symbols mode switching with a primary digit/common-punctuation page and a second first-party symbol page for brackets, operators, currency marks, and common typographic symbols.
 - Direct `ABC`, `?123`, and `=\\<` navigation between implemented input layers.
 - A bounded first-party emoji layer with Smileys, People, Nature, Food, Symbols, and Travel categories plus selected composed variation-selector, skin-tone, ZWJ, family, rainbow-flag, and regional-indicator sequences.
@@ -22,6 +23,7 @@
 - Cached suggestion indexes and start/end-bucketed swipe indexes so the expanded dictionary does not require an unrestricted whole-dictionary spelling/geometry pass on every ordinary keypress or swipe.
 - Per-key suggestion refresh coalescing so rapid typing can commit text immediately while language-assistance refresh work is bounded to a near-frame cadence instead of running synchronously after every letter.
 - Touch-up stabilization that preserves the key originally pressed when release drift remains within tap slop, reducing accidental adjacent-key commits on small finger movement.
+- A quieter icons-only default toolbar presentation with full 48 dp interaction targets behind 40 dp visual icon containers; pressed state uses temporary soft surface treatment instead of permanent filled icon pills.
 - Bounded transient suggestion capture that suppresses misleading mid-word recapture when complete context is no longer known.
 - Suggestion commit authority bound to the exact candidates currently presented for the active editor session rather than accepting arbitrary callback values.
 - Sensitive-editor privacy gating for suggestion capture/display/acceptance and text look-behind deletion logic.
