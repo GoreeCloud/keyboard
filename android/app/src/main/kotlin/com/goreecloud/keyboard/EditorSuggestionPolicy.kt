@@ -1,6 +1,7 @@
 package com.goreecloud.keyboard
 
 import android.text.InputType
+import android.view.inputmethod.EditorInfo
 
 /**
  * Determines whether GoreeCloud Keyboard may collect transient composing-word context or display
@@ -9,10 +10,8 @@ import android.text.InputType
  * Password/sensitive fields remain governed by [InputPrivacyClassifier]. Ordinary text editors may
  * explicitly request no suggestions through Android's TYPE_TEXT_FLAG_NO_SUGGESTIONS flag.
  *
- * IME_FLAG_NO_PERSONALIZED_LEARNING is deliberately not a suggestion-suppression flag here. The
- * current Quill path does not persist a learned user model, so that editor request is honored by the
- * existing no-learning architecture without unnecessarily disabling transient, on-device
- * deterministic suggestions.
+ * IME_FLAG_NO_PERSONALIZED_LEARNING does not suppress deterministic transient suggestions, but it
+ * does prohibit both collection into and use of the optional persisted local personalization store.
  */
 object EditorSuggestionPolicy {
     fun shouldSuppress(inputType: Int, imeOptions: Int = 0): Boolean {
@@ -23,4 +22,7 @@ object EditorSuggestionPolicy {
         return inputClass == InputType.TYPE_CLASS_TEXT &&
             flags and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0
     }
+
+    fun prohibitsPersonalizedLearning(imeOptions: Int): Boolean =
+        imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0
 }
