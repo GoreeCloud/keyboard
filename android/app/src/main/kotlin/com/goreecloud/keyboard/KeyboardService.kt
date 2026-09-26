@@ -135,7 +135,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     override fun onSwipe(keyPath: List<String>) {
         val decodedCandidates = swipeTypingEngine.decode(
             keyPath = keyPath,
-            dictionary = activeDictionary(),
+            dictionary = activeSwipeDictionary(),
             limit = SWIPE_DECODE_CANDIDATE_POOL,
         )
         commitDecodedSwipe(decodedCandidates)
@@ -144,7 +144,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     override fun onSwipeGesture(gesture: SwipeGesture) {
         val decodedCandidates = swipeTypingEngine.decode(
             gesture = gesture,
-            dictionary = activeDictionary(),
+            dictionary = activeSwipeDictionary(),
             limit = SWIPE_DECODE_CANDIDATE_POOL,
         )
         commitDecodedSwipe(decodedCandidates)
@@ -481,20 +481,23 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     private fun recordCommittedWord(word: String, learn: Boolean = true) {
-        val normalized = word.trim().lowercase()
-        if (normalized.isEmpty()) return
+        val normalizedWords = word
+            .trim()
+            .split(Regex("\\s+"))
+            .map { it.lowercase() }
+            .filter { it.isNotBlank() }
+        if (normalizedWords.isEmpty()) return
 
-        val previous = committedHistory.lastOrNull()
-        if (
-            learn &&
-            personalizationAllowed()
-        ) {
-            learningStore.record(normalized, previous)
-        }
+        normalizedWords.forEach { normalized ->
+            val previous = committedHistory.lastOrNull()
+            if (learn && personalizationAllowed()) {
+                learningStore.record(normalized, previous)
+            }
 
-        committedHistory += normalized
-        while (committedHistory.size > MAX_PREDICTION_HISTORY_WORDS) {
-            committedHistory.removeAt(0)
+            committedHistory += normalized
+            while (committedHistory.size > MAX_PREDICTION_HISTORY_WORDS) {
+                committedHistory.removeAt(0)
+            }
         }
     }
 
@@ -573,6 +576,14 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         return buildList {
             addAll(learningStore.learnedWords())
             addAll(QuillLexicon.expandedEnglish)
+        }.distinctBy { it.lowercase() }
+    }
+
+    private fun activeSwipeDictionary(): List<String> {
+        if (!personalizationAllowed()) return QuillLexicon.swipeEnglish
+        return buildList {
+            addAll(learningStore.learnedWords())
+            addAll(QuillLexicon.swipeEnglish)
         }.distinctBy { it.lowercase() }
     }
 
