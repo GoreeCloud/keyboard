@@ -37,6 +37,8 @@
     <string name="keyboard_settings_swipe_summary">Slide deliberately across letter keys to enter a locally decoded word.</string>
     <string name="keyboard_settings_swipe_trail">Show gesture trail</string>
     <string name="keyboard_settings_swipe_trail_summary">Draw the transient path under your finger while a swipe gesture is active.</string>
+    <string name="keyboard_settings_spacebar_cursor">Spacebar cursor control</string>
+    <string name="keyboard_settings_spacebar_cursor_summary">Swipe horizontally on the Space key to move the text cursor without reading surrounding text.</string>
     <string name="keyboard_settings_suggestions">Word suggestions</string>
     <string name="keyboard_settings_suggestions_summary">Show up to three local spelling and completion candidates while typing.</string>
     <string name="keyboard_settings_autocorrect">Autocorrect</string>
