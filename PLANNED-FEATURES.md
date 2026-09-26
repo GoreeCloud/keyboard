@@ -57,7 +57,9 @@ A Weave-stage Development foundation now provides bounded local gesture capture 
 Expand the accepted local emoji/symbol/alternate foundations with broader Unicode/grapheme correctness, richer discovery, complete catalog/search/composition behavior, accessibility, and representative device acceptance.
 
 ### Configurable utility toolbar
-A toolbar must expose only real underlying actions. The old Draft PR #60 stack is not current implementation authority. Future toolbar work may expose implemented capabilities such as Emoji, Symbols, Settings, or other actions only after the underlying feature itself is accepted.
+A toolbar must expose only real underlying actions. The old Draft PR #60 stack is not current implementation authority. Draft PR #97 now carries a candidate toolbar foundation with implemented Emoji, Symbols/Letters, Settings, and Hide Keyboard actions; it remains candidate-only until accepted on authoritative main.
+
+Requested future toolbar actions include clipboard/paste and GIF/media insertion. Clipboard controls must use the governed GoreeCloud Secure Paste architecture and applicable Privacy Shield/Wardveil authority rather than silently reading or retaining clipboard content. GIF/media insertion requires an explicit local/remote provider, network/retention behavior, search/content-safety boundary, user controls, and privacy/security acceptance. Neither action may be exposed as a decorative or nonfunctional button before its underlying capability is real.
 
 ### GoreeCloud Secure Paste
 Implement GoreeCloud Secure Paste only with an intentional user-mediated paste flow, Privacy Shield authorization, and a privileged platform Secure Paste Broker capable of system-level enforcement. A normal Android IME cannot revoke other applications' clipboard API authority. Clipboard history remains separately governed.
