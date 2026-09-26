@@ -15,6 +15,10 @@ class SuggestionEngine {
     private var cachedDictionary: Collection<String>? = null
     private var cachedIndex: CandidateIndex? = null
 
+    internal fun preload(dictionary: Collection<String>) {
+        indexFor(dictionary)
+    }
+
     fun suggest(
         prefix: String,
         dictionary: Collection<String>,
