@@ -10,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -163,13 +164,13 @@ class KeyboardTypingErgonomicsRuntimeTest {
         assertEquals(
             "Backspace must respond immediately on press",
             1,
-            deletions,
+            deletions.get(),
         )
 
         SystemClock.sleep(520L)
         assertTrue(
             "Holding Backspace must repeatedly delete rather than waiting for release",
-            deletions >= 2,
+            deletions.get() >= 2,
         )
 
         dispatch(
@@ -179,13 +180,13 @@ class KeyboardTypingErgonomicsRuntimeTest {
             backspace.centerY(),
             eventTime = 540L,
         )
-        val deletionsAtRelease = deletions
+        val deletionsAtRelease = deletions.get()
         SystemClock.sleep(180L)
 
         assertEquals(
             "Backspace repeat must stop immediately after release",
             deletionsAtRelease,
-            deletions,
+            deletions.get(),
         )
     }
 
