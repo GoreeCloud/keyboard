@@ -139,7 +139,7 @@ The wizard can be run again later from Settings.
 
 ## Utility toolbar
 
-A dedicated Glaze toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. The 0.1.21 Draft recovery candidate toolbar exposes three implemented actions:
+A dedicated Glaze toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. The 0.1.22 Draft crash-recovery candidate toolbar exposes three implemented actions:
 
 - **Emoji** — the local emoji browser/search surface.
 - **Clipboard** — a first-party clipboard glyph that opens the Keyboard-side clipboard panel.
@@ -151,7 +151,7 @@ GIF controls are not shown as placeholders. They remain separate capability work
 
 ## Clipboard
 
-The 0.1.21 Draft recovery candidate includes a real Keyboard-side Clipboard surface.
+The 0.1.22 Draft crash-recovery candidate includes a real Keyboard-side Clipboard surface.
 
 Open it with the **Clipboard** icon in the toolbar. The default per-app policy is **Ask**, so Keyboard presents an **Allow once** control before it reads the current clipboard for a new app session. You can change the current app's local policy to:
 
