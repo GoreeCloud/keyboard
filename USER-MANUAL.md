@@ -119,7 +119,7 @@ Key press vibration is enabled by default. Taps on ordinary keys, suggestions, e
 
 The packaged local dictionary includes common English vocabulary, common derived/irregular forms, common contractions, and canonical GoreeCloud product/system terminology derived from the first-party branding catalog. It includes names such as **GoreeCloud**, **Glaze**, **Quill**, **Wardveil**, **Everkeep**, and the named GoreeCloud applications represented in that catalog.
 
-The built-in dictionary itself is read-only. Optional **Learn from what you type** data is stored separately and is **off by default**. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in private app storage; it excludes sensitive and host no-suggestions editors, never stores full sentences or clipboard contents, does not synchronize or upload the data, and provides **Clear learned language data** in Settings. Disabling learning stops new collection; clearing removes the stored learned counters.
+The built-in dictionary itself is read-only. Optional **Learn from what you type** data is stored separately and is **off by default**. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in private app storage; it excludes sensitive editors, host no-suggestions editors, and editors requesting Android no-personalized-learning; it never stores full sentences or clipboard contents, does not synchronize or upload the data, and provides **Clear learned language data** in Settings. Disabling learning stops new collection; clearing removes the stored learned counters.
 
 ## Utility toolbar
 
