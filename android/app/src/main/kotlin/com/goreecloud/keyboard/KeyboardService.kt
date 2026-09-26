@@ -29,6 +29,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var composingStartsCapitalized = false
     private var sentenceStartPending = false
     private var presentedSuggestions: List<String> = emptyList()
+    private var pendingSwipeCorrection: PendingSwipeCorrection? = null
 
     override fun onCreateInputView(): View {
         typingSettings = settingsStore.load()
@@ -86,6 +87,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onText(value: String) {
         if (value.isEmpty()) return
+        pendingSwipeCorrection = null
 
         val isLetterText = value.codePoints().allMatch { Character.isLetter(it) }
         val output = if (shifted && isLetterText) value.uppercase() else value
@@ -125,36 +127,54 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSpace() {
+        pendingSwipeCorrection = null
         commitBoundary(" ")
     }
 
     override fun onSwipe(keyPath: List<String>) {
-        if (sensitiveInput || !typingSettings.swipeTypingEnabled || keyPath.isEmpty()) return
+        if (
+            sensitiveInput ||
+            editorSuppressesLanguageAssistance ||
+            !typingSettings.swipeTypingEnabled ||
+            keyPath.isEmpty()
+        ) return
         val connection = currentInputConnection ?: return
 
-        val candidate = swipeTypingEngine.decode(
+        val candidates = swipeTypingEngine.decode(
             keyPath = keyPath,
             dictionary = activeDictionary(),
-            limit = 1,
-        ).firstOrNull() ?: return
+            limit = 3,
+        )
+        val candidate = candidates.firstOrNull() ?: return
 
-        val output = if (shifted) {
-            candidate.replaceFirstChar { first ->
-                if (first.isLowerCase()) first.titlecase() else first.toString()
+        fun format(value: String): String =
+            if (shifted) {
+                value.replaceFirstChar { first ->
+                    if (first.isLowerCase()) first.titlecase() else first.toString()
+                }
+            } else {
+                value
             }
-        } else {
-            candidate
-        }
+
+        val formattedCandidates = candidates.map(::format)
+        val output = formattedCandidates.first()
 
         connection.commitText("$output ", 1)
-        recordCommittedWord(output)
+        recordCommittedWord(output, learn = false)
         sentenceStartPending = false
         clearComposingBoundary()
         resetOneShotShift()
-        updateSuggestions()
+
+        pendingSwipeCorrection = PendingSwipeCorrection(
+            committedWord = output,
+            candidates = formattedCandidates,
+        )
+        presentedSuggestions = formattedCandidates.take(3)
+        keyboardView?.setSuggestions(presentedSuggestions)
     }
 
     override fun onBackspace() {
+        pendingSwipeCorrection = null
         val connection = currentInputConnection ?: return
 
         if (sensitiveInput) {
@@ -210,6 +230,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onEnter() {
+        pendingSwipeCorrection = null
         val connection = currentInputConnection ?: return
         connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
         connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
@@ -226,6 +247,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSuggestion(value: String) {
+        if (tryCommitSwipeCorrection(value)) return
+
         if (
             editorSuppressesLanguageAssistance ||
             !typingSettings.suggestionsEnabled ||
@@ -260,6 +283,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onLayerChanged(layer: KeyboardLayer) {
+        pendingSwipeCorrection = null
         shifted = false
         clearComposingBoundary()
         keyboardView?.setShifted(false)
@@ -287,6 +311,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         sentenceStartPending = false
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
+        pendingSwipeCorrection = null
         keyboardView?.setSuggestions(emptyList())
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
         keyboardView?.setSwipeTypingEnabled(false)
@@ -431,12 +456,13 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         presentedSuggestions = emptyList()
     }
 
-    private fun recordCommittedWord(word: String) {
+    private fun recordCommittedWord(word: String, learn: Boolean = true) {
         val normalized = word.trim().lowercase()
         if (normalized.isEmpty()) return
 
         val previous = committedHistory.lastOrNull()
         if (
+            learn &&
             typingSettings.learnFromTypingEnabled &&
             languageCaptureAllowed()
         ) {
@@ -447,6 +473,35 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         while (committedHistory.size > MAX_PREDICTION_HISTORY_WORDS) {
             committedHistory.removeAt(0)
         }
+    }
+
+    private fun tryCommitSwipeCorrection(value: String): Boolean {
+        val pending = pendingSwipeCorrection ?: return false
+        if (!pending.candidates.any { it.equals(value, ignoreCase = true) }) return false
+
+        val connection = currentInputConnection ?: return false
+        val expected = pending.committedWord + " "
+        val beforeCursor = connection.getTextBeforeCursor(expected.length, 0)?.toString()
+        if (beforeCursor != expected) {
+            pendingSwipeCorrection = null
+            updateSuggestions()
+            return false
+        }
+
+        val codePoints = expected.codePointCount(0, expected.length)
+        if (!connection.deleteSurroundingTextInCodePoints(codePoints, 0)) {
+            pendingSwipeCorrection = null
+            updateSuggestions()
+            return false
+        }
+
+        connection.commitText("$value ", 1)
+        if (committedHistory.isNotEmpty()) committedHistory.removeAt(committedHistory.lastIndex)
+        recordCommittedWord(value)
+        pendingSwipeCorrection = null
+        clearComposingBoundary()
+        updateSuggestions()
+        return true
     }
 
     private fun formatPredictionCase(candidate: String): String =
@@ -546,6 +601,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             touchExplorationEnabled = accessibilityManager?.isTouchExplorationEnabled == true,
         )
     }
+
+    private data class PendingSwipeCorrection(
+        val committedWord: String,
+        val candidates: List<String>,
+    )
 
     private companion object {
         const val BACKSPACE_LOOKBEHIND_UTF16 = 64
