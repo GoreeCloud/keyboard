@@ -869,7 +869,7 @@ class KeyboardView @JvmOverloads constructor(
                 }
 
                 val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
-                if (swipeKeyPath.isNotEmpty()) appendSwipeTouchPoint(event.x, event.y)
+                if (swipeKeyPath.isNotEmpty()) appendSwipeMotionSamples(event)
                 if (!swipeGestureActive && swipeKeyPath.isNotEmpty()) {
                     val travel = hypot(event.x - swipeDownX, event.y - swipeDownY)
                     val density = resources.displayMetrics.density
@@ -894,9 +894,9 @@ class KeyboardView @JvmOverloads constructor(
                     val velocityDpPerMs =
                         if (elapsedMs > 0L) travel / density / elapsedMs.toFloat()
                         else 0f
+                    val firstSwipeKey = swipeKeyPath.firstOrNull()
                     val movedToDifferentLetter =
-                        canParticipateInSwipe(hit) &&
-                            hit!!.key.label.lowercase() != swipeKeyPath.firstOrNull()
+                        firstSwipeKey != null && swipeKeyPath.any { it != firstSwipeKey }
                     if (
                         travel >= requiredTravel &&
                         elapsedMs >= requiredDuration &&
@@ -911,13 +911,7 @@ class KeyboardView @JvmOverloads constructor(
                 }
 
                 if (swipeGestureActive) {
-                    if (canParticipateInSwipe(hit)) {
-                        val label = hit!!.key.label.lowercase()
-                        if (swipeKeyPath.lastOrNull() != label) {
-                            swipeKeyPath += label
-                        }
-                    }
-                    swipePath.lineTo(event.x, event.y)
+                    rebuildSwipePathFromSamples()
                     pressedKeyBounds = hit?.let { RectF(it.bounds) }
                     invalidate()
                     return true
@@ -951,12 +945,7 @@ class KeyboardView @JvmOverloads constructor(
                 pressedKeyBounds = null
 
                 if (swipeGestureActive) {
-                    val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
-                    if (canParticipateInSwipe(hit)) {
-                        val label = hit!!.key.label.lowercase()
-                        if (swipeKeyPath.lastOrNull() != label) swipeKeyPath += label
-                    }
-                    appendSwipeTouchPoint(event.x, event.y)
+                    appendSwipeMotionSamples(event)
                     val path = swipeKeyPath.toList()
                     val gesture = SwipeGesture(
                         keyPath = path,
@@ -1030,6 +1019,34 @@ class KeyboardView @JvmOverloads constructor(
             layer == KeyboardLayer.LETTERS &&
             hit?.key?.action == Action.TEXT &&
             hit.key.label.codePoints().allMatch { Character.isLetter(it) }
+
+    private fun appendSwipeMotionSamples(event: MotionEvent) {
+        for (historyIndex in 0 until event.historySize) {
+            appendSwipeSample(
+                x = event.getHistoricalX(historyIndex),
+                y = event.getHistoricalY(historyIndex),
+            )
+        }
+        appendSwipeSample(event.x, event.y)
+    }
+
+    private fun appendSwipeSample(x: Float, y: Float) {
+        appendSwipeTouchPoint(x, y)
+        val hit = hitKeys.lastOrNull { it.bounds.contains(x, y) }
+        if (canParticipateInSwipe(hit)) {
+            val label = hit!!.key.label.lowercase()
+            if (swipeKeyPath.lastOrNull() != label) swipeKeyPath += label
+        }
+    }
+
+    private fun rebuildSwipePathFromSamples() {
+        swipePath.reset()
+        val first = swipeTouchPoints.firstOrNull() ?: return
+        swipePath.moveTo(first.x, first.y)
+        swipeTouchPoints.drop(1).forEach { point ->
+            swipePath.lineTo(point.x, point.y)
+        }
+    }
 
     private fun appendSwipeTouchPoint(x: Float, y: Float) {
         val point = SwipePoint(x, y)
