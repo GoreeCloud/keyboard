@@ -130,9 +130,13 @@ class KeyboardAccessibilityRuntimeTest {
         val labels = view.accessibilityTargets().map { it.label }.toSet()
 
         assertTrue("Toolbar must expose Emoji", "Emoji" in labels)
-        assertTrue("Toolbar must expose Symbols", "Symbols" in labels)
         assertTrue("Toolbar must expose Keyboard settings", "Keyboard settings" in labels)
         assertTrue("Toolbar must expose Hide keyboard", "Hide keyboard" in labels)
+        assertEquals(
+            "Letters layer must expose Symbols only through the bottom ?123 key, not duplicate it in the toolbar",
+            1,
+            labels.count { it == "Symbols" },
+        )
         assertFalse(
             "Clipboard must not be exposed until the governed clipboard capability exists",
             labels.any { it.contains("clipboard", ignoreCase = true) },
@@ -140,6 +144,18 @@ class KeyboardAccessibilityRuntimeTest {
         assertFalse(
             "GIF must not be exposed as a fake action without an implemented provider",
             labels.any { it.contains("gif", ignoreCase = true) },
+        )
+    }
+
+    @Test
+    fun emojiExistsOnlyInTheToolbarOnLettersLayer() {
+        val view = createRenderedKeyboard()
+        val emojiTargets = view.accessibilityTargets().filter { it.label == "Emoji" }
+
+        assertEquals(
+            "Letters layer must expose one Emoji control so the bottom row does not duplicate the toolbar",
+            1,
+            emojiTargets.size,
         )
     }
 
