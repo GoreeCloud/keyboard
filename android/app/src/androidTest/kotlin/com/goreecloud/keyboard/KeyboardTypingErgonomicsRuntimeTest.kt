@@ -173,6 +173,57 @@ class KeyboardTypingErgonomicsRuntimeTest {
     }
 
     @Test
+    fun swipeGestureConsumesHistoricalMotionSamples() {
+        val view = createRenderedKeyboard()
+        view.setSwipeTypingEnabled(true)
+        renderIntoExistingSize(view)
+
+        val targets = view.accessibilityTargets()
+        val h = targets.first { it.label == "h" }.bounds
+        val e = targets.first { it.label == "e" }.bounds
+        val l = targets.first { it.label == "l" }.bounds
+        val o = targets.first { it.label == "o" }.bounds
+        val gestures = mutableListOf<SwipeGesture>()
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) = Unit
+            override fun onSwipe(keyPath: List<String>) = Unit
+            override fun onSwipeGesture(gesture: SwipeGesture) {
+                gestures += gesture
+            }
+            override fun onSpace() = Unit
+            override fun onBackspace() = Unit
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        dispatch(view, MotionEvent.ACTION_DOWN, h.centerX(), h.centerY(), eventTime = 0L)
+        dispatchBatchedMove(
+            view = view,
+            firstTimeMs = 85L,
+            firstX = e.centerX(),
+            firstY = e.centerY(),
+            secondTimeMs = 150L,
+            secondX = l.centerX(),
+            secondY = l.centerY(),
+        )
+        dispatch(view, MotionEvent.ACTION_UP, o.centerX(), o.centerY(), eventTime = 220L)
+
+        assertEquals(1, gestures.size)
+        assertEquals(
+            "Historical Android motion samples must contribute crossed-key evidence to the swipe trace",
+            listOf("h", "e", "l", "o"),
+            gestures.single().keyPath,
+        )
+        assertTrue(
+            "Historical Android motion samples must be preserved in the physical gesture geometry",
+            gestures.single().points.size >= 4,
+        )
+    }
+
+    @Test
     fun fastTwoKeySlipDoesNotBecomeSwipeTyping() {
         val view = createRenderedKeyboard()
         view.setSwipeTypingEnabled(true)
@@ -236,6 +287,38 @@ class KeyboardTypingErgonomicsRuntimeTest {
                 ),
             ),
         )
+    }
+
+    private fun dispatchBatchedMove(
+        view: KeyboardView,
+        firstTimeMs: Long,
+        firstX: Float,
+        firstY: Float,
+        secondTimeMs: Long,
+        secondX: Float,
+        secondY: Float,
+    ) {
+        val event = MotionEvent.obtain(
+            0L,
+            firstTimeMs,
+            MotionEvent.ACTION_MOVE,
+            firstX,
+            firstY,
+            0,
+        )
+        try {
+            event.addBatch(
+                secondTimeMs,
+                secondX,
+                secondY,
+                1f,
+                1f,
+                0,
+            )
+            view.dispatchTouchEvent(event)
+        } finally {
+            event.recycle()
+        }
     }
 
     private fun dispatch(
