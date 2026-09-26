@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Draft PR #97 rapid-tap isolation and missed-space recovery / 0.1.19-dev
+- Records representative-device 0.1.18 feedback: the version-bound Development label now renders correctly and company/brand swipe recognition improved, but sustained fast tap typing can still be promoted into swipe mode and run-together words remain difficult to recover.
+- Extracts swipe activation into a pure `SwipeIntentClassifier` so tap-versus-gesture evidence is independently regression-tested instead of being embedded only in `KeyboardView` thresholds.
+- Extends the rapid-typing guard window and requires materially stronger path/duration evidence for two- and three-key gestures, and stronger evidence for four-plus-key gestures, when a gesture begins immediately after a completed letter tap.
+- Adds recent-fast-tap recovery: if a hurried touch crosses neighboring key bounds but does not satisfy deliberate swipe intent, the keyboard preserves the ACTION_DOWN letter instead of committing the release key.
+- Adds Android runtime regressions with swipe enabled that reproduce a rapid tap drifting across three letter keys and verify it remains a tap, while a deliberate longer swipe immediately after a tap still emits a swipe gesture.
+- Adds a bounded local `RunTogetherWordResolver` for missed spaces. It splits an unknown 5–32-letter token into at most four exact local dictionary words, rejects ambiguous near-ties, preserves known whole words, and allows long exact curated brand terms without granting them artificial frequency priority.
+- Integrates high-confidence run-together recovery into the suggestion strip and explicit boundary/autocorrect path, so examples such as `helpme` or `helpmeunderstandyou` can become `help me` / `help me understand you` without remote inference or typed-text upload.
+- Advances the side-by-side Development package to `versionCode 20` / `0.1.19-dev` / `com.goreecloud.keyboard.dev.v20`; the visible Development label remains generated from the same Gradle version source.
+- No network permission, telemetry, Contacts access, remote language model, clipboard authority, or new typed-text persistence was introduced.
+- This remains Draft / Weave Development work. Fresh exact-head CI and representative physical-device retesting are required before acceptance.
+
 ### September 26, 2026 — Draft PR #97 cross-app gesture reliability, swipe precision, and brand vocabulary / 0.1.18-dev
 - Treats the latest representative-device screenshots and testing as continuing Weave-stage evidence: swipe entry can be disabled in some ordinary host editors such as note fields, rapid tap typing can still be promoted into swipe intent, gesture decoding can choose an unintended word, and common technology/company vocabulary remains incomplete.
 - Decouples Android `TYPE_TEXT_FLAG_NO_SUGGESTIONS` from gesture typing. Ordinary non-sensitive editors may suppress suggestion/autocorrect surfaces while still accepting deliberate local swipe input; sensitive/password fields remain fail-closed.

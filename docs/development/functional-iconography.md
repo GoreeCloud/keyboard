@@ -1,6 +1,6 @@
 # GoreeCloud Keyboard — Functional Iconography
 
-**Status:** Development candidate — 0.1.18-dev  
+**Status:** Development candidate — 0.1.19-dev  
 **Applies to:** GoreeCloud Keyboard toolbar controls and special-key glyphs  
 **Current design-system authority:** GLAZE UI V1.6 / 1.6.0, with inherited V1 functional-icon rules  
 **Glaze source reviewed:** `GoreeCloud/glaze-ui` main `d07a2843589bbca6156fb716b732bd71e2ff14d8`
@@ -11,7 +11,7 @@ This document defines the default functional-icon direction for GoreeCloud Keybo
 
 The owner supplied a contemporary Android keyboard reference showing a quiet toolbar, compact rounded outline icons, restrained monochrome presentation, and visually consistent special-key symbols. GoreeCloud Keyboard adopts that interaction and visual direction without copying another keyboard's artwork, proprietary assets, or inactive controls.
 
-The implementation remains first-party and custom-drawn. The active 0.1.18 Development candidate applies this system directly to the native Android KeyboardView.
+The implementation remains first-party and custom-drawn. The active 0.1.19 Development candidate applies this system directly to the native Android KeyboardView.
 
 ## Governing Glaze principles
 
