@@ -36,7 +36,10 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - Platform Contract 2.0 declares repository identity `GoreeCloud/keyboard`, lifecycle `weave`, deployment state `development`, qualification state `in-progress`, next gate `seal`, and all nine Integral Platform Systems while preserving nonconformant state.
 - Android unit/build/governance and emulator validation infrastructure covers registration, native interaction, editor privacy lifecycle, emoji search, Unicode deletion, suggestion authority, portable preferences, Glaze UI mapping/context, alternate-popup geometry/hit testing, and accessibility foundations.
 
-- A launcher-visible first-party Keyboard settings activity plus an in-keyboard Settings control. Device-local preferences cover swipe typing, suggestions, autocorrect, next-word predictions, automatic capitalization, and Compact/Standard/Tall visible key heights.
+- A launcher-visible first-party Keyboard settings activity with a Glaze-style card hierarchy plus an in-keyboard Settings control. Device-local preferences cover swipe typing, suggestions, autocorrect, next-word predictions, automatic capitalization, and Compact/Standard/Tall visible key heights.
+- A dedicated implemented-action toolbar between the prediction bar and number row exposing Emoji, Symbols/Letters, Settings, and Hide Keyboard. Clipboard and GIF actions are not exposed until their underlying governed capabilities exist.
+- Backspace prefers bounded Unicode-aware deletion and falls back to an Android DEL key event when an editor cannot satisfy the preferred text/deletion APIs, without expanding surrounding-text authority.
+- Swipe decoding uses packaged local vocabulary, minimum travel/time/path activation gating, geometry-aware route scoring, and bounded endpoint-drift tolerance; it remains Development quality pending representative physical-device acceptance.
 - The Development build uses the canonical GoreeCloud Keyboard app icon from the first-party branding catalog mapping.
 
 ## Native input behavior
