@@ -6,8 +6,10 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.ScrollView
 import android.widget.TextView
 import java.util.concurrent.TimeUnit
@@ -15,8 +17,8 @@ import java.util.concurrent.TimeUnit
 /**
  * First-party Glaze clipboard panel shown inside the IME window.
  *
- * Clipboard payloads arrive only through [KeyboardClipboardController]. This view has no direct
- * Android clipboard authority and never persists content.
+ * Clipboard payloads arrive only through [KeyboardClipboardController]. Smart-content extraction
+ * is computed locally while rendering and is never separately persisted or used for prediction.
  */
 internal class KeyboardClipboardPanelView(
     context: Context,
@@ -25,6 +27,7 @@ internal class KeyboardClipboardPanelView(
     data class Callbacks(
         val onClose: () -> Unit,
         val onPaste: (id: String, once: Boolean) -> Unit,
+        val onPasteText: (text: String) -> Unit,
         val onTogglePin: (id: String) -> Unit,
         val onDelete: (id: String) -> Unit,
         val onClearUnpinned: () -> Unit,
@@ -76,10 +79,9 @@ internal class KeyboardClipboardPanelView(
             matchWidth(),
         )
 
-        val packageLabel = snapshot.packageName ?: "No active app"
         addView(
             TextView(context).apply {
-                text = "App policy • " + packageLabel
+                text = "App policy • " + (snapshot.packageName ?: "No active app")
                 textSize = 12.5f
                 setTextColor(palette.onSurfaceMutedArgb)
                 setPadding(dp(4), dp(8), dp(4), dp(5))
@@ -151,12 +153,8 @@ internal class KeyboardClipboardPanelView(
             return
         }
 
-        val scroll = ScrollView(context).apply {
-            isFillViewport = false
-        }
-        val list = LinearLayout(context).apply {
-            orientation = VERTICAL
-        }
+        val scroll = ScrollView(context)
+        val list = LinearLayout(context).apply { orientation = VERTICAL }
 
         if (snapshot.entries.isEmpty()) {
             list.addView(
@@ -170,11 +168,21 @@ internal class KeyboardClipboardPanelView(
                 matchWidth(),
             )
         } else {
-            snapshot.entries.forEach { entry ->
-                list.addView(
-                    entryCard(entry),
-                    matchWidth().apply { bottomMargin = dp(8) },
-                )
+            val pinned = snapshot.entries.filter { it.pinned }
+            val recent = snapshot.entries.filterNot { it.pinned }
+
+            if (pinned.isNotEmpty()) {
+                list.addView(sectionTitle("Pinned"), matchWidth())
+                pinned.forEach { entry ->
+                    list.addView(entryCard(entry), entryLayoutParams())
+                }
+            }
+
+            if (recent.isNotEmpty()) {
+                list.addView(sectionTitle("Recent"), matchWidth())
+                recent.forEach { entry ->
+                    list.addView(entryCard(entry), entryLayoutParams())
+                }
             }
         }
 
@@ -196,6 +204,19 @@ internal class KeyboardClipboardPanelView(
             orientation = VERTICAL
             setPadding(dp(14), dp(12), dp(14), dp(12))
             background = rounded(palette.surfaceArgb, palette.lineArgb, 18)
+            isClickable = true
+            isFocusable = true
+            contentDescription =
+                if (entry.sensitive) "Sensitive clipboard item"
+                else "Clipboard item: " + entry.text.take(80)
+
+            setOnClickListener {
+                callbacks.onPaste(entry.id, entry.sensitive)
+            }
+            setOnLongClickListener {
+                showItemMenu(entry, this)
+                true
+            }
 
             addView(
                 TextView(context).apply {
@@ -221,6 +242,26 @@ internal class KeyboardClipboardPanelView(
                 matchWidth(),
             )
 
+            if (!entry.sensitive) {
+                val detected = ClipboardSmartContentDetector.detect(entry.text, limit = 6)
+                if (detected.isNotEmpty()) {
+                    addView(TextView(context).apply {
+                        text = "Detected"
+                        textSize = 12f
+                        typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                        setTextColor(palette.onSurfaceMutedArgb)
+                        setPadding(0, dp(2), 0, dp(6))
+                    }, matchWidth())
+
+                    detected.forEach { item ->
+                        addView(
+                            smartItem(item),
+                            matchWidth().apply { bottomMargin = dp(5) },
+                        )
+                    }
+                }
+            }
+
             addView(
                 row().apply {
                     if (!entry.sensitive) {
@@ -233,11 +274,15 @@ internal class KeyboardClipboardPanelView(
                     }
                     addView(
                         chip("Paste once", { callbacks.onPaste(entry.id, true) }),
-                        LinearLayout.LayoutParams(0, dp(40), 1f).apply {
-                            marginEnd = dp(5)
-                        },
+                        LinearLayout.LayoutParams(0, dp(40), 1f),
                     )
-                    if (!entry.sensitive) {
+                },
+                matchWidth(),
+            )
+
+            if (!entry.sensitive) {
+                addView(
+                    row().apply {
                         addView(
                             chip(
                                 if (entry.pinned) "Unpin" else "Pin",
@@ -247,15 +292,56 @@ internal class KeyboardClipboardPanelView(
                                 marginEnd = dp(5)
                             },
                         )
-                    }
-                    addView(
-                        chip("Delete", { callbacks.onDelete(entry.id) }),
-                        LinearLayout.LayoutParams(0, dp(40), 1f),
-                    )
-                },
-                matchWidth(),
-            )
+                        addView(
+                            chip("Delete", { callbacks.onDelete(entry.id) }),
+                            LinearLayout.LayoutParams(0, dp(40), 1f),
+                        )
+                    },
+                    matchWidth().apply { topMargin = dp(6) },
+                )
+            }
         }
+
+    private fun smartItem(item: ClipboardSmartContent): TextView =
+        TextView(context).apply {
+            text = item.type.label + " • " + item.value
+            textSize = 12.5f
+            gravity = Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Paste detected " + item.type.label + ": " + item.value
+            setTextColor(palette.onSurfaceArgb)
+            setPadding(dp(10), dp(7), dp(10), dp(7))
+            background = rounded(palette.canvasArgb, palette.lineArgb, 12)
+            setOnClickListener { callbacks.onPasteText(item.value) }
+        }
+
+    private fun showItemMenu(entry: KeyboardClipboardEntry, anchor: View) {
+        val popup = PopupMenu(context, anchor)
+        if (!entry.sensitive) {
+            popup.menu.add(if (entry.pinned) "Unpin" else "Pin").setOnMenuItemClickListener {
+                callbacks.onTogglePin(entry.id)
+                true
+            }
+        }
+        popup.menu.add("Delete").setOnMenuItemClickListener {
+            callbacks.onDelete(entry.id)
+            true
+        }
+        popup.show()
+    }
+
+    private fun sectionTitle(value: String): TextView =
+        TextView(context).apply {
+            text = value
+            textSize = 13f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            setTextColor(palette.onSurfaceMutedArgb)
+            setPadding(dp(4), dp(10), 0, dp(7))
+        }
+
+    private fun entryLayoutParams(): LinearLayout.LayoutParams =
+        matchWidth().apply { bottomMargin = dp(8) }
 
     private fun entryMetadata(entry: KeyboardClipboardEntry): String {
         val parts = mutableListOf<String>()
