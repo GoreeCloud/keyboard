@@ -2,39 +2,44 @@
 
 GoreeCloud Keyboard is distributed under the repository's GNU AGPL-3.0 license. This document records third-party open-source projects consulted or adapted during Keyboard development and the boundaries applied to source reuse.
 
-## SwiftFloris / FlorisBoard statistical glide work
+## FlorisBoard statistical glide typing
 
-- Project: SwiftFloris, derived from FlorisBoard
-- Repository: `SysAdminDoc/SwiftFloris`
+- Project: FlorisBoard
+- Repository: `florisboard/florisboard`
+- Exact revision inspected: `c64826c2f143585cba5a15d74000bb238a18445a`
 - Reference file: `app/src/main/kotlin/dev/patrickgold/florisboard/ime/text/gestures/StatisticalGlideTypingClassifier.kt`
-- Reference revision inspected during the September 25, 2026 stabilization pass: public `master` state fetched through GitHub
-- Upstream copyright notice: Copyright (C) 2025 The FlorisBoard Contributors
+- Upstream copyright notice in the inspected file: Copyright (C) 2025 The FlorisBoard Contributors
 - License: Apache License 2.0
-- GoreeCloud use: GoreeCloud's physical swipe classifier is a product-specific rewrite of the statistical concepts: endpoint pruning, uniform path resampling, ideal word gestures, normalized shape comparison, physical-location comparison, path-length pruning, and frequency-aware ranking. GoreeCloud uses its own data structures, privacy boundary, rendering, candidate model, context reranking, tests, and UI.
+- GoreeCloud use: the physical swipe classifier adapts general statistical concepts including start/end pruning, ideal word gestures, uniform path resampling, normalized shape comparison, physical-location comparison, path-length filtering, and frequency-aware ranking. GoreeCloud retains its own implementation structure, thresholds, privacy controls, transient-context ranking, UI, settings, tests, and lifecycle.
 
-The Apache-2.0 license text is preserved at `LICENSES/Apache-2.0.txt`.
-
-## AnySoftKeyboard
+## AnySoftKeyboard gesture typing and suggestion architecture
 
 - Project: AnySoftKeyboard
 - Repository: `AnySoftKeyboard/AnySoftKeyboard`
+- Exact revision inspected: `742bf8817aae1a808be6c5fa72bb10f0182ff659`
+- Reference files:
+  - `ime/app/src/main/java/com/anysoftkeyboard/gesturetyping/GestureTypingDetector.java`
+  - `ime/app/src/main/java/com/anysoftkeyboard/dictionaries/SUGGESTIONS.md`
 - License: Apache License 2.0
-- GoreeCloud use: architectural and behavioral reference for offline suggestions, next-word suggestions, configurable autocorrection, language dictionaries, and the statistical gesture-typing lineage referenced by FlorisBoard/SwiftFloris. No whole AnySoftKeyboard component was imported in this pass.
+- GoreeCloud use: the swipe implementation adapts general ideas around meaningful-point filtering, curvature/corner emphasis, start/end proximity, direction-aware route comparison, bounded candidate ranking, and dictionary-frequency weighting. The Quill work also uses AnySoftKeyboard's documented separation of dictionary sources, spelling/correction ranking, next-word prediction, and privacy/incognito learning controls as an architectural reference. No complete AnySoftKeyboard subsystem, UI, branding, or application architecture is imported.
+
+The Apache-2.0 license text used by these references is preserved at `LICENSES/Apache-2.0.txt`.
 
 ## Android Open Source Project LatinIME
 
 - Project: AOSP LatinIME
-- Repository: `platform/packages/inputmethods/LatinIME`
-- License: Apache License 2.0
-- GoreeCloud use: architectural reference for separating typed-word validity, correction candidates, prediction candidates, n-gram context, and gesture-vs-tap suggestion sessions. No AOSP UI, branding, binary dictionary, or native decoder was imported in this pass.
+- Public mirror inspected: `GrapheneOS/platform_packages_inputmethods_LatinIME`
+- GoreeCloud use: architectural research for separating typed-word validity, correction candidates, prediction candidates, n-gram context, and gesture-vs-tap suggestion sessions. No AOSP UI, branding, binary dictionary, or native decoder is imported by this stabilization pass.
 
-## HeliBoard
+## Strong-copyleft keyboard research
 
-- Project: HeliBoard
-- Repository: `HeliBorg/HeliBoard`
-- License: GPL-3.0 (with inherited AOSP Apache-2.0 portions and separately licensed assets)
-- GoreeCloud use: feature/behavior research only, including dictionary-pack concepts, offline-first behavior, toolbar ideas, and rapid-typing gesture cooldown. No GPL-3.0 HeliBoard source code was copied into GoreeCloud Keyboard during this pass.
+- OpenBoard repository verified during this pass: `openboard-team/openboard`
+- License: GPL-3.0
+- GoreeCloud use: behavior/feature research only. No OpenBoard source code was copied into the current GoreeCloud Keyboard candidate.
+- HeliBoard was also considered as a FOSS keyboard reference, but no HeliBoard source code was copied into this candidate.
 
 ## License boundary
 
-Translating or mechanically rewriting source does not eliminate upstream license obligations. GoreeCloud therefore records direct or derivative permissive-source work explicitly and avoids copying stronger-copyleft source merely to reproduce a general behavior when a clean GoreeCloud-native implementation is practical.
+Translating, porting, or mechanically rewriting source does not eliminate upstream license obligations. Direct or derivative work from permissively licensed sources is therefore recorded with provenance and license text. Stronger-copyleft projects are not copied merely to reproduce a general behavior when a GoreeCloud-native implementation is practical.
+
+The product remains a GoreeCloud-native application: third-party implementation references do not transfer upstream branding, UI identity, telemetry assumptions, account models, privacy authority, or release state into GoreeCloud Keyboard.
