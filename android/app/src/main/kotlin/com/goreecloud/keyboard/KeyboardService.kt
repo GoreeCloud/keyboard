@@ -37,6 +37,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     override fun onCreateInputView(): View {
         typingSettings = settingsStore.load()
         packagedEnglishDictionary.preload()
+        val builtInDictionary = packagedEnglishDictionary.words
+        suggestionEngine.preload(builtInDictionary)
+        swipeTypingEngine.preload(builtInDictionary)
         return KeyboardView(this).also { view ->
             keyboardView = view
             view.listener = this
