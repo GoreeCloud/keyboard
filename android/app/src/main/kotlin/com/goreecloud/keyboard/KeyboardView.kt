@@ -1319,7 +1319,6 @@ class KeyboardView @JvmOverloads constructor(
     private fun cancelBackspaceRepeat() {
         removeCallbacks(backspaceRepeatRunnable)
         backspaceRepeatHit = null
-        backspaceRepeatStarted = false
     }
 
     private fun cancelAlternateInteraction() {
