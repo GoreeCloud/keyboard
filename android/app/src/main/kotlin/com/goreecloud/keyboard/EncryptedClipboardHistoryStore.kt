@@ -65,6 +65,27 @@ internal class EncryptedClipboardHistoryStore(context: Context) {
     }
 
     @Synchronized
+    fun edit(
+        id: String,
+        text: String,
+        nowMillis: Long,
+        retentionMillis: Long,
+    ): KeyboardClipboardEntry? {
+        if (text.isBlank() || text.length > MAX_PERSISTED_TEXT_CHARS) return null
+        val current = load(nowMillis)
+        val existing = current.firstOrNull { it.id == id } ?: return null
+        val updated = ClipboardHistoryRules.edit(
+            entries = current,
+            id = id,
+            text = text,
+            nowMillis = nowMillis,
+            retentionMillis = retentionMillis,
+        )
+        save(updated)
+        return updated.firstOrNull { it.id == existing.id }
+    }
+
+    @Synchronized
     fun delete(id: String) {
         save(ClipboardHistoryRules.delete(load(), id))
     }
