@@ -596,27 +596,17 @@ class KeyboardView @JvmOverloads constructor(
         val gap = GlazeKeyboardTokens.Space1Dp * density
         val verticalInset = GlazeKeyboardTokens.Space1Dp * density
         val radius = GlazeKeyboardTokens.RadiusMediumDp * density
-        val actions = when (layer) {
-            KeyboardLayer.LETTERS -> listOf(
-                Key("☺", action = Action.EMOJI),
-                Key("?123", action = Action.SYMBOLS),
-                Key("⚙", action = Action.SETTINGS),
-                Key("⌄", action = Action.HIDE),
-            )
-            KeyboardLayer.SYMBOLS, KeyboardLayer.SYMBOLS_MORE -> listOf(
-                Key("ABC", action = Action.LETTERS),
-                Key("☺", action = Action.EMOJI),
-                Key("⚙", action = Action.SETTINGS),
-                Key("⌄", action = Action.HIDE),
-            )
-            KeyboardLayer.EMOJI -> emptyList()
-        }
-        if (actions.isEmpty()) return
-
-        val cellWidth = minOf(
-            64f * density,
-            (width - horizontalPadding * 2f - gap * (actions.size - 1)) / actions.size,
+        val actions = listOf(
+            Key("☺", action = Action.EMOJI),
+            Key("⚙", action = Action.SETTINGS),
+            Key("⌄", action = Action.HIDE),
         )
+
+        val availableWidth = width - horizontalPadding * 2f - gap * (actions.size - 1)
+        val cellWidth = when (toolbarStyle) {
+            KeyboardToolbarStyle.ICONS_ONLY -> minOf(64f * density, availableWidth / actions.size)
+            KeyboardToolbarStyle.ICONS_WITH_LABELS -> availableWidth / actions.size
+        }
         var left = horizontalPadding
         actions.forEach { key ->
             val hitBounds = RectF(left, top, left + cellWidth, top + height)
@@ -624,14 +614,28 @@ class KeyboardView @JvmOverloads constructor(
             canvas.drawRoundRect(visualBounds, radius, radius, keyPaint)
             canvas.drawRoundRect(visualBounds, radius, radius, utilityKeyOverlayPaint)
             canvas.drawRoundRect(visualBounds, radius, radius, keyStrokePaint)
-            val labelPaint = keyLabelPaint(key)
-            val baseline =
-                visualBounds.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2
-            canvas.drawText(key.label, visualBounds.centerX(), baseline, labelPaint)
+            drawToolbarContent(canvas, key, visualBounds)
             hitKeys += HitKey(hitBounds, key)
             left += cellWidth + gap
         }
     }
+
+    private fun drawToolbarContent(canvas: Canvas, key: Key, bounds: RectF) {
+        val label = when (toolbarStyle) {
+            KeyboardToolbarStyle.ICONS_ONLY -> key.label
+            KeyboardToolbarStyle.ICONS_WITH_LABELS -> when (key.action) {
+                Action.EMOJI -> "☺  Emoji"
+                Action.SETTINGS -> "⚙  Settings"
+                Action.HIDE -> "⌄  Hide"
+                else -> key.label
+            }
+        }
+        val paint =
+            if (toolbarStyle == KeyboardToolbarStyle.ICONS_ONLY) textPaint else utilityTextPaint
+        val baseline = bounds.centerY() - (paint.descent() + paint.ascent()) / 2
+        canvas.drawText(label, bounds.centerX(), baseline, paint)
+    }
+
 
     private fun drawEmojiSearchStrip(canvas: Canvas, horizontalPadding: Float, topArea: Float) {
         val snapshot = emojiSearchSession.snapshot()
@@ -852,8 +856,8 @@ class KeyboardView @JvmOverloads constructor(
                     touchDownHit = null
                     cancelSwipeInteraction()
                     if (path.size >= SWIPE_MIN_PATH_KEYS) {
+                        performKeyPressHaptic()
                         listener?.onSwipe(path)
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                     }
                     invalidate()
                     performClick()
@@ -864,6 +868,7 @@ class KeyboardView @JvmOverloads constructor(
                     val value = popup.selectedIndex?.let(popup.values::getOrNull)
                     alternatePopup = null
                     if (value != null) {
+                        performKeyPressHaptic()
                         listener?.onText(value)
                         announceForAccessibility("Inserted alternate character")
                     }
@@ -996,6 +1001,7 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private fun activateEmojiSearchResult(hit: HitEmojiSearchResult): Boolean {
+        performKeyPressHaptic()
         emojiRecents.record(hit.result.emoji)
         emojiRecentsStore.save(emojiRecents.values())
         listener?.onText(hit.result.emoji)
@@ -1006,6 +1012,7 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private fun activateEmojiCategory(hit: HitEmojiCategory): Boolean {
+        performKeyPressHaptic()
         when {
             hit.entry.search -> {
                 emojiSearchSession.open()
@@ -1035,12 +1042,14 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private fun activateSuggestion(hit: HitSuggestion): Boolean {
+        performKeyPressHaptic()
         listener?.onSuggestion(hit.value)
         performClick()
         return true
     }
 
     private fun activateKey(hit: HitKey): Boolean {
+        performKeyPressHaptic()
         val searchActive = layer == KeyboardLayer.EMOJI && emojiSearchSession.snapshot().active
         when (hit.key.action) {
             Action.TEXT -> {
@@ -1092,6 +1101,11 @@ class KeyboardView @JvmOverloads constructor(
         }
         performClick()
         return true
+    }
+
+    private fun performKeyPressHaptic() {
+        if (!keyPressHapticsEnabled) return
+        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
     }
 
     private fun invalidateStructure() {
