@@ -25,6 +25,7 @@ class KeyboardView @JvmOverloads constructor(
     interface Listener {
         fun onText(value: String)
         fun onSwipe(keyPath: List<String>)
+        fun onSwipeGesture(gesture: SwipeGesture) = onSwipe(gesture.keyPath)
         fun onSpace()
         fun onBackspace()
         fun onEnter()
@@ -141,6 +142,7 @@ class KeyboardView @JvmOverloads constructor(
     private var swipeTypingEnabled = false
     private var swipeGestureActive = false
     private val swipeKeyPath = mutableListOf<String>()
+    private val swipeTouchPoints = mutableListOf<SwipePoint>()
     private val swipePath = Path()
     private var swipeDownX = 0f
     private var swipeDownY = 0f
@@ -846,7 +848,8 @@ class KeyboardView @JvmOverloads constructor(
                 swipeDownTimeMs = event.eventTime
                 if (canParticipateInSwipe(hit)) {
                     swipeKeyPath += hit!!.key.label.lowercase()
-                    swipePath.moveTo(hit.bounds.centerX(), hit.bounds.centerY())
+                    swipeTouchPoints += SwipePoint(event.x, event.y)
+                    swipePath.moveTo(event.x, event.y)
                 }
                 if (hit != null && alternatesFor(hit).isNotEmpty()) {
                     pendingAlternateHit = hit
@@ -865,6 +868,7 @@ class KeyboardView @JvmOverloads constructor(
                 }
 
                 val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
+                if (swipeKeyPath.isNotEmpty()) appendSwipeTouchPoint(event.x, event.y)
                 if (!swipeGestureActive && swipeKeyPath.isNotEmpty()) {
                     val travel = hypot(event.x - swipeDownX, event.y - swipeDownY)
                     val density = resources.displayMetrics.density
@@ -934,12 +938,18 @@ class KeyboardView @JvmOverloads constructor(
                         val label = hit!!.key.label.lowercase()
                         if (swipeKeyPath.lastOrNull() != label) swipeKeyPath += label
                     }
+                    appendSwipeTouchPoint(event.x, event.y)
                     val path = swipeKeyPath.toList()
+                    val gesture = SwipeGesture(
+                        keyPath = path,
+                        points = swipeTouchPoints.toList(),
+                        keyCenters = letterKeyCenters(),
+                    )
                     touchDownHit = null
                     cancelSwipeInteraction()
                     if (path.size >= SWIPE_MIN_PATH_KEYS) {
                         performKeyPressHaptic()
-                        listener?.onSwipe(path)
+                        listener?.onSwipeGesture(gesture)
                     }
                     invalidate()
                     performClick()
@@ -995,9 +1005,36 @@ class KeyboardView @JvmOverloads constructor(
             hit?.key?.action == Action.TEXT &&
             hit.key.label.codePoints().allMatch { Character.isLetter(it) }
 
+    private fun appendSwipeTouchPoint(x: Float, y: Float) {
+        val point = SwipePoint(x, y)
+        val previous = swipeTouchPoints.lastOrNull()
+        val minimumSpacing = SWIPE_TOUCH_SAMPLE_DP * resources.displayMetrics.density
+        if (
+            previous == null ||
+            hypot((point.x - previous.x).toDouble(), (point.y - previous.y).toDouble()) >= minimumSpacing
+        ) {
+            swipeTouchPoints += point
+        }
+    }
+
+    private fun letterKeyCenters(): Map<String, SwipePoint> =
+        hitKeys.asSequence()
+            .filter { hit ->
+                hit.key.action == Action.TEXT &&
+                    hit.key.label.length == 1 &&
+                    hit.key.label[0].lowercaseChar() in 'a'..'z'
+            }
+            .associate { hit ->
+                hit.key.label.lowercase() to SwipePoint(
+                    hit.bounds.centerX(),
+                    hit.bounds.centerY(),
+                )
+            }
+
     private fun cancelSwipeInteraction() {
         swipeGestureActive = false
         swipeKeyPath.clear()
+        swipeTouchPoints.clear()
         swipePath.reset()
     }
 
@@ -1224,6 +1261,7 @@ class KeyboardView @JvmOverloads constructor(
         const val SWIPE_MIN_TRAVEL_DP = 20f
         const val SWIPE_MIN_GESTURE_MS = 55L
         const val SWIPE_MIN_PATH_KEYS = 3
+        const val SWIPE_TOUCH_SAMPLE_DP = 3.5f
         val DIGIT_ROW = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     }
 }
