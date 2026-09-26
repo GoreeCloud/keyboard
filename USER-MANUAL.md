@@ -6,13 +6,13 @@ GoreeCloud Keyboard is currently a **Weave-stage** Android input-method implemen
 
 ## Install and enable the Development keyboard on Android
 
-Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.6** with package ID `com.goreecloud.keyboard.dev.v7`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.7** with package ID `com.goreecloud.keyboard.dev.v8`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
 When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
 
-After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.6**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.7**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
 
-Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.6 when a text field is active.
+Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.7 when a text field is active.
 
 Exact settings labels vary by Android device and version.
 
@@ -63,9 +63,9 @@ The current picker is not a complete emoji catalog. Offline search over the pack
 
 ## Local GoreeCloud Quill suggestions
 
-For ordinary text fields, the integrated candidate bar stays empty at a clean word boundary. Once you type a non-empty word prefix, GoreeCloud Quill shows **at least one and at most three** local candidates.
+For ordinary text fields, the prediction bar can show up to three local starter predictions **before you type**. As you type, it switches to local completions and spelling candidates; after a committed word, it can show transient next-word predictions from the current editor session.
 
-Candidates are frequency-ordered from the packaged local lexicon. Likely spelling corrections are presented ahead of the misspelled token when Quill has a bounded local correction; the word you are actively typing remains available as a fallback. After a committed word, the current Development candidate can also present up to three transient next-word predictions from its small first-party local prediction table.
+Candidates are frequency-ordered from the packaged local lexicon and the broader everyday-English supplement. Likely spelling corrections are presented ahead of a misspelled token when the local engine has a bounded correction; the word you are actively typing remains available as a fallback. Context uses only words committed by this Keyboard in the current editor session and is not persisted.
 
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
@@ -77,7 +77,7 @@ In ordinary non-sensitive text fields, you can slide across letter keys and rele
 
 Swipe typing is disabled in sensitive editors and while touch-exploration/screen-reader optimized presentation is active. The gesture path is not persisted, learned from, transmitted, or combined with surrounding editor text.
 
-The current gesture-start threshold requires deliberate travel, elapsed time, and movement across multiple letter keys before the keyboard switches from tapping to swipe decoding. This specifically reduces accidental swipes during fast typing. Recognition quality remains Weave-stage Development behavior and is still subject to physical-device refinement.
+The current gesture-start threshold requires deliberate travel, elapsed time, and movement across multiple letter keys before the keyboard switches from tapping to swipe decoding. This specifically reduces accidental swipes during fast typing. The decoder also tolerates a bounded amount of start/end drift so natural gestures do not have to begin and end on the exact key center. Recognition quality remains Weave-stage Development behavior and is still subject to physical-device refinement.
 
 ## Sensitive text fields
 
@@ -93,7 +93,7 @@ Future network-backed capabilities, if implemented, require separate user-contro
 
 ## Keyboard settings and app shortcut
 
-The Development package now exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.6**. Opening it launches the first-party Keyboard settings screen. The same settings screen is also reachable from the **⚙** control in the keyboard candidate row and from Android's input-method settings entry for GoreeCloud Keyboard.
+The Development package now exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.7**. Opening it launches the first-party Keyboard settings screen. The same settings screen is also reachable from the **⚙** control in the dedicated utility toolbar and from Android's input-method settings entry for GoreeCloud Keyboard. The settings UI uses Glaze-style cards, grouped controls, and a segmented Compact / Standard / Tall key-height selector.
 
 Current device-local settings include:
 
@@ -111,6 +111,17 @@ Key-height choices change the visible keycap height while preserving the larger 
 The packaged local dictionary includes common English vocabulary, common derived/irregular forms, common contractions, and canonical GoreeCloud product/system terminology derived from the first-party branding catalog. It includes names such as **GoreeCloud**, **Glaze**, **Quill**, **Wardveil**, **Everkeep**, and the named GoreeCloud applications represented in that catalog.
 
 This dictionary is read-only in the current Development candidate. It is not learned from your typing, synchronized, uploaded, or built from editor contents.
+
+## Utility toolbar
+
+A dedicated toolbar sits between the prediction bar and the number row. It currently exposes only implemented actions:
+
+- **☺ Emoji**
+- **?123 / ABC Symbols or Letters**
+- **⚙ Settings**
+- **⌄ Hide keyboard**
+
+Clipboard and GIF controls are not shown as placeholders. They remain separate capability work because clipboard access and GIF/provider behavior require real implementation, privacy/security authority, and user-control boundaries rather than decorative buttons.
 
 ## Appearance
 
