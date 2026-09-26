@@ -97,6 +97,26 @@ class SwipeTypingEngineTest {
     }
 
     @Test
+    fun physicalGestureUsesRenderedGeometryToDecodeIcon() {
+        val centers = qwertyCenters(scale = 100f)
+        val route = listOf("i", "c", "o", "n").map { centers.getValue(it) }
+        val gesture = SwipeGesture(
+            keyPath = listOf("i", "c", "o", "n"),
+            points = route,
+            keyCenters = centers,
+        )
+
+        val result = engine.decode(
+            gesture = gesture,
+            dictionary = listOf("iron", "upon", "into", "icon", "icons"),
+            limit = 3,
+        )
+
+        assertTrue("Exact rendered icon route should produce candidates", result.isNotEmpty())
+        assertEquals("icon", result.first())
+    }
+
+    @Test
     fun remainsBoundedByRequestedLimit() {
         val result = engine.decode(
             keyPath = listOf("t", "h", "g", "e"),
