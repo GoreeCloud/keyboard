@@ -312,6 +312,95 @@ class KeyboardTypingErgonomicsRuntimeTest {
     }
 
     @Test
+    fun rapidTypingWithNeighborDriftDoesNotPromoteIntoSwipe() {
+        val view = createRenderedKeyboard()
+        view.setSwipeTypingEnabled(true)
+        renderIntoExistingSize(view)
+
+        val targets = view.accessibilityTargets()
+        val e = targets.first { it.label == "e" }.bounds
+        val t = targets.first { it.label == "t" }.bounds
+        val y = targets.first { it.label == "y" }.bounds
+        val u = targets.first { it.label == "u" }.bounds
+        val taps = mutableListOf<String>()
+        val traces = mutableListOf<List<String>>()
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) {
+                taps += value
+            }
+            override fun onSwipe(keyPath: List<String>) {
+                traces += keyPath
+            }
+            override fun onSpace() = Unit
+            override fun onBackspace() = Unit
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        // Establish a rapid-typing burst, then model a hurried second tap whose finger drifts
+        // across two neighboring key bounds before release. 0.1.18 could promote this to swipe.
+        dispatch(view, MotionEvent.ACTION_DOWN, e.centerX(), e.centerY(), eventTime = 0L)
+        dispatch(view, MotionEvent.ACTION_UP, e.centerX(), e.centerY(), eventTime = 28L)
+
+        dispatch(view, MotionEvent.ACTION_DOWN, t.centerX(), t.centerY(), eventTime = 62L)
+        dispatch(view, MotionEvent.ACTION_MOVE, y.centerX(), y.centerY(), eventTime = 104L)
+        dispatch(view, MotionEvent.ACTION_MOVE, u.centerX(), u.centerY(), eventTime = 146L)
+        dispatch(view, MotionEvent.ACTION_UP, u.centerX(), u.centerY(), eventTime = 188L)
+
+        assertTrue("Rapid tap drift must not emit a swipe gesture", traces.isEmpty())
+        assertEquals(
+            "Rejected swipe-like drift during a rapid tap burst must preserve the ACTION_DOWN key",
+            listOf("e", "t"),
+            taps,
+        )
+    }
+
+    @Test
+    fun deliberateSwipeImmediatelyAfterTapStillActivates() {
+        val view = createRenderedKeyboard()
+        view.setSwipeTypingEnabled(true)
+        renderIntoExistingSize(view)
+
+        val targets = view.accessibilityTargets()
+        val a = targets.first { it.label == "a" }.bounds
+        val h = targets.first { it.label == "h" }.bounds
+        val e = targets.first { it.label == "e" }.bounds
+        val l = targets.first { it.label == "l" }.bounds
+        val o = targets.first { it.label == "o" }.bounds
+        val taps = mutableListOf<String>()
+        val traces = mutableListOf<List<String>>()
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) {
+                taps += value
+            }
+            override fun onSwipe(keyPath: List<String>) {
+                traces += keyPath
+            }
+            override fun onSpace() = Unit
+            override fun onBackspace() = Unit
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        dispatch(view, MotionEvent.ACTION_DOWN, a.centerX(), a.centerY(), eventTime = 0L)
+        dispatch(view, MotionEvent.ACTION_UP, a.centerX(), a.centerY(), eventTime = 30L)
+
+        dispatch(view, MotionEvent.ACTION_DOWN, h.centerX(), h.centerY(), eventTime = 70L)
+        dispatch(view, MotionEvent.ACTION_MOVE, e.centerX(), e.centerY(), eventTime = 135L)
+        dispatch(view, MotionEvent.ACTION_MOVE, l.centerX(), l.centerY(), eventTime = 205L)
+        dispatch(view, MotionEvent.ACTION_UP, o.centerX(), o.centerY(), eventTime = 280L)
+
+        assertEquals(listOf("a"), taps)
+        assertEquals(listOf(listOf("h", "e", "l", "o")), traces)
+    }
+
+    @Test
     fun swipeGestureEmitsOrderedLetterTraceInsteadOfSingleTap() {
         val view = createRenderedKeyboard()
         view.setSwipeTypingEnabled(true)

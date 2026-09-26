@@ -165,6 +165,7 @@ class KeyboardView @JvmOverloads constructor(
     private var swipeDownY = 0f
     private var swipeDownTimeMs = 0L
     private var lastLetterTapUpTimeMs = Long.MIN_VALUE
+    private var swipeDownFollowedRecentTap = false
     private var touchDownHit: HitKey? = null
     private var backspaceRepeatHit: HitKey? = null
 
@@ -872,6 +873,11 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        val recoverRecentFastTapOnRelease =
+            event.actionMasked == MotionEvent.ACTION_UP &&
+                swipeDownFollowedRecentTap &&
+                event.eventTime - swipeDownTimeMs <= RECENT_FAST_TAP_RECOVERY_MAX_MS
+
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 cancelAlternateInteraction()
@@ -882,6 +888,10 @@ class KeyboardView @JvmOverloads constructor(
                 swipeDownX = event.x
                 swipeDownY = event.y
                 swipeDownTimeMs = event.eventTime
+                swipeDownFollowedRecentTap =
+                    lastLetterTapUpTimeMs != Long.MIN_VALUE &&
+                        event.eventTime >= lastLetterTapUpTimeMs &&
+                        event.eventTime - lastLetterTapUpTimeMs <= FAST_TYPING_GUARD_WINDOW_MS
                 if (hit?.key?.action == Action.BACKSPACE) {
                     beginBackspaceRepeat(hit)
                 } else if (canParticipateInSwipe(hit)) {
@@ -1019,7 +1029,8 @@ class KeyboardView @JvmOverloads constructor(
         val exactHit = hitKeyAt(event.x, event.y)
         val releaseTravel = hypot(event.x - swipeDownX, event.y - swipeDownY)
         val fallbackHit = touchDownHit?.takeIf {
-            releaseTravel <= ViewConfiguration.get(context).scaledTouchSlop * TAP_RELEASE_SLOP_MULTIPLIER
+            releaseTravel <= ViewConfiguration.get(context).scaledTouchSlop * TAP_RELEASE_SLOP_MULTIPLIER ||
+                recoverRecentFastTapOnRelease
         }
         touchDownHit = null
         // A tap that stays inside release slop belongs to the key that received ACTION_DOWN.
@@ -1075,68 +1086,21 @@ class KeyboardView @JvmOverloads constructor(
     private fun maybeActivateSwipe(event: MotionEvent) {
         if (swipeGestureActive || swipeKeyPath.isEmpty()) return
 
-        val density = resources.displayMetrics.density
-        val elapsedMs = event.eventTime - swipeDownTimeMs
-        val recentFastTyping =
-            lastLetterTapUpTimeMs != Long.MIN_VALUE &&
-                swipeDownTimeMs - lastLetterTapUpTimeMs <= FAST_TYPING_GUARD_WINDOW_MS
-        val distinctLetterCount = swipeKeyPath.distinct().size
-        if (distinctLetterCount < 2) return
-
-        // Accumulated path distance preserves curved/returning swipes while short tap drift remains
-        // below the gesture-intent gate.
-        val pathTravel = swipePathTravel()
-        val netTravel = hypot(event.x - swipeDownX, event.y - swipeDownY)
-        val touchSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
-        val basePathThreshold = max(
-            touchSlop * SWIPE_START_SLOP_MULTIPLIER,
-            SWIPE_MIN_PATH_TRAVEL_DP * density,
+        val density = resources.displayMetrics.density.coerceAtLeast(1f)
+        val evidence = SwipeIntentClassifier.Evidence(
+            pathTravelDp = swipePathTravel() / density,
+            netTravelDp = hypot(event.x - swipeDownX, event.y - swipeDownY) / density,
+            elapsedMs = event.eventTime - swipeDownTimeMs,
+            distinctLetterCount = swipeKeyPath.distinct().size,
+            recentFastTyping = swipeDownFollowedRecentTap,
+            touchSlopDp = ViewConfiguration.get(context).scaledTouchSlop / density,
         )
-        val requiredPathTravel = if (recentFastTyping) {
-            max(basePathThreshold, SWIPE_RECENT_TYPING_MIN_PATH_TRAVEL_DP * density)
-        } else {
-            basePathThreshold
-        }
-        val requiredDuration = if (recentFastTyping) {
-            SWIPE_RECENT_TYPING_MIN_GESTURE_MS
-        } else {
-            SWIPE_MIN_GESTURE_MS
-        }
+        if (!SwipeIntentClassifier.shouldActivate(evidence)) return
 
-        val twoKeyIntent = if (distinctLetterCount == 2) {
-            val twoKeyPath = if (recentFastTyping) {
-                SWIPE_RECENT_TYPING_TWO_KEY_MIN_PATH_TRAVEL_DP
-            } else {
-                SWIPE_TWO_KEY_MIN_PATH_TRAVEL_DP
-            } * density
-            val twoKeyNet = if (recentFastTyping) {
-                SWIPE_RECENT_TYPING_TWO_KEY_MIN_NET_TRAVEL_DP
-            } else {
-                SWIPE_TWO_KEY_MIN_NET_TRAVEL_DP
-            } * density
-            val twoKeyDuration = if (recentFastTyping) {
-                SWIPE_RECENT_TYPING_TWO_KEY_MIN_GESTURE_MS
-            } else {
-                SWIPE_TWO_KEY_MIN_GESTURE_MS
-            }
-
-            pathTravel >= twoKeyPath &&
-                netTravel >= twoKeyNet &&
-                elapsedMs >= twoKeyDuration
-        } else {
-            true
-        }
-
-        if (
-            pathTravel >= requiredPathTravel &&
-            elapsedMs >= requiredDuration &&
-            twoKeyIntent
-        ) {
-            swipeGestureActive = true
-            removeCallbacks(showAlternatesRunnable)
-            pendingAlternateHit = null
-            alternatePopup = null
-        }
+        swipeGestureActive = true
+        removeCallbacks(showAlternatesRunnable)
+        pendingAlternateHit = null
+        alternatePopup = null
     }
 
     private fun swipePathTravel(): Float {
@@ -1209,6 +1173,7 @@ class KeyboardView @JvmOverloads constructor(
 
     private fun cancelSwipeInteraction() {
         swipeGestureActive = false
+        swipeDownFollowedRecentTap = false
         swipeKeyPath.clear()
         swipeTouchPoints.clear()
         swipePath.reset()
@@ -1459,18 +1424,8 @@ class KeyboardView @JvmOverloads constructor(
         const val TAP_RELEASE_SLOP_MULTIPLIER = 1.6f
         const val TAP_NEAR_MISS_MAX_DP = 10f
         const val FUNCTIONAL_ICON_ALPHA = 224
-        const val SWIPE_START_SLOP_MULTIPLIER = 2.25f
-        const val SWIPE_MIN_PATH_TRAVEL_DP = 34f
-        const val SWIPE_MIN_GESTURE_MS = 70L
-        const val SWIPE_RECENT_TYPING_MIN_GESTURE_MS = 105L
-        const val FAST_TYPING_GUARD_WINDOW_MS = 320L
-        const val SWIPE_RECENT_TYPING_MIN_PATH_TRAVEL_DP = 56f
-        const val SWIPE_TWO_KEY_MIN_PATH_TRAVEL_DP = 68f
-        const val SWIPE_TWO_KEY_MIN_NET_TRAVEL_DP = 34f
-        const val SWIPE_TWO_KEY_MIN_GESTURE_MS = 100L
-        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_PATH_TRAVEL_DP = 88f
-        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_NET_TRAVEL_DP = 46f
-        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_GESTURE_MS = 130L
+        const val FAST_TYPING_GUARD_WINDOW_MS = 420L
+        const val RECENT_FAST_TAP_RECOVERY_MAX_MS = 210L
         const val SWIPE_MIN_PATH_KEYS = 2
         const val SWIPE_TOUCH_SAMPLE_DP = 3.5f
         const val BACKSPACE_REPEAT_INITIAL_DELAY_MS = 360L

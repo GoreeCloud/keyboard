@@ -22,6 +22,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var composingCaptureExhausted = false
     private var keyboardView: KeyboardView? = null
     private val suggestionEngine = SuggestionEngine()
+    private val runTogetherWordResolver = RunTogetherWordResolver()
     private val swipeTypingEngine = SwipeTypingEngine()
     private val packagedEnglishDictionary by lazy { PackagedEnglishDictionary(this) }
     private val settingsStore by lazy { KeyboardSettingsStore(this) }
@@ -507,11 +508,13 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         ) {
             val contextHistory = transientContextHistory(excludeCurrentComposingWord = true)
             val contextualPredictions = contextualPredictions(contextHistory, limit = 8)
+            val dictionary = activeDictionary()
             val correction =
                 QuillGrammarModel.boundaryCorrection(prefix, contextHistory)
+                    ?: runTogetherWordResolver.resolve(prefix, dictionary)
                     ?: suggestionEngine.bestAutocorrection(
                         word = prefix,
-                        dictionary = activeDictionary(),
+                        dictionary = dictionary,
                         contextualPredictions = contextualPredictions,
                     )
 
@@ -717,12 +720,25 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         )
 
         presentedSuggestions = when {
-            synchronizedPrefix.isNotEmpty() && typingSettings.suggestionsEnabled ->
-                suggestionEngine.suggest(
-                    prefix = synchronizedPrefix,
-                    dictionary = activeDictionary(),
-                    contextualPredictions = contextualPredictions(contextHistory, limit = 8),
-                ).map(::formatCandidateCase)
+            synchronizedPrefix.isNotEmpty() && typingSettings.suggestionsEnabled -> {
+                val dictionary = activeDictionary()
+                val segmented = runTogetherWordResolver.resolve(
+                    token = synchronizedPrefix,
+                    dictionary = dictionary,
+                )
+                buildList<String> {
+                    segmented?.let(::add)
+                    addAll(
+                        suggestionEngine.suggest(
+                            prefix = synchronizedPrefix,
+                            dictionary = dictionary,
+                            contextualPredictions = contextualPredictions(contextHistory, limit = 8),
+                        ),
+                    )
+                }
+                    .distinctBy { it.lowercase() }
+                    .map(::formatCandidateCase)
+            }
 
             composingWord.isEmpty() && typingSettings.predictionsEnabled ->
                 predictionCandidates(contextHistory = contextHistory).map(::formatPredictionCase)
