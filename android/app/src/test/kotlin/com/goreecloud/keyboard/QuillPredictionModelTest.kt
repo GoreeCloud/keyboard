@@ -5,10 +5,22 @@ import org.junit.Test
 
 class QuillPredictionModelTest {
     @Test
+    fun predictsBeforeTypingWithoutReadingEditorText() {
+        assertEquals(
+            listOf("I", "The", "How"),
+            QuillPredictionModel.predict(emptyList()),
+        )
+    }
+
+    @Test
     fun predictsFromRecentLocalPhraseWithoutLearning() {
         assertEquals(
             listOf("feel", "work", "look"),
             QuillPredictionModel.predict(listOf("does", "it")),
+        )
+        assertEquals(
+            listOf("I", "you", "we"),
+            QuillPredictionModel.predict(listOf("How", "can")),
         )
         assertEquals(
             listOf("settings", "suggestions", "typing"),
@@ -21,6 +33,8 @@ class QuillPredictionModelTest {
         assertEquals("I", QuillPredictionModel.boundaryCorrection("i"))
         assertEquals("I'm", QuillPredictionModel.boundaryCorrection("im"))
         assertEquals("don't", QuillPredictionModel.boundaryCorrection("dont"))
+        assertEquals("didn't", QuillPredictionModel.boundaryCorrection("didnt"))
+        assertEquals("what's", QuillPredictionModel.boundaryCorrection("whats"))
         assertEquals("GoreeCloud", QuillPredictionModel.boundaryCorrection("goreecloud"))
         assertEquals("Wardveil", QuillPredictionModel.boundaryCorrection("wardveil"))
     }
