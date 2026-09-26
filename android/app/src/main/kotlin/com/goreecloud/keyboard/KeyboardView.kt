@@ -1095,14 +1095,18 @@ class KeyboardView @JvmOverloads constructor(
         } else {
             SWIPE_MIN_GESTURE_MS
         }
-        val firstSwipeKey = swipeKeyPath.firstOrNull()
-        val movedToDifferentLetter =
-            firstSwipeKey != null && swipeKeyPath.any { it != firstSwipeKey }
+        val distinctLetterCount = swipeKeyPath.distinct().size
+        val movedToDifferentLetter = distinctLetterCount >= 2
+        val strongTwoKeySwipe =
+            !recentFastTyping ||
+                distinctLetterCount >= 3 ||
+                travel >= SWIPE_RECENT_TYPING_TWO_KEY_MIN_TRAVEL_DP * density
 
         if (
             travel >= requiredTravel &&
             elapsedMs >= requiredDuration &&
-            movedToDifferentLetter
+            movedToDifferentLetter &&
+            strongTwoKeySwipe
         ) {
             swipeGestureActive = true
             removeCallbacks(showAlternatesRunnable)
@@ -1420,9 +1424,10 @@ class KeyboardView @JvmOverloads constructor(
         const val SWIPE_START_SLOP_MULTIPLIER = 2.0f
         const val SWIPE_MIN_TRAVEL_DP = 20f
         const val SWIPE_MIN_GESTURE_MS = 55L
-        const val SWIPE_RECENT_TYPING_MIN_GESTURE_MS = 82L
+        const val SWIPE_RECENT_TYPING_MIN_GESTURE_MS = 96L
         const val FAST_TYPING_GUARD_WINDOW_MS = 240L
-        const val SWIPE_RECENT_TYPING_MIN_TRAVEL_DP = 32f
+        const val SWIPE_RECENT_TYPING_MIN_TRAVEL_DP = 40f
+        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_TRAVEL_DP = 64f
         const val SWIPE_MIN_PATH_KEYS = 2
         const val SWIPE_TOUCH_SAMPLE_DP = 3.5f
         const val BACKSPACE_REPEAT_INITIAL_DELAY_MS = 360L
