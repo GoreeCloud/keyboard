@@ -64,6 +64,29 @@ internal object ClipboardHistoryRules {
             nowMillis,
         )
 
+    fun edit(
+        entries: List<KeyboardClipboardEntry>,
+        id: String,
+        text: String,
+        nowMillis: Long,
+        retentionMillis: Long,
+    ): List<KeyboardClipboardEntry> =
+        prune(
+            entries.map { entry ->
+                if (entry.id != id) {
+                    entry
+                } else {
+                    entry.copy(
+                        text = text,
+                        createdAtMillis = nowMillis,
+                        expiresAtMillis =
+                            if (entry.pinned) null else nowMillis + retentionMillis,
+                    )
+                }
+            },
+            nowMillis,
+        )
+
     fun delete(entries: List<KeyboardClipboardEntry>, id: String): List<KeyboardClipboardEntry> =
         entries.filterNot { it.id == id }
 
