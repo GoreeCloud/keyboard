@@ -7,10 +7,22 @@ class SwipeCandidateRankerTest {
     @Test
     fun contextMayPromoteOnlyAlreadyDecodedCandidates() {
         assertEquals(
-            listOf("there", "three", "these"),
+            listOf("three", "there", "these"),
             SwipeCandidateRanker.rank(
                 decoded = listOf("three", "these", "there", "theme"),
                 contextualPredictions = listOf("there", "they", "the"),
+                limit = 3,
+            ),
+        )
+    }
+
+    @Test
+    fun contextCannotPullWeakGeometryCandidateToTheTop() {
+        assertEquals(
+            listOf("hello", "help", "held"),
+            SwipeCandidateRanker.rank(
+                decoded = listOf("hello", "help", "held", "hero", "home", "how", "however"),
+                contextualPredictions = listOf("however"),
                 limit = 3,
             ),
         )
