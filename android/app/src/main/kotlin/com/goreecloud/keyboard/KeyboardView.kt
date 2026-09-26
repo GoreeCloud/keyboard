@@ -149,6 +149,7 @@ class KeyboardView @JvmOverloads constructor(
     private var swipeDownTimeMs = 0L
     private var lastLetterTapUpTimeMs = Long.MIN_VALUE
     private var touchDownHit: HitKey? = null
+    private var backspaceRepeatHit: HitKey? = null
 
     init {
         isClickable = true
@@ -174,6 +175,12 @@ class KeyboardView @JvmOverloads constructor(
         ViewCompat.requestApplyInsets(this)
     }
 
+    override fun onDetachedFromWindow() {
+        cancelBackspaceRepeat()
+        cancelAlternateInteraction()
+        super.onDetachedFromWindow()
+    }
+
     private val showAlternatesRunnable = Runnable {
         val hit = pendingAlternateHit ?: return@Runnable
         val values = alternatesFor(hit)
@@ -183,6 +190,16 @@ class KeyboardView @JvmOverloads constructor(
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         announceForAccessibility("Alternate characters available")
         invalidate()
+    }
+
+    private val backspaceRepeatRunnable = object : Runnable {
+        override fun run() {
+            val hit = backspaceRepeatHit ?: return
+            if (hit.key.action != Action.BACKSPACE) return
+            performKeyPressHaptic()
+            listener?.onBackspace()
+            postDelayed(this, BACKSPACE_REPEAT_INTERVAL_MS)
+        }
     }
 
     fun setShifted(value: Boolean) {
@@ -847,12 +864,14 @@ class KeyboardView @JvmOverloads constructor(
                 swipeDownX = event.x
                 swipeDownY = event.y
                 swipeDownTimeMs = event.eventTime
-                if (canParticipateInSwipe(hit)) {
+                if (hit?.key?.action == Action.BACKSPACE) {
+                    beginBackspaceRepeat(hit)
+                } else if (canParticipateInSwipe(hit)) {
                     swipeKeyPath += hit!!.key.label.lowercase()
                     swipeTouchPoints += SwipePoint(event.x, event.y)
                     swipePath.moveTo(event.x, event.y)
                 }
-                if (hit != null && alternatesFor(hit).isNotEmpty()) {
+                if (hit != null && hit.key.action != Action.BACKSPACE && alternatesFor(hit).isNotEmpty()) {
                     pendingAlternateHit = hit
                     postDelayed(showAlternatesRunnable, ViewConfiguration.getLongPressTimeout().toLong())
                 }
@@ -869,6 +888,11 @@ class KeyboardView @JvmOverloads constructor(
                 }
 
                 val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
+                backspaceRepeatHit?.let { repeatHit ->
+                    val slop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
+                    val expanded = RectF(repeatHit.bounds).apply { inset(-slop, -slop) }
+                    if (!expanded.contains(event.x, event.y)) cancelBackspaceRepeat()
+                }
                 if (swipeKeyPath.isNotEmpty()) appendSwipeMotionSamples(event)
                 if (!swipeGestureActive && swipeKeyPath.isNotEmpty()) {
                     val travel = hypot(event.x - swipeDownX, event.y - swipeDownY)
@@ -934,15 +958,26 @@ class KeyboardView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_CANCEL -> {
                 touchDownHit = null
+                cancelBackspaceRepeat()
                 cancelAlternateInteraction()
                 cancelSwipeInteraction()
                 invalidate()
                 return true
             }
             MotionEvent.ACTION_UP -> {
+                val backspaceWasHeld = backspaceRepeatHit != null
+                cancelBackspaceRepeat()
                 removeCallbacks(showAlternatesRunnable)
                 pendingAlternateHit = null
                 pressedKeyBounds = null
+
+                if (backspaceWasHeld) {
+                    touchDownHit = null
+                    cancelSwipeInteraction()
+                    invalidate()
+                    performClick()
+                    return true
+                }
 
                 if (swipeGestureActive) {
                     appendSwipeMotionSamples(event)
@@ -1273,6 +1308,20 @@ class KeyboardView @JvmOverloads constructor(
         accessibilityDelegate.invalidateVirtualRoot()
     }
 
+    private fun beginBackspaceRepeat(hit: HitKey) {
+        cancelBackspaceRepeat()
+        backspaceRepeatHit = hit
+        performKeyPressHaptic()
+        listener?.onBackspace()
+        postDelayed(backspaceRepeatRunnable, BACKSPACE_REPEAT_INITIAL_DELAY_MS)
+    }
+
+    private fun cancelBackspaceRepeat() {
+        removeCallbacks(backspaceRepeatRunnable)
+        backspaceRepeatHit = null
+        backspaceRepeatStarted = false
+    }
+
     private fun cancelAlternateInteraction() {
         removeCallbacks(showAlternatesRunnable)
         pressedKeyBounds = null
@@ -1281,6 +1330,7 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private fun switchLayer(value: KeyboardLayer) {
+        cancelBackspaceRepeat()
         cancelAlternateInteraction()
         layer = value
         shifted = false
@@ -1309,6 +1359,8 @@ class KeyboardView @JvmOverloads constructor(
         const val SWIPE_MIN_VELOCITY_DP_PER_MS = 0.22f
         const val SWIPE_MIN_PATH_KEYS = 3
         const val SWIPE_TOUCH_SAMPLE_DP = 3.5f
+        const val BACKSPACE_REPEAT_INITIAL_DELAY_MS = 360L
+        const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
         val DIGIT_ROW = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     }
 }
