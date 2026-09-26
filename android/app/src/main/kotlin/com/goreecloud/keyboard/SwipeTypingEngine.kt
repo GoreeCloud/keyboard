@@ -81,6 +81,25 @@ internal class SwipeTypingEngine {
 
                 val traceCoverage =
                     averageDistanceToPolyline(sampledTrace, wordPoints) / scale
+                val shapeCost = normalizedShapeCost(
+                    candidate = wordPoints,
+                    observed = sampledTrace,
+                    scale = scale,
+                )
+                if (!shapeCost.isFinite() || shapeCost > MAX_PHYSICAL_SHAPE_COST) {
+                    return@mapNotNull null
+                }
+
+                val observedLength = polylineLength(sampledTrace) / scale
+                val candidateLength = polylineLength(wordPoints) / scale
+                val routeLengthPenalty =
+                    if (observedLength > 0.0 && candidateLength > 0.0) {
+                        abs(ln((observedLength / candidateLength).coerceAtLeast(0.001))) *
+                            PHYSICAL_ROUTE_LENGTH_WEIGHT
+                    } else {
+                        0.0
+                    }
+
                 val sequencePenalty =
                     sequenceDistance(traceLabels, wordLabels) * SEQUENCE_DISTANCE_WEIGHT
                 val lengthPenalty =
@@ -97,6 +116,8 @@ internal class SwipeTypingEngine {
                         orderedCost * PHYSICAL_ORDERED_WEIGHT +
                         candidateCoverage * PHYSICAL_CANDIDATE_COVERAGE_WEIGHT +
                         traceCoverage * PHYSICAL_TRACE_COVERAGE_WEIGHT +
+                        shapeCost * PHYSICAL_SHAPE_WEIGHT +
+                        routeLengthPenalty +
                         sequencePenalty +
                         lengthPenalty +
                         frequencyPenalty,
@@ -280,6 +301,78 @@ internal class SwipeTypingEngine {
             maxOf(observed.size, candidate.size)
     }
 
+    private fun normalizedShapeCost(
+        candidate: List<Point>,
+        observed: List<Point>,
+        scale: Double,
+    ): Double {
+        if (candidate.size < 2 || observed.size < 2 || scale <= 0.0) {
+            return Double.POSITIVE_INFINITY
+        }
+        val candidateSamples = resamplePolyline(candidate, SHAPE_SAMPLE_COUNT)
+        val observedSamples = resamplePolyline(observed, SHAPE_SAMPLE_COUNT)
+        if (
+            candidateSamples.size != SHAPE_SAMPLE_COUNT ||
+            observedSamples.size != SHAPE_SAMPLE_COUNT
+        ) {
+            return Double.POSITIVE_INFINITY
+        }
+
+        return candidateSamples.zip(observedSamples)
+            .sumOf { (left, right) -> distance(left, right) / scale } /
+            SHAPE_SAMPLE_COUNT
+    }
+
+    private fun resamplePolyline(points: List<Point>, count: Int): List<Point> {
+        if (points.isEmpty() || count <= 0) return emptyList()
+        if (points.size == 1 || count == 1) return List(count) { points.first() }
+
+        val cumulative = DoubleArray(points.size)
+        for (index in 1 until points.size) {
+            cumulative[index] =
+                cumulative[index - 1] + distance(points[index - 1], points[index])
+        }
+        val totalLength = cumulative.last()
+        if (totalLength <= 0.0) return List(count) { points.first() }
+
+        val result = ArrayList<Point>(count)
+        var segment = 0
+        repeat(count) { sampleIndex ->
+            val target =
+                if (count == 1) 0.0
+                else totalLength * sampleIndex.toDouble() / (count - 1).toDouble()
+
+            while (
+                segment < points.lastIndex - 1 &&
+                cumulative[segment + 1] < target
+            ) {
+                segment += 1
+            }
+
+            val start = points[segment]
+            val end = points[minOf(segment + 1, points.lastIndex)]
+            val segmentStart = cumulative[segment]
+            val segmentLength =
+                (cumulative[minOf(segment + 1, cumulative.lastIndex)] - segmentStart)
+                    .coerceAtLeast(0.000001)
+            val t = ((target - segmentStart) / segmentLength).coerceIn(0.0, 1.0)
+            result += Point(
+                x = start.x + (end.x - start.x) * t,
+                y = start.y + (end.y - start.y) * t,
+            )
+        }
+        return result
+    }
+
+    private fun polylineLength(points: List<Point>): Double {
+        if (points.size < 2) return 0.0
+        var total = 0.0
+        for (index in 0 until points.lastIndex) {
+            total += distance(points[index], points[index + 1])
+        }
+        return total
+    }
+
     private fun averageDistanceToPolyline(points: List<Point>, polyline: List<Point>): Double {
         if (points.isEmpty() || polyline.isEmpty()) return Double.POSITIVE_INFINITY
         if (polyline.size == 1) {
@@ -338,9 +431,13 @@ internal class SwipeTypingEngine {
         const val PHYSICAL_ENDPOINT_WEIGHT = 1.30
         const val PHYSICAL_ORDERED_WEIGHT = 2.15
         const val PHYSICAL_CANDIDATE_COVERAGE_WEIGHT = 1.55
-        const val PHYSICAL_TRACE_COVERAGE_WEIGHT = 0.28
-        const val PHYSICAL_LENGTH_DELTA_WEIGHT = 0.055
-        const val PHYSICAL_FREQUENCY_LOG_WEIGHT = 0.012
+        const val PHYSICAL_TRACE_COVERAGE_WEIGHT = 0.24
+        const val PHYSICAL_SHAPE_WEIGHT = 2.65
+        const val PHYSICAL_ROUTE_LENGTH_WEIGHT = 0.45
+        const val PHYSICAL_LENGTH_DELTA_WEIGHT = 0.045
+        const val PHYSICAL_FREQUENCY_LOG_WEIGHT = 0.010
+        const val MAX_PHYSICAL_SHAPE_COST = 1.35
+        const val SHAPE_SAMPLE_COUNT = 24
 
         const val MAX_ENDPOINT_DISTANCE = 1.45
         const val MAX_ORDERED_COST = 1.45
