@@ -43,6 +43,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         }
     }
     private var clipboardPanelView: KeyboardClipboardPanelView? = null
+    private var clipboardEditSurface: KeyboardClipboardEditSurface? = null
+    private var clipboardEditId: String? = null
+    private val clipboardEditBuffer = StringBuilder()
     private var typingSettings = KeyboardTypingSettings()
     private val composingWord = StringBuilder()
     private val committedHistory = mutableListOf<String>()
@@ -129,6 +132,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onFinishInput() {
+        discardClipboardEdit()
         clipboardController.onInputViewHidden()
         closeClipboardPanel(restoreKeyboard = false)
         super.onFinishInput()
@@ -136,6 +140,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        discardClipboardEdit()
         clipboardController.onInputViewHidden()
         closeClipboardPanel(restoreKeyboard = false)
         super.onFinishInputView(finishingInput)
@@ -143,6 +148,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onDestroy() {
+        discardClipboardEdit()
         cancelScheduledSuggestionRefresh()
         composingWord.clear()
         composingStartsCapitalized = false
@@ -159,6 +165,15 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onText(value: String) {
         if (value.isEmpty()) return
+        if (clipboardEditId != null) {
+            val isLetterText = value.codePoints().allMatch { Character.isLetter(it) }
+            clipboardEditBuffer.append(
+                if (shifted && isLetterText) value.uppercase() else value,
+            )
+            clipboardEditSurface?.updateText(clipboardEditBuffer.toString())
+            resetOneShotShift()
+            return
+        }
         pendingSwipeCorrection = null
         pendingPhraseRewrite = null
 
@@ -200,6 +215,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSpace() {
+        if (clipboardEditId != null) {
+            clipboardEditBuffer.append(' ')
+            clipboardEditSurface?.updateText(clipboardEditBuffer.toString())
+            return
+        }
         pendingSwipeCorrection = null
         pendingPhraseRewrite = null
         if (tryCommitDoubleSpacePeriod()) return
@@ -207,6 +227,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSwipe(keyPath: List<String>) {
+        if (clipboardEditId != null) return
         val decodedCandidates = swipeTypingEngine.decode(
             keyPath = keyPath,
             dictionary = activeSwipeDictionary(),
@@ -216,6 +237,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSwipeGesture(gesture: SwipeGesture) {
+        if (clipboardEditId != null) return
         val decodedCandidates = swipeTypingEngine.decode(
             gesture = gesture,
             dictionary = activeSwipeDictionary(),
@@ -270,6 +292,17 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onBackspace() {
+        if (clipboardEditId != null) {
+            if (clipboardEditBuffer.isNotEmpty()) {
+                val start = clipboardEditBuffer.offsetByCodePoints(
+                    clipboardEditBuffer.length,
+                    -1,
+                )
+                clipboardEditBuffer.delete(start, clipboardEditBuffer.length)
+                clipboardEditSurface?.updateText(clipboardEditBuffer.toString())
+            }
+            return
+        }
         pendingSwipeCorrection = null
         val connection = currentInputConnection ?: return
 
@@ -326,6 +359,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onEnter() {
+        if (clipboardEditId != null) {
+            clipboardEditBuffer.append('\n')
+            clipboardEditSurface?.updateText(clipboardEditBuffer.toString())
+            return
+        }
         pendingSwipeCorrection = null
         val connection = currentInputConnection ?: return
         connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
@@ -343,6 +381,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSuggestion(value: String) {
+        if (clipboardEditId != null) return
         if (tryCommitSwipeCorrection(value)) return
         if (tryCommitPhraseRewrite(value)) return
 
@@ -410,6 +449,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                     clipboardController.delete(id)
                     clipboardPanelView?.render(clipboardController.snapshot())
                 },
+                onEditSaved = ::beginClipboardEdit,
                 onClearUnpinned = {
                     clipboardController.clearUnpinned()
                     clipboardPanelView?.render(clipboardController.snapshot())
@@ -431,6 +471,60 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         clipboardPanelView = panel
         panel.render(clipboardController.openSnapshot())
         inputSurfaceHost?.showSurface(panel)
+    }
+
+    private fun beginClipboardEdit(id: String, text: String) {
+        val keyboard = keyboardView ?: return
+        if (text.isBlank()) return
+
+        clipboardEditId = id
+        clipboardEditBuffer.clear()
+        clipboardEditBuffer.append(text)
+        presentedSuggestions = emptyList()
+        keyboard.setSuggestions(emptyList())
+        keyboard.setSwipeTypingEnabled(false)
+
+        val surface = KeyboardClipboardEditSurface(
+            context = this,
+            keyboardView = keyboard,
+            onSave = { finishClipboardEdit(save = true) },
+            onCancel = { finishClipboardEdit(save = false) },
+        )
+        clipboardEditSurface = surface
+        surface.updateText(clipboardEditBuffer.toString())
+        inputSurfaceHost?.showSurface(surface)
+    }
+
+    private fun finishClipboardEdit(save: Boolean) {
+        val id = clipboardEditId
+        val edited = clipboardEditBuffer.toString()
+
+        if (save && id != null && edited.isNotBlank()) {
+            clipboardHistoryStore.edit(
+                id = id,
+                text = edited,
+                nowMillis = System.currentTimeMillis(),
+                retentionMillis = clipboardPreferences.retention().durationMillis,
+            )
+        }
+
+        clipboardEditId = null
+        clipboardEditBuffer.clear()
+        clipboardEditSurface = null
+
+        val panel = clipboardPanelView
+        if (panel != null) {
+            panel.render(clipboardController.snapshot())
+            inputSurfaceHost?.showSurface(panel)
+        } else {
+            showKeyboardSurface()
+        }
+    }
+
+    private fun discardClipboardEdit() {
+        clipboardEditId = null
+        clipboardEditBuffer.clear()
+        clipboardEditSurface = null
     }
 
     private fun pasteClipboardEntry(id: String, pasteOnce: Boolean) {
