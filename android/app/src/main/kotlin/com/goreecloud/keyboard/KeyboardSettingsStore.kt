@@ -24,6 +24,7 @@ internal data class KeyboardTypingSettings(
     val toolbarStyle: KeyboardToolbarStyle = KeyboardToolbarStyle.ICONS_ONLY,
     val swipeTypingEnabled: Boolean = true,
     val swipeTrailEnabled: Boolean = true,
+    val spacebarCursorControlEnabled: Boolean = true,
     val suggestionsEnabled: Boolean = true,
     val autocorrectEnabled: Boolean = true,
     val predictionsEnabled: Boolean = true,
@@ -54,6 +55,7 @@ internal class KeyboardSettingsStore(context: Context) {
         toolbarStyle = enumPreference(TOOLBAR_STYLE, KeyboardToolbarStyle.ICONS_ONLY),
         swipeTypingEnabled = preferences.getBoolean(SWIPE_TYPING, true),
         swipeTrailEnabled = preferences.getBoolean(SWIPE_TRAIL, true),
+        spacebarCursorControlEnabled = preferences.getBoolean(SPACEBAR_CURSOR_CONTROL, true),
         suggestionsEnabled = preferences.getBoolean(SUGGESTIONS, true),
         autocorrectEnabled = preferences.getBoolean(AUTOCORRECT, true),
         predictionsEnabled = preferences.getBoolean(PREDICTIONS, true),
@@ -83,6 +85,10 @@ internal class KeyboardSettingsStore(context: Context) {
 
     fun setSwipeTrailEnabled(value: Boolean) {
         preferences.edit().putBoolean(SWIPE_TRAIL, value).apply()
+    }
+
+    fun setSpacebarCursorControlEnabled(value: Boolean) {
+        preferences.edit().putBoolean(SPACEBAR_CURSOR_CONTROL, value).apply()
     }
 
     fun setSuggestionsEnabled(value: Boolean) {
@@ -148,6 +154,7 @@ internal class KeyboardSettingsStore(context: Context) {
         const val TOOLBAR_STYLE = "toolbar_style"
         const val SWIPE_TYPING = "swipe_typing"
         const val SWIPE_TRAIL = "swipe_trail"
+        const val SPACEBAR_CURSOR_CONTROL = "spacebar_cursor_control"
         const val SUGGESTIONS = "suggestions"
         const val AUTOCORRECT = "autocorrect"
         const val PREDICTIONS = "predictions"
