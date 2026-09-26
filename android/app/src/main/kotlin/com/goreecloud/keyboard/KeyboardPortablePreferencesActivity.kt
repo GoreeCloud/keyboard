@@ -49,19 +49,6 @@ class KeyboardPortablePreferencesActivity : Activity() {
             )
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val padding = dp(24)
-            view.setPadding(
-                padding + bars.left,
-                padding + bars.top,
-                padding + bars.right,
-                padding + bars.bottom,
-            )
-            insets
-        }
-        ViewCompat.requestApplyInsets(content)
-
         content.addView(TextView(this).apply {
             text = getString(R.string.portable_preferences_summary)
             textSize = 18f
@@ -107,7 +94,7 @@ class KeyboardPortablePreferencesActivity : Activity() {
             )
             ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
                 val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                view.setPadding(0, bars.top, 0, bars.bottom)
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
                 insets
             }
             ViewCompat.requestApplyInsets(this)
