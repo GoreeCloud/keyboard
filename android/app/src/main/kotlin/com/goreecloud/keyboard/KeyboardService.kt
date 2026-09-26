@@ -21,6 +21,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var suggestionsSuppressed = true
     private var composingCaptureExhausted = false
     private var keyboardView: KeyboardView? = null
+    private var inputSurfaceHost: KeyboardInputSurfaceHost? = null
     private val suggestionEngine = SuggestionEngine()
     private val runTogetherWordResolver = RunTogetherWordResolver()
     private var pendingPhraseRewrite: HyphenatedCompoundModel.Rewrite? = null
