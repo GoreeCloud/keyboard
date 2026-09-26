@@ -138,6 +138,7 @@ class KeyboardView @JvmOverloads constructor(
     private var swipeDownX = 0f
     private var swipeDownY = 0f
     private var swipeDownTimeMs = 0L
+    private var touchDownHit: HitKey? = null
 
     init {
         isClickable = true
@@ -669,6 +670,7 @@ class KeyboardView @JvmOverloads constructor(
                 cancelAlternateInteraction()
                 cancelSwipeInteraction()
                 val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
+                touchDownHit = hit
                 pressedKeyBounds = hit?.let { RectF(it.bounds) }
                 swipeDownX = event.x
                 swipeDownY = event.y
@@ -746,6 +748,7 @@ class KeyboardView @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_CANCEL -> {
+                touchDownHit = null
                 cancelAlternateInteraction()
                 cancelSwipeInteraction()
                 invalidate()
@@ -763,6 +766,7 @@ class KeyboardView @JvmOverloads constructor(
                         if (swipeKeyPath.lastOrNull() != label) swipeKeyPath += label
                     }
                     val path = swipeKeyPath.toList()
+                    touchDownHit = null
                     cancelSwipeInteraction()
                     if (path.size >= SWIPE_MIN_PATH_KEYS) {
                         listener?.onSwipe(path)
@@ -780,6 +784,7 @@ class KeyboardView @JvmOverloads constructor(
                         listener?.onText(value)
                         announceForAccessibility("Inserted alternate character")
                     }
+                    touchDownHit = null
                     cancelSwipeInteraction()
                     invalidateStructure()
                     performClick()
@@ -803,7 +808,13 @@ class KeyboardView @JvmOverloads constructor(
             return activateSuggestion(hit)
         }
 
-        val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) } ?: return true
+        val exactHit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
+        val releaseTravel = hypot(event.x - swipeDownX, event.y - swipeDownY)
+        val fallbackHit = touchDownHit?.takeIf {
+            releaseTravel <= ViewConfiguration.get(context).scaledTouchSlop * TAP_RELEASE_SLOP_MULTIPLIER
+        }
+        touchDownHit = null
+        val hit = exactHit ?: fallbackHit ?: return true
         return activateKey(hit)
     }
 
@@ -1031,6 +1042,7 @@ class KeyboardView @JvmOverloads constructor(
         const val ACCESSIBILITY_SUGGESTION_BASE = 2_000
         const val ACCESSIBILITY_EMOJI_CATEGORY_BASE = 3_000
         const val ACCESSIBILITY_EMOJI_SEARCH_RESULT_BASE = 4_000
+        const val TAP_RELEASE_SLOP_MULTIPLIER = 1.6f
         const val SWIPE_START_SLOP_MULTIPLIER = 2.0f
         const val SWIPE_MIN_TRAVEL_DP = 20f
         const val SWIPE_MIN_GESTURE_MS = 55L
