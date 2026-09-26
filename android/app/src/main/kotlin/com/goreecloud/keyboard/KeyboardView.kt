@@ -10,6 +10,7 @@ import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.SoundEffectConstants
@@ -122,8 +123,9 @@ class KeyboardView @JvmOverloads constructor(
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
-        strokeWidth = 2.2f * resources.displayMetrics.density
+        strokeWidth = KeyboardFunctionalGlyphs.STROKE_DP * resources.displayMetrics.density
     }
+    private val selectedIconPaint = Paint(iconPaint)
 
     private val hitKeys = mutableListOf<HitKey>()
     private val hitSuggestions = mutableListOf<HitSuggestion>()
@@ -472,6 +474,7 @@ class KeyboardView @JvmOverloads constructor(
 
     private fun drawKeyContent(canvas: Canvas, key: Key, bounds: RectF) {
         when (key.action) {
+            Action.SHIFT -> drawShiftIcon(canvas, bounds)
             Action.BACKSPACE -> drawBackspaceIcon(canvas, bounds)
             Action.ENTER -> drawEnterIcon(canvas, bounds)
             else -> {
@@ -492,58 +495,20 @@ class KeyboardView @JvmOverloads constructor(
         canvas.drawText(hint, bounds.right - 6f * density, baseline, longPressHintPaint)
     }
 
-    private fun drawBackspaceIcon(canvas: Canvas, bounds: RectF) {
-        val unit = minOf(bounds.width(), bounds.height())
-        val left = bounds.centerX() - unit * 0.22f
-        val right = bounds.centerX() + unit * 0.24f
-        val top = bounds.centerY() - unit * 0.16f
-        val bottom = bounds.centerY() + unit * 0.16f
-        val notch = bounds.centerX() - unit * 0.34f
-
-        val shell = Path().apply {
-            moveTo(notch, bounds.centerY())
-            lineTo(left, top)
-            lineTo(right, top)
-            lineTo(right, bottom)
-            lineTo(left, bottom)
-            close()
-        }
-        canvas.drawPath(shell, iconPaint)
-
-        val xInset = unit * 0.07f
-        canvas.drawLine(
-            bounds.centerX() - xInset,
-            bounds.centerY() - xInset,
-            bounds.centerX() + xInset,
-            bounds.centerY() + xInset,
-            iconPaint,
-        )
-        canvas.drawLine(
-            bounds.centerX() + xInset,
-            bounds.centerY() - xInset,
-            bounds.centerX() - xInset,
-            bounds.centerY() + xInset,
-            iconPaint,
+    private fun drawShiftIcon(canvas: Canvas, bounds: RectF) {
+        KeyboardFunctionalGlyphs.drawShift(
+            canvas = canvas,
+            bounds = bounds,
+            paint = if (shifted) selectedIconPaint else iconPaint,
         )
     }
 
-    private fun drawEnterIcon(canvas: Canvas, bounds: RectF) {
-        val unit = minOf(bounds.width(), bounds.height())
-        val right = bounds.centerX() + unit * 0.24f
-        val middleY = bounds.centerY()
-        val left = bounds.centerX() - unit * 0.24f
-        val top = bounds.centerY() - unit * 0.18f
+    private fun drawBackspaceIcon(canvas: Canvas, bounds: RectF) {
+        KeyboardFunctionalGlyphs.drawBackspace(canvas, bounds, iconPaint)
+    }
 
-        val path = Path().apply {
-            moveTo(right, top)
-            lineTo(right, middleY)
-            lineTo(left, middleY)
-            moveTo(left, middleY)
-            lineTo(left + unit * 0.13f, middleY - unit * 0.12f)
-            moveTo(left, middleY)
-            lineTo(left + unit * 0.13f, middleY + unit * 0.12f)
-        }
-        canvas.drawPath(path, iconPaint)
+    private fun drawEnterIcon(canvas: Canvas, bounds: RectF) {
+        KeyboardFunctionalGlyphs.drawEnter(canvas, bounds, iconPaint)
     }
 
     private fun renderedKeyLabel(key: Key): String = when {
@@ -618,6 +583,15 @@ class KeyboardView @JvmOverloads constructor(
         swipeTrailPaint.color = palette.onSurfaceArgb
         swipeTrailPaint.alpha = 86
         iconPaint.color = palette.onSurfaceArgb
+        iconPaint.alpha = FUNCTIONAL_ICON_ALPHA
+        selectedIconPaint.color = resolveThemeAccentColor(palette.onSurfaceArgb)
+        selectedIconPaint.alpha = 255
+    }
+
+    private fun resolveThemeAccentColor(fallback: Int): Int {
+        val value = TypedValue()
+        if (!context.theme.resolveAttribute(android.R.attr.colorAccent, value, true)) return fallback
+        return if (value.resourceId != 0) context.getColor(value.resourceId) else value.data
     }
 
     private fun drawSuggestionStrip(canvas: Canvas, horizontalPadding: Float, topArea: Float) {
@@ -692,60 +666,81 @@ class KeyboardView @JvmOverloads constructor(
             top + height - verticalInset,
         )
         canvas.drawRoundRect(surfaceBounds, outerRadius, outerRadius, toolbarSurfacePaint)
-        canvas.drawRoundRect(surfaceBounds, outerRadius, outerRadius, keyStrokePaint)
 
         val innerPadding = GlazeKeyboardTokens.Space1Dp * density
-        val buttonHeight = (surfaceBounds.height() - innerPadding * 2f).coerceAtLeast(1f)
         val availableWidth = surfaceBounds.width() - innerPadding * 2f
         val buttonWidth = when (toolbarStyle) {
-            KeyboardToolbarStyle.ICONS_ONLY -> minOf(58f * density, buttonHeight)
+            KeyboardToolbarStyle.ICONS_ONLY ->
+                minOf(
+                    KeyboardFunctionalGlyphs.TOOLBAR_HIT_DP * density,
+                    availableWidth / actions.size.coerceAtLeast(1),
+                )
             KeyboardToolbarStyle.ICONS_WITH_LABELS ->
-                ((availableWidth - gap) / actions.size).coerceAtLeast(buttonHeight)
+                ((availableWidth - gap * (actions.size - 1)) / actions.size)
+                    .coerceAtLeast(KeyboardFunctionalGlyphs.TOOLBAR_HIT_DP * density)
         }
 
         var left = surfaceBounds.left + innerPadding
         actions.forEach { key ->
-            val hitBounds = RectF(left, surfaceBounds.top, left + buttonWidth, surfaceBounds.bottom)
-            val visualBounds = RectF(
-                hitBounds.left,
-                surfaceBounds.top + innerPadding,
-                hitBounds.right,
-                surfaceBounds.bottom - innerPadding,
+            val hitBounds = RectF(
+                left,
+                surfaceBounds.top,
+                minOf(left + buttonWidth, surfaceBounds.right),
+                surfaceBounds.bottom,
             )
-            canvas.drawRoundRect(visualBounds, buttonRadius, buttonRadius, utilityKeyOverlayPaint)
+            val visualBounds = when (toolbarStyle) {
+                KeyboardToolbarStyle.ICONS_ONLY ->
+                    KeyboardFunctionalGlyphs.centeredSquare(
+                        hitBounds,
+                        KeyboardFunctionalGlyphs.TOOLBAR_VISUAL_DP * density,
+                    )
+                KeyboardToolbarStyle.ICONS_WITH_LABELS ->
+                    RectF(
+                        hitBounds.left,
+                        surfaceBounds.top + innerPadding,
+                        hitBounds.right,
+                        surfaceBounds.bottom - innerPadding,
+                    )
+            }
+
+            if (toolbarStyle == KeyboardToolbarStyle.ICONS_WITH_LABELS) {
+                canvas.drawRoundRect(visualBounds, buttonRadius, buttonRadius, utilityKeyOverlayPaint)
+            }
+            if (isPressedKey(hitBounds)) {
+                canvas.drawRoundRect(visualBounds, buttonRadius, buttonRadius, pressedKeyPaint)
+            }
+
             drawToolbarContent(canvas, key, visualBounds)
             hitKeys += HitKey(hitBounds, key)
-            left += buttonWidth + gap
+            left = hitBounds.right + gap
         }
     }
 
     private fun drawToolbarContent(canvas: Canvas, key: Key, bounds: RectF) {
         when (toolbarStyle) {
-            KeyboardToolbarStyle.ICONS_ONLY -> {
-                when (key.action) {
-                    Action.EMOJI -> drawEmojiToolbarGlyph(canvas, bounds)
-                    Action.SETTINGS -> drawSettingsToolbarGlyph(canvas, bounds)
-                    else -> Unit
-                }
-            }
+            KeyboardToolbarStyle.ICONS_ONLY -> drawToolbarGlyph(canvas, key, bounds)
             KeyboardToolbarStyle.ICONS_WITH_LABELS -> {
-                val iconBounds = RectF(
-                    bounds.left + bounds.width() * 0.08f,
+                val iconRegion = RectF(
+                    bounds.left + bounds.width() * 0.04f,
                     bounds.top,
-                    bounds.left + bounds.width() * 0.36f,
+                    bounds.left + bounds.width() * 0.38f,
                     bounds.bottom,
                 )
-                when (key.action) {
-                    Action.EMOJI -> drawEmojiToolbarGlyph(canvas, iconBounds)
-                    Action.SETTINGS -> drawSettingsToolbarGlyph(canvas, iconBounds)
-                    else -> Unit
-                }
+                val iconBounds = KeyboardFunctionalGlyphs.centeredSquare(
+                    iconRegion,
+                    minOf(
+                        KeyboardFunctionalGlyphs.TOOLBAR_VISUAL_DP * resources.displayMetrics.density,
+                        iconRegion.width(),
+                    ),
+                )
+                drawToolbarGlyph(canvas, key, iconBounds)
+
                 val label = when (key.action) {
                     Action.EMOJI -> "Emoji"
                     Action.SETTINGS -> "Settings"
                     else -> ""
                 }
-                val labelX = bounds.left + bounds.width() * 0.67f
+                val labelX = bounds.left + bounds.width() * 0.68f
                 val baseline =
                     bounds.centerY() - (utilityTextPaint.descent() + utilityTextPaint.ascent()) / 2f
                 canvas.drawText(label, labelX, baseline, utilityTextPaint)
@@ -753,51 +748,11 @@ class KeyboardView @JvmOverloads constructor(
         }
     }
 
-    private fun drawEmojiToolbarGlyph(canvas: Canvas, bounds: RectF) {
-        val unit = minOf(bounds.width(), bounds.height())
-        val radius = unit * 0.23f
-        val cx = bounds.centerX()
-        val cy = bounds.centerY()
-        canvas.drawCircle(cx, cy, radius, iconPaint)
-
-        val eyeOffsetX = radius * 0.38f
-        val eyeY = cy - radius * 0.22f
-        val eyeRadius = maxOf(resources.displayMetrics.density * 1.4f, radius * 0.08f)
-        val eyePaint = Paint(iconPaint).apply { style = Paint.Style.FILL }
-        canvas.drawCircle(cx - eyeOffsetX, eyeY, eyeRadius, eyePaint)
-        canvas.drawCircle(cx + eyeOffsetX, eyeY, eyeRadius, eyePaint)
-
-        val smile = Path().apply {
-            moveTo(cx - radius * 0.48f, cy + radius * 0.12f)
-            cubicTo(
-                cx - radius * 0.26f,
-                cy + radius * 0.55f,
-                cx + radius * 0.26f,
-                cy + radius * 0.55f,
-                cx + radius * 0.48f,
-                cy + radius * 0.12f,
-            )
-        }
-        canvas.drawPath(smile, iconPaint)
-    }
-
-    private fun drawSettingsToolbarGlyph(canvas: Canvas, bounds: RectF) {
-        val unit = minOf(bounds.width(), bounds.height())
-        val left = bounds.centerX() - unit * 0.23f
-        val right = bounds.centerX() + unit * 0.23f
-        val ys = listOf(
-            bounds.centerY() - unit * 0.16f,
-            bounds.centerY(),
-            bounds.centerY() + unit * 0.16f,
-        )
-        val knobOffsets = listOf(0.30f, 0.68f, 0.44f)
-        val knobRadius = maxOf(resources.displayMetrics.density * 2.0f, unit * 0.055f)
-        val fill = Paint(iconPaint).apply { style = Paint.Style.FILL }
-
-        ys.forEachIndexed { index, y ->
-            canvas.drawLine(left, y, right, y, iconPaint)
-            val knobX = left + (right - left) * knobOffsets[index]
-            canvas.drawCircle(knobX, y, knobRadius, fill)
+    private fun drawToolbarGlyph(canvas: Canvas, key: Key, bounds: RectF) {
+        when (key.action) {
+            Action.EMOJI -> KeyboardFunctionalGlyphs.drawEmoji(canvas, bounds, iconPaint)
+            Action.SETTINGS -> KeyboardFunctionalGlyphs.drawSettings(canvas, bounds, iconPaint)
+            else -> Unit
         }
     }
 
@@ -1461,6 +1416,7 @@ class KeyboardView @JvmOverloads constructor(
         const val ACCESSIBILITY_EMOJI_SEARCH_RESULT_BASE = 4_000
         const val TAP_RELEASE_SLOP_MULTIPLIER = 1.6f
         const val TAP_NEAR_MISS_MAX_DP = 10f
+        const val FUNCTIONAL_ICON_ALPHA = 224
         const val SWIPE_START_SLOP_MULTIPLIER = 2.0f
         const val SWIPE_MIN_TRAVEL_DP = 20f
         const val SWIPE_MIN_GESTURE_MS = 55L
