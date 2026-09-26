@@ -125,6 +125,25 @@ class KeyboardAccessibilityRuntimeTest {
     }
 
     @Test
+    fun utilityToolbarExposesOnlyImplementedActions() {
+        val view = createRenderedKeyboard(listOf("I", "The", "How"))
+        val labels = view.accessibilityTargets().map { it.label }.toSet()
+
+        assertTrue("Toolbar must expose Emoji", "Emoji" in labels)
+        assertTrue("Toolbar must expose Symbols", "Symbols" in labels)
+        assertTrue("Toolbar must expose Keyboard settings", "Keyboard settings" in labels)
+        assertTrue("Toolbar must expose Hide keyboard", "Hide keyboard" in labels)
+        assertFalse(
+            "Clipboard must not be exposed until the governed clipboard capability exists",
+            labels.any { it.contains("clipboard", ignoreCase = true) },
+        )
+        assertFalse(
+            "GIF must not be exposed as a fake action without an implemented provider",
+            labels.any { it.contains("gif", ignoreCase = true) },
+        )
+    }
+
+    @Test
     fun selectedVirtualStateTracksShiftAndEmojiCategoryPresentation() {
         val view = createRenderedKeyboard()
         view.setShifted(true)
