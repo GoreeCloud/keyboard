@@ -98,4 +98,30 @@
     <string name="keyboard_settings_portable_preferences">Portable preference</string>
     <string name="keyboard_settings_android_settings">Android keyboard settings</string>
 
+    <string name="keyboard_setup_title">Set up GoreeCloud Keyboard</string>
+    <string name="keyboard_setup_progress">Step %1$d of %2$d</string>
+    <string name="keyboard_setup_welcome_heading">Get your keyboard ready</string>
+    <string name="keyboard_setup_welcome_summary">Enable GoreeCloud Keyboard, choose it as your active keyboard, then select your preferred typing and clipboard settings.</string>
+    <string name="keyboard_setup_enable_title">Enable GoreeCloud Keyboard</string>
+    <string name="keyboard_setup_select_title">Choose GoreeCloud Keyboard</string>
+    <string name="keyboard_setup_enabled">Enabled in Android</string>
+    <string name="keyboard_setup_not_enabled">Not enabled yet</string>
+    <string name="keyboard_setup_selected">Selected as the current keyboard</string>
+    <string name="keyboard_setup_not_selected">Not selected yet</string>
+    <string name="keyboard_setup_open_keyboard_settings">Open keyboard settings</string>
+    <string name="keyboard_setup_choose_keyboard">Choose keyboard</string>
+    <string name="keyboard_setup_typing_heading">Choose how typing should work</string>
+    <string name="keyboard_setup_typing_summary">Choose correction, prediction, gesture, number-row, feedback, and optional local-learning preferences.</string>
+    <string name="keyboard_setup_clipboard_heading">Set up Clipboard</string>
+    <string name="keyboard_setup_clipboard_summary">Choose whether temporary non-sensitive clipboard history should be kept locally.</string>
+    <string name="keyboard_setup_clipboard_retention">Temporary clip lifetime</string>
+    <string name="keyboard_setup_clipboard_privacy">Clipboard history stays on this device and is not used for prediction or learning.</string>
+    <string name="keyboard_setup_finish_heading">Ready to type</string>
+    <string name="keyboard_setup_finish_summary">You can change these preferences later in GoreeCloud Keyboard settings.</string>
+    <string name="keyboard_setup_finish_status">Keyboard: %1$s\nCurrent selection: %2$s</string>
+    <string name="keyboard_setup_back">Back</string>
+    <string name="keyboard_setup_continue">Continue</string>
+    <string name="keyboard_setup_finish">Finish setup</string>
+    <string name="keyboard_settings_run_setup">Run setup wizard again</string>
+
 </resources>
