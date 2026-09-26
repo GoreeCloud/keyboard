@@ -64,6 +64,29 @@ internal object QuillGrammarModel {
         "goreecloud keyboard" to listOf("settings", "suggestions", "typing", "dictionary"),
     )
 
+    private val commonMisspellings = mapOf(
+        "adress" to "address",
+        "agian" to "again",
+        "becuase" to "because",
+        "definately" to "definitely",
+        "definetly" to "definitely",
+        "enviroment" to "environment",
+        "goverment" to "government",
+        "grammer" to "grammar",
+        "happend" to "happened",
+        "occured" to "occurred",
+        "recieve" to "receive",
+        "seperate" to "separate",
+        "similiar" to "similar",
+        "succesful" to "successful",
+        "teh" to "the",
+        "thier" to "their",
+        "tommorow" to "tomorrow",
+        "untill" to "until",
+        "wierd" to "weird",
+        "wich" to "which",
+    )
+
     private val modalVerbs = setOf("can", "could", "may", "might", "must", "shall", "should", "will", "would")
     private val pluralSubjects = setOf("we", "you", "they")
     private val singularSubjects = setOf("he", "she", "it", "this", "that")
