@@ -133,25 +133,38 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSwipe(keyPath: List<String>) {
-        if (
-            sensitiveInput ||
-            editorSuppressesLanguageAssistance ||
-            !typingSettings.swipeTypingEnabled ||
-            keyPath.isEmpty()
-        ) return
-        val connection = currentInputConnection ?: return
-
         val decodedCandidates = swipeTypingEngine.decode(
             keyPath = keyPath,
             dictionary = activeDictionary(),
             limit = SWIPE_DECODE_CANDIDATE_POOL,
         )
+        commitDecodedSwipe(decodedCandidates)
+    }
+
+    override fun onSwipeGesture(gesture: SwipeGesture) {
+        val decodedCandidates = swipeTypingEngine.decode(
+            gesture = gesture,
+            dictionary = activeDictionary(),
+            limit = SWIPE_DECODE_CANDIDATE_POOL,
+        )
+        commitDecodedSwipe(decodedCandidates)
+    }
+
+    private fun commitDecodedSwipe(decodedCandidates: List<String>) {
+        if (
+            sensitiveInput ||
+            editorSuppressesLanguageAssistance ||
+            !typingSettings.swipeTypingEnabled ||
+            decodedCandidates.isEmpty()
+        ) return
+
+        val connection = currentInputConnection ?: return
         val candidates = SwipeCandidateRanker.rank(
             decoded = decodedCandidates,
-            contextualPredictions = predictionCandidates(),
+            contextualPredictions = predictionCandidates(limit = SWIPE_DECODE_CANDIDATE_POOL),
             limit = 3,
         )
-        val candidate = candidates.firstOrNull() ?: return
+        if (candidates.isEmpty()) return
 
         fun format(value: String): String =
             if (shifted) {
@@ -384,11 +397,14 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             !composingCaptureExhausted &&
             prefix.isNotEmpty()
         ) {
+            val contextHistory = transientContextHistory(excludeCurrentComposingWord = true)
+            val contextualPredictions = contextualPredictions(contextHistory, limit = 8)
             val correction =
-                QuillPredictionModel.boundaryCorrection(prefix)
+                QuillGrammarModel.boundaryCorrection(prefix, contextHistory)
                     ?: suggestionEngine.bestAutocorrection(
                         word = prefix,
                         dictionary = activeDictionary(),
+                        contextualPredictions = contextualPredictions,
                     )
 
             if (correction != null) {
@@ -531,15 +547,20 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             return
         }
 
+        val contextHistory = transientContextHistory(
+            excludeCurrentComposingWord = composingWord.isNotEmpty(),
+        )
+
         presentedSuggestions = when {
             composingWord.isNotEmpty() && typingSettings.suggestionsEnabled ->
                 suggestionEngine.suggest(
                     prefix = composingWord.toString(),
                     dictionary = activeDictionary(),
+                    contextualPredictions = contextualPredictions(contextHistory, limit = 8),
                 ).map(::formatCandidateCase)
 
             composingWord.isEmpty() && typingSettings.predictionsEnabled ->
-                predictionCandidates().map(::formatPredictionCase)
+                predictionCandidates(contextHistory = contextHistory).map(::formatPredictionCase)
 
             else -> emptyList()
         }.take(3)
@@ -555,16 +576,54 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         }.distinctBy { it.lowercase() }
     }
 
-    private fun predictionCandidates(): List<String> {
+    private fun predictionCandidates(
+        contextHistory: List<String> = transientContextHistory(),
+        limit: Int = 3,
+    ): List<String> {
         val learned = if (personalizationAllowed()) {
-            learningStore.predictNext(committedHistory, limit = 3)
+            learningStore.predictNext(contextHistory, limit = limit)
         } else {
             emptyList()
         }
-        val builtIn = QuillPredictionModel.predict(committedHistory, limit = 3)
+        val builtIn = contextualPredictions(contextHistory, limit = maxOf(limit, 8))
         return (learned + builtIn)
             .distinctBy { it.lowercase() }
-            .take(3)
+            .take(limit)
+    }
+
+    private fun contextualPredictions(
+        contextHistory: List<String>,
+        limit: Int,
+    ): List<String> =
+        (
+            QuillGrammarModel.predict(contextHistory, limit = maxOf(limit, 8)) +
+                QuillPredictionModel.predict(contextHistory, limit = maxOf(limit, 8))
+        )
+            .distinctBy { it.lowercase() }
+            .take(limit)
+
+    private fun transientContextHistory(
+        excludeCurrentComposingWord: Boolean = false,
+    ): List<String> {
+        if (!languageCaptureAllowed()) return committedHistory.takeLast(MAX_CONTEXT_WORDS)
+
+        val beforeCursor = currentInputConnection
+            ?.getTextBeforeCursor(EDITOR_CONTEXT_LOOKBEHIND_UTF16, 0)
+        val parsed = EditorContextParser.wordsBeforeCursor(
+            text = beforeCursor,
+            limit = MAX_CONTEXT_WORDS + 1,
+        ).toMutableList()
+
+        if (
+            excludeCurrentComposingWord &&
+            composingWord.isNotEmpty() &&
+            parsed.lastOrNull()?.equals(composingWord.toString(), ignoreCase = true) == true
+        ) {
+            parsed.removeAt(parsed.lastIndex)
+        }
+
+        return if (parsed.isNotEmpty()) parsed.takeLast(MAX_CONTEXT_WORDS)
+        else committedHistory.takeLast(MAX_CONTEXT_WORDS)
     }
 
     private fun languageCaptureAllowed(): Boolean =
@@ -621,8 +680,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private companion object {
         const val BACKSPACE_LOOKBEHIND_UTF16 = 64
+        const val EDITOR_CONTEXT_LOOKBEHIND_UTF16 = 160
+        const val MAX_CONTEXT_WORDS = 4
         const val MAX_PREDICTION_HISTORY_WORDS = 2
-        const val SWIPE_DECODE_CANDIDATE_POOL = 8
+        const val SWIPE_DECODE_CANDIDATE_POOL = 12
         val AUTOCORRECT_BOUNDARIES = setOf(".", ",", "!", "?", ";", ":")
         val SENTENCE_ENDINGS = setOf(".", "!", "?")
     }
