@@ -12,6 +12,9 @@ import kotlin.math.ln
  * It performs no network access and does not inspect or persist editor text itself.
  */
 class SuggestionEngine {
+    private var cachedDictionary: Collection<String>? = null
+    private var cachedIndex: CandidateIndex? = null
+
     fun suggest(
         prefix: String,
         dictionary: Collection<String>,
@@ -22,8 +25,9 @@ class SuggestionEngine {
 
         val effectiveLimit = limit.coerceAtMost(MAX_VISIBLE_SUGGESTIONS)
         val normalized = prefix.lowercase()
-        val candidates = indexedCandidates(dictionary)
-        val exact = candidates.firstOrNull { it.normalized == normalized }
+        val index = indexFor(dictionary)
+        val candidates = suggestionCandidates(normalized, index)
+        val exact = index.byNormalized[normalized]
         val contextRank = contextualPredictions
             .distinctBy { it.lowercase() }
             .mapIndexed { index, value -> value.lowercase() to index }
@@ -86,8 +90,9 @@ class SuggestionEngine {
         if (codePointCount(normalized) < MIN_CORRECTION_LENGTH) return null
         if (!normalized.codePoints().allMatch { Character.isLetter(it) }) return null
 
-        val candidates = indexedCandidates(dictionary)
-        if (candidates.any { it.normalized == normalized }) return null
+        val index = indexFor(dictionary)
+        if (index.byNormalized.containsKey(normalized)) return null
+        val candidates = correctionCandidates(normalized, index)
 
         val contextRank = contextualPredictions
             .distinctBy { it.lowercase() }
@@ -224,8 +229,11 @@ class SuggestionEngine {
             contextBonus
     }
 
-    private fun indexedCandidates(dictionary: Collection<String>): List<Candidate> =
-        dictionary.asSequence()
+    private fun indexFor(dictionary: Collection<String>): CandidateIndex {
+        val current = cachedIndex
+        if (cachedDictionary === dictionary && current != null) return current
+
+        val candidates = dictionary.asSequence()
             .filter { it.isNotBlank() }
             .distinctBy { it.lowercase() }
             .mapIndexed { rank, word ->
@@ -236,6 +244,82 @@ class SuggestionEngine {
                 )
             }
             .toList()
+
+        val byNormalized = LinkedHashMap<String, Candidate>(candidates.size)
+        val byFirst = LinkedHashMap<Int, MutableList<Candidate>>()
+        val byLengthAndFirst = LinkedHashMap<Pair<Int, Int>, MutableList<Candidate>>()
+        candidates.forEach { candidate ->
+            byNormalized.putIfAbsent(candidate.normalized, candidate)
+            val first = candidate.normalized.firstCodePointOrNull() ?: return@forEach
+            val length = codePointCount(candidate.normalized)
+            byFirst.getOrPut(first) { mutableListOf() } += candidate
+            byLengthAndFirst.getOrPut(length to first) { mutableListOf() } += candidate
+        }
+
+        return CandidateIndex(
+            all = candidates,
+            byNormalized = byNormalized,
+            byFirst = byFirst,
+            byLengthAndFirst = byLengthAndFirst,
+        ).also { index ->
+            cachedDictionary = dictionary
+            cachedIndex = index
+        }
+    }
+
+    private fun suggestionCandidates(
+        typed: String,
+        index: CandidateIndex,
+    ): List<Candidate> {
+        val first = typed.firstCodePointOrNull() ?: return emptyList()
+        if (first !in 'a'.code..'z'.code) return index.all
+
+        val maximumDistance = maximumSuggestionDistance(typed)
+        val typedLength = codePointCount(typed)
+        val firstCandidates = plausibleFirstCodePoints(first)
+        val pool = LinkedHashSet<Candidate>()
+
+        index.byFirst[first]
+            ?.asSequence()
+            ?.filter { it.normalized.startsWith(typed) }
+            ?.forEach(pool::add)
+
+        for (length in (typedLength - maximumDistance).coerceAtLeast(1)..typedLength + maximumDistance) {
+            firstCandidates.forEach { firstCodePoint ->
+                index.byLengthAndFirst[length to firstCodePoint]?.forEach(pool::add)
+            }
+        }
+        return pool.toList()
+    }
+
+    private fun correctionCandidates(
+        typed: String,
+        index: CandidateIndex,
+    ): List<Candidate> {
+        val first = typed.firstCodePointOrNull() ?: return emptyList()
+        if (first !in 'a'.code..'z'.code) return index.all
+
+        val maximumDistance = maximumCorrectionDistance(typed)
+        val typedLength = codePointCount(typed)
+        val firstCandidates = plausibleFirstCodePoints(first)
+        val pool = ArrayList<Candidate>()
+
+        for (length in (typedLength - maximumDistance).coerceAtLeast(1)..typedLength + maximumDistance) {
+            firstCandidates.forEach { firstCodePoint ->
+                index.byLengthAndFirst[length to firstCodePoint]?.let(pool::addAll)
+            }
+        }
+        return pool
+    }
+
+    private fun plausibleFirstCodePoints(first: Int): Set<Int> {
+        if (first !in 'a'.code..'z'.code) return setOf(first)
+        val result = linkedSetOf(first)
+        for (candidate in 'a'.code..'z'.code) {
+            if (candidate != first && areNeighborKeys(first, candidate)) result += candidate
+        }
+        return result
+    }
 
     private fun maximumSuggestionDistance(value: String): Int {
         val length = codePointCount(value)
@@ -338,6 +422,13 @@ class SuggestionEngine {
         val word: String,
         val normalized: String,
         val rank: Int,
+    )
+
+    private data class CandidateIndex(
+        val all: List<Candidate>,
+        val byNormalized: Map<String, Candidate>,
+        val byFirst: Map<Int, List<Candidate>>,
+        val byLengthAndFirst: Map<Pair<Int, Int>, List<Candidate>>,
     )
 
     private data class ScoredCandidate(
