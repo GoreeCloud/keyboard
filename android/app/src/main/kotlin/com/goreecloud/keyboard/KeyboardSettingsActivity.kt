@@ -22,8 +22,9 @@ import android.widget.TextView
 /**
  * Device-local settings surface for the native Keyboard runtime.
  *
- * These controls change only local presentation/typing behavior. They do not grant editor,
- * clipboard, network, account, telemetry, or learning authority.
+ * These controls change only local presentation/typing behavior. Optional learning is an explicit,
+ * off-by-default grant to retain bounded device-local word-frequency counters. No setting grants
+ * clipboard, network, account, telemetry, or sensitive-editor authority.
  */
 class KeyboardSettingsActivity : Activity() {
     private lateinit var settingsStore: KeyboardSettingsStore
