@@ -2,6 +2,7 @@ package com.goreecloud.keyboard
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SuggestionEngineTest {
@@ -15,7 +16,7 @@ class SuggestionEngineTest {
             limit = 2,
         )
 
-        assertEquals(listOf("good", "go"), result)
+        assertEquals(listOf("good", "goal"), result)
     }
 
     @Test
@@ -163,6 +164,31 @@ class SuggestionEngineTest {
         )
 
         assertEquals("settings", result.first())
+    }
+
+    @Test
+    fun fillsSuggestionStripWithRealCandidatesBeforeRawUnknownPrefix() {
+        val result = engine.suggest(
+            prefix = "predic",
+            dictionary = listOf("prediction", "predict", "predictive", "predicate"),
+            limit = 3,
+        )
+
+        assertEquals(3, result.size)
+        assertEquals("predict", result.first())
+        assertTrue("prediction" in result)
+        assertTrue("predic" !in result)
+    }
+
+    @Test
+    fun longerUnknownTokensCanReceiveUsefulSuggestionOnlyCorrections() {
+        val result = engine.suggest(
+            prefix = "sugestions",
+            dictionary = listOf("suggestions", "suggestion", "settings"),
+            limit = 3,
+        )
+
+        assertEquals("suggestions", result.first())
     }
 
     @Test
