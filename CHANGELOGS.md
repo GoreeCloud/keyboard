@@ -35,6 +35,19 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Draft PR #97 physical-device feedback candidate / 0.1.8-dev
+- Advanced the side-by-side Development package to `versionCode 9` / `0.1.8-dev` / `com.goreecloud.keyboard.dev.v9`.
+- Added **Learn from what you type** as an explicit privacy-sensitive control that is OFF by default. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in app-private local storage, excludes sensitive and host no-suggestions editors, exposes local deletion, and adds no network/sync/telemetry authority.
+- Added key-press haptic feedback enabled by default with a user setting to disable it.
+- Added toolbar style control: icons-only by default, optional Icons + labels.
+- Removed Emoji from the ordinary/symbol bottom rows and removed the duplicated Symbols mode action from the toolbar. The candidate toolbar now exposes Emoji, Settings, and Hide Keyboard only; Clipboard/GIF remain unimplemented rather than decorative.
+- Replaced generic Backspace/Enter text glyph rendering with first-party vector-style icon geometry.
+- Expanded built-in conversational prediction context and combined opt-in learned word/bigram ranking with the existing static GoreeCloud/everyday-English lexicon.
+- Changed swipe handling to decode up to three local candidates and expose post-swipe correction alternatives rather than hiding ambiguity after the first match.
+- Preserved version-scoped debug install isolation, no Android network permission, sensitive-field suppression, and Development/Weave nonconformant status.
+- This entry describes the open Draft PR #97 candidate and is not accepted authoritative-main implementation until governed merge/readback and fresh exact-main validation occur.
+
+
 ### September 25, 2026 — Platform Contract 2.0 Weave control-plane migration
 - Migrated the repository manifest from legacy Platform Contract 0.4 lifecycle vocabulary to Contract 2.0.
 - Classified the current Keyboard line as **Weave** because integration, stabilization, accessibility hardening, physical-device acceptance, platform-system migration, and release-completeness work now dominate over initial construction.
