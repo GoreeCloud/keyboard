@@ -117,6 +117,7 @@ def main() -> None:
             "val inputType = info.inputType",
             "InputPrivacyClassifier.isSensitive(inputType)",
             "EditorSuggestionPolicy.shouldSuppress(inputType, info.imeOptions)",
+            "EditorSuggestionPolicy.prohibitsPersonalizedLearning(info.imeOptions)",
         ),
     )
     if "info?.inputType ?: 0" in begin_session:
@@ -130,24 +131,24 @@ def main() -> None:
             "InputPrivacyClassifier.isSensitive(inputType)",
             "InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS",
             "IME_FLAG_NO_PERSONALIZED_LEARNING",
-            "current Quill path does not persist a learned user model",
+            "fun prohibitsPersonalizedLearning(imeOptions: Int)",
         ),
     )
-    if "imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0" in policy_source:
-        fail(
-            "no-personalized-learning must disable learning, not deterministic transient local suggestions"
-        )
+    if "shouldSuppress" not in policy_source or "prohibitsPersonalizedLearning" not in policy_source:
+        fail("transient suggestions and optional personalized learning must remain separate policies")
 
-    null_policy = """if (info == null) {
-            // Unknown editor metadata must not silently receive ordinary-field privileges. Treat it
-            // as sensitive so backspace avoids surrounding-text inspection and suggestions remain
-            // suppressed until Android provides a concrete EditorInfo for the active session.
-            sensitiveInput = true
-            suggestionsSuppressed = true
-            return
-        }"""
-    if null_policy not in begin_session:
-        fail("null EditorInfo must fail closed as sensitive and suggestions-suppressed before return")
+    require_all(
+        "null EditorInfo fail-closed policy",
+        begin_session,
+        (
+            "if (info == null)",
+            "sensitiveInput = true",
+            "editorSuppressesLanguageAssistance = true",
+            "editorProhibitsPersonalizedLearning = true",
+            "suggestionsSuppressed = true",
+            "return",
+        ),
+    )
 
     reset_session = function_body(source, "private fun resetEditorSession()")
     require_all(
@@ -172,8 +173,9 @@ def main() -> None:
         "Keyboard editor privacy lifecycle boundary passed: inactive/no-editor state is fail-closed; "
         "current editor policy is applied at onStartInput/onStartInputView; null editor metadata "
         "remains sensitive and suggestions-suppressed; host no-suggestions requests suppress local "
-        "candidates while no-personalized-learning remains compatible with the current non-learning "
-        "transient Quill path; composing, shift, layer, and visible candidates are cleared at "
+        "candidates while no-personalized-learning preserves deterministic transient suggestions but "
+        "blocks both collection into and use of optional persisted adaptation; composing, shift, "
+        "layer, and visible candidates are cleared at "
         "both onFinishInput and onFinishInputView."
     )
 
