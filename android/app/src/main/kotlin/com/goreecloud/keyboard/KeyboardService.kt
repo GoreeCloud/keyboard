@@ -33,6 +33,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var sentenceStartPending = false
     private var presentedSuggestions: List<String> = emptyList()
     private var pendingSwipeCorrection: PendingSwipeCorrection? = null
+    private var suggestionRefreshScheduled = false
+    private val suggestionRefreshRunnable = Runnable {
+        suggestionRefreshScheduled = false
+        updateSuggestions()
+    }
 
     override fun onCreateInputView(): View {
         typingSettings = settingsStore.load()
@@ -107,6 +112,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onDestroy() {
+        cancelScheduledSuggestionRefresh()
         composingWord.clear()
         composingStartsCapitalized = false
         composingCaptureExhausted = false
@@ -154,7 +160,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             }
         }
 
-        updateSuggestions()
+        scheduleSuggestionsUpdate()
         resetOneShotShift()
     }
 
@@ -233,7 +239,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                 sendFallbackBackspace(connection)
             }
             clearPredictionContextAfterUnverifiedDeletion()
-            updateSuggestions()
+            scheduleSuggestionsUpdate()
             return
         }
 
@@ -243,7 +249,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             // DEL key event is the most compatible fallback and requires no additional text read.
             sendFallbackBackspace(connection)
             clearPredictionContextAfterUnverifiedDeletion()
-            updateSuggestions()
+            scheduleSuggestionsUpdate()
             return
         }
 
@@ -255,7 +261,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         if (deleteCodePoints <= 0) {
             sendFallbackBackspace(connection)
             clearPredictionContextAfterUnverifiedDeletion()
-            updateSuggestions()
+            scheduleSuggestionsUpdate()
             return
         }
 
@@ -263,7 +269,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         if (!deleted) {
             sendFallbackBackspace(connection)
             clearPredictionContextAfterUnverifiedDeletion()
-            updateSuggestions()
+            scheduleSuggestionsUpdate()
             return
         }
 
@@ -277,7 +283,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             sentenceStartPending = false
         }
 
-        updateSuggestions()
+        scheduleSuggestionsUpdate()
     }
 
     override fun onEnter() {
@@ -436,6 +442,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     private fun resetEditorSession() {
+        cancelScheduledSuggestionRefresh()
         shifted = false
         currentLayer = KeyboardLayer.LETTERS
         sensitiveInput = true
@@ -664,6 +671,33 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         return composingWord.toString()
     }
 
+    private fun scheduleSuggestionsUpdate() {
+        if (
+            sensitiveInput ||
+            editorSuppressesLanguageAssistance ||
+            composingCaptureExhausted
+        ) {
+            cancelScheduledSuggestionRefresh()
+            updateSuggestions()
+            return
+        }
+
+        val view = keyboardView ?: run {
+            updateSuggestions()
+            return
+        }
+        if (suggestionRefreshScheduled) return
+
+        suggestionRefreshScheduled = true
+        view.postDelayed(suggestionRefreshRunnable, SUGGESTION_REFRESH_COALESCE_MS)
+    }
+
+    private fun cancelScheduledSuggestionRefresh() {
+        if (!suggestionRefreshScheduled) return
+        keyboardView?.removeCallbacks(suggestionRefreshRunnable)
+        suggestionRefreshScheduled = false
+    }
+
     private fun updateSuggestions() {
         if (
             sensitiveInput ||
@@ -822,6 +856,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         const val DOUBLE_SPACE_LOOKBEHIND_UTF16 = 8
         const val MAX_CONTEXT_WORDS = 4
         const val MAX_PREDICTION_HISTORY_WORDS = 2
+        const val SUGGESTION_REFRESH_COALESCE_MS = 24L
         const val MAX_CURSOR_STEPS_PER_CALLBACK = 24
         const val SWIPE_DECODE_CANDIDATE_POOL = 12
         val AUTOCORRECT_BOUNDARIES = setOf(".", ",", "!", "?", ";", ":")
