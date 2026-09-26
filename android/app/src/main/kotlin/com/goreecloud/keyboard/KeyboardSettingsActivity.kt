@@ -420,21 +420,21 @@ class KeyboardSettingsActivity : Activity() {
             }, matchWidth())
         }
 
-    private fun isGoreeCloudKeyboardEnabled(): Boolean {
-        val enabled = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.ENABLED_INPUT_METHODS,
-        ).orEmpty()
-        return enabled.contains(packageName)
-    }
+    private fun isGoreeCloudKeyboardEnabled(): Boolean =
+        runCatching {
+            Settings.Secure.getString(
+                contentResolver,
+                Settings.Secure.ENABLED_INPUT_METHODS,
+            ).orEmpty().contains(packageName)
+        }.getOrDefault(false)
 
-    private fun isGoreeCloudKeyboardSelected(): Boolean {
-        val selected = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.DEFAULT_INPUT_METHOD,
-        ).orEmpty()
-        return selected.startsWith(packageName + "/")
-    }
+    private fun isGoreeCloudKeyboardSelected(): Boolean =
+        runCatching {
+            Settings.Secure.getString(
+                contentResolver,
+                Settings.Secure.DEFAULT_INPUT_METHOD,
+            ).orEmpty().startsWith(packageName + "/")
+        }.getOrDefault(false)
 
     private fun buildContent(): ScrollView {
         val current = settingsStore.load()
