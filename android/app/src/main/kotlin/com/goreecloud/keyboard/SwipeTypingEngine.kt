@@ -7,17 +7,21 @@ import kotlin.math.max
 import kotlin.math.min
 
 /*
- * Portions of the physical swipe-ranking design are a GoreeCloud-native adaptation of ideas from
- * two Apache-2.0 keyboards:
+ * GoreeCloud modification/adaptation notice:
  *
- * - FlorisBoard StatisticalGlideTypingClassifier: endpoint pruning, ideal word gestures, uniform
- *   resampling, shape-vs-location separation, path-length pruning, and frequency-aware ranking.
- * - AnySoftKeyboard GestureTypingDetector: meaningful-point filtering, curvature/corner emphasis,
+ * Portions of the physical swipe-ranking design are a GoreeCloud-native adaptation of concepts
+ * and permissively licensed implementation work from two Apache-2.0 keyboards:
+ *
+ * - FlorisBoard StatisticalGlideTypingClassifier, Copyright (C) 2025 The FlorisBoard Contributors:
+ *   endpoint pruning, ideal word gestures, uniform resampling, shape-vs-location separation,
+ *   path-length pruning, duplicate-letter gesture variants, and frequency-aware ranking.
+ * - AnySoftKeyboard gesture-typing work: meaningful-point filtering, curvature/corner emphasis,
  *   start/end proximity handling, and direction-aware path comparison.
  *
- * GoreeCloud uses its own data structures, thresholds, privacy boundary, context reranking, UI,
- * tests, and lifecycle. Exact upstream revisions and license notices are recorded in
- * THIRD-PARTY-NOTICES.md.
+ * This GoreeCloud file has been substantially modified/reimplemented for GoreeCloud's own data
+ * structures, thresholds, privacy boundary, context reranking, UI, tests, and lifecycle. Exact
+ * inspected upstream revisions and notices are recorded in THIRD-PARTY-NOTICES.md. The applicable
+ * Apache License 2.0 text is preserved at LICENSES/Apache-2.0.txt.
  */
 
 data class SwipePoint(val x: Float, val y: Float)
