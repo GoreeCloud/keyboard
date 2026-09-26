@@ -22,7 +22,7 @@ lifecycle_metadata:
     - IMPLEMENTED-FEATURES.md
     - PLANNED-FEATURES.md
     - CHANGELOGS.md
-version: "0.1.20-dev"
+version: "0.1.21-dev"
 
 supported_platforms:
   - android
@@ -203,7 +203,7 @@ conformance:
     - docs/development/portable-preference-export-review.md
   blockers:
     - Keyboard now contains a bounded GLAZE UI V1.6 Android presentation-context layer at current Stable source a7180679ea851389e0f3004515f9a25f420e716d, but the optical substrate still implements historical V1.2 / 1.2.0 semantics at f285b9145e27e6e7027b075c37299d101945c272. Complete V1.6 optical/component migration and fresh whole-keyboard rendered, accessibility, adaptive/form-factor, representative-device, performance, Human Visual Excellence, rollback, release, and production acceptance remain incomplete.
-    - Privacy Shield integration and acceptance are not established for this highly sensitive input surface. The 0.1.20 Draft candidate adds Keyboard-side per-app clipboard policy, opt-in encrypted local history, expiration, pin/delete, and Paste Once, but no privileged Secure Paste Broker or system-wide cross-application clipboard enforcement exists.
+    - Privacy Shield integration and acceptance are not established for this highly sensitive input surface. The 0.1.21 Draft candidate adds Keyboard-side per-app clipboard policy, opt-in encrypted local history, expiration, pin/delete, and Paste Once, but no privileged Secure Paste Broker or system-wide cross-application clipboard enforcement exists.
     - Wardveil Security integration and acceptance are not established.
     - Everkeep integration plus approved product backup and clean-target restore acceptance remain incomplete; explicit user file transfer is only one-field portability.
     - GoreeCloud Identity integration and acceptance are not established for future identity-aware capabilities.
