@@ -32,7 +32,6 @@ class KeyboardView @JvmOverloads constructor(
         fun onSuggestion(value: String)
         fun onLayerChanged(layer: KeyboardLayer)
         fun onOpenSettings() = Unit
-        fun onHideKeyboard() = Unit
     }
 
     var listener: Listener? = null
@@ -49,7 +48,6 @@ class KeyboardView @JvmOverloads constructor(
         SYMBOLS_MORE,
         EMOJI,
         SETTINGS,
-        HIDE,
         EMOJI_SEARCH_CLEAR,
         EMOJI_SEARCH_CLOSE,
     }
@@ -98,6 +96,7 @@ class KeyboardView @JvmOverloads constructor(
     private val alternatePopupPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val alternateSelectedPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val suggestionSurfacePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val toolbarSurfacePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val utilityKeyOverlayPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val selectedUtilityKeyOverlayPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val suggestionDividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -523,6 +522,7 @@ class KeyboardView @JvmOverloads constructor(
         alternatePopupPaint.color = palette.canvasArgb
         alternateSelectedPaint.color = palette.surfaceArgb
         suggestionSurfacePaint.color = palette.surfaceArgb
+        toolbarSurfacePaint.color = palette.surfaceArgb
         utilityKeyOverlayPaint.color = GlazeKeyboardTokens.stateOverlayArgb(
             appearance,
             GlazeKeyboardTokens.UtilityOverlayOpacity,
@@ -595,45 +595,127 @@ class KeyboardView @JvmOverloads constructor(
         val density = resources.displayMetrics.density
         val gap = GlazeKeyboardTokens.Space1Dp * density
         val verticalInset = GlazeKeyboardTokens.Space1Dp * density
-        val radius = GlazeKeyboardTokens.RadiusMediumDp * density
+        val outerRadius = GlazeKeyboardTokens.RadiusLargeDp * density
+        val buttonRadius = GlazeKeyboardTokens.RadiusMediumDp * density
         val actions = listOf(
-            Key("☺", action = Action.EMOJI),
-            Key("⚙", action = Action.SETTINGS),
-            Key("⌄", action = Action.HIDE),
+            Key("emoji", action = Action.EMOJI),
+            Key("settings", action = Action.SETTINGS),
         )
 
-        val availableWidth = width - horizontalPadding * 2f - gap * (actions.size - 1)
-        val cellWidth = when (toolbarStyle) {
-            KeyboardToolbarStyle.ICONS_ONLY -> minOf(64f * density, availableWidth / actions.size)
-            KeyboardToolbarStyle.ICONS_WITH_LABELS -> availableWidth / actions.size
+        val surfaceBounds = RectF(
+            horizontalPadding,
+            top + verticalInset,
+            width - horizontalPadding,
+            top + height - verticalInset,
+        )
+        canvas.drawRoundRect(surfaceBounds, outerRadius, outerRadius, toolbarSurfacePaint)
+        canvas.drawRoundRect(surfaceBounds, outerRadius, outerRadius, keyStrokePaint)
+
+        val innerPadding = GlazeKeyboardTokens.Space1Dp * density
+        val buttonHeight = (surfaceBounds.height() - innerPadding * 2f).coerceAtLeast(1f)
+        val availableWidth = surfaceBounds.width() - innerPadding * 2f
+        val buttonWidth = when (toolbarStyle) {
+            KeyboardToolbarStyle.ICONS_ONLY -> minOf(58f * density, buttonHeight)
+            KeyboardToolbarStyle.ICONS_WITH_LABELS ->
+                ((availableWidth - gap) / actions.size).coerceAtLeast(buttonHeight)
         }
-        var left = horizontalPadding
+
+        var left = surfaceBounds.left + innerPadding
         actions.forEach { key ->
-            val hitBounds = RectF(left, top, left + cellWidth, top + height)
-            val visualBounds = RectF(hitBounds).apply { inset(0f, verticalInset) }
-            canvas.drawRoundRect(visualBounds, radius, radius, keyPaint)
-            canvas.drawRoundRect(visualBounds, radius, radius, utilityKeyOverlayPaint)
-            canvas.drawRoundRect(visualBounds, radius, radius, keyStrokePaint)
+            val hitBounds = RectF(left, surfaceBounds.top, left + buttonWidth, surfaceBounds.bottom)
+            val visualBounds = RectF(
+                hitBounds.left,
+                surfaceBounds.top + innerPadding,
+                hitBounds.right,
+                surfaceBounds.bottom - innerPadding,
+            )
+            canvas.drawRoundRect(visualBounds, buttonRadius, buttonRadius, utilityKeyOverlayPaint)
             drawToolbarContent(canvas, key, visualBounds)
             hitKeys += HitKey(hitBounds, key)
-            left += cellWidth + gap
+            left += buttonWidth + gap
         }
     }
 
     private fun drawToolbarContent(canvas: Canvas, key: Key, bounds: RectF) {
-        val label = when (toolbarStyle) {
-            KeyboardToolbarStyle.ICONS_ONLY -> key.label
-            KeyboardToolbarStyle.ICONS_WITH_LABELS -> when (key.action) {
-                Action.EMOJI -> "☺  Emoji"
-                Action.SETTINGS -> "⚙  Settings"
-                Action.HIDE -> "⌄  Hide"
-                else -> key.label
+        when (toolbarStyle) {
+            KeyboardToolbarStyle.ICONS_ONLY -> {
+                when (key.action) {
+                    Action.EMOJI -> drawEmojiToolbarGlyph(canvas, bounds)
+                    Action.SETTINGS -> drawSettingsToolbarGlyph(canvas, bounds)
+                    else -> Unit
+                }
+            }
+            KeyboardToolbarStyle.ICONS_WITH_LABELS -> {
+                val iconBounds = RectF(
+                    bounds.left + bounds.width() * 0.08f,
+                    bounds.top,
+                    bounds.left + bounds.width() * 0.36f,
+                    bounds.bottom,
+                )
+                when (key.action) {
+                    Action.EMOJI -> drawEmojiToolbarGlyph(canvas, iconBounds)
+                    Action.SETTINGS -> drawSettingsToolbarGlyph(canvas, iconBounds)
+                    else -> Unit
+                }
+                val label = when (key.action) {
+                    Action.EMOJI -> "Emoji"
+                    Action.SETTINGS -> "Settings"
+                    else -> ""
+                }
+                val labelX = bounds.left + bounds.width() * 0.67f
+                val baseline =
+                    bounds.centerY() - (utilityTextPaint.descent() + utilityTextPaint.ascent()) / 2f
+                canvas.drawText(label, labelX, baseline, utilityTextPaint)
             }
         }
-        val paint =
-            if (toolbarStyle == KeyboardToolbarStyle.ICONS_ONLY) textPaint else utilityTextPaint
-        val baseline = bounds.centerY() - (paint.descent() + paint.ascent()) / 2
-        canvas.drawText(label, bounds.centerX(), baseline, paint)
+    }
+
+    private fun drawEmojiToolbarGlyph(canvas: Canvas, bounds: RectF) {
+        val unit = minOf(bounds.width(), bounds.height())
+        val radius = unit * 0.23f
+        val cx = bounds.centerX()
+        val cy = bounds.centerY()
+        canvas.drawCircle(cx, cy, radius, iconPaint)
+
+        val eyeOffsetX = radius * 0.38f
+        val eyeY = cy - radius * 0.22f
+        val eyeRadius = maxOf(resources.displayMetrics.density * 1.4f, radius * 0.08f)
+        val eyePaint = Paint(iconPaint).apply { style = Paint.Style.FILL }
+        canvas.drawCircle(cx - eyeOffsetX, eyeY, eyeRadius, eyePaint)
+        canvas.drawCircle(cx + eyeOffsetX, eyeY, eyeRadius, eyePaint)
+
+        val smile = Path().apply {
+            moveTo(cx - radius * 0.48f, cy + radius * 0.12f)
+            cubicTo(
+                cx - radius * 0.26f,
+                cy + radius * 0.55f,
+                cx + radius * 0.26f,
+                cy + radius * 0.55f,
+                cx + radius * 0.48f,
+                cy + radius * 0.12f,
+            )
+        }
+        canvas.drawPath(smile, iconPaint)
+    }
+
+    private fun drawSettingsToolbarGlyph(canvas: Canvas, bounds: RectF) {
+        val unit = minOf(bounds.width(), bounds.height())
+        val left = bounds.centerX() - unit * 0.23f
+        val right = bounds.centerX() + unit * 0.23f
+        val ys = listOf(
+            bounds.centerY() - unit * 0.16f,
+            bounds.centerY(),
+            bounds.centerY() + unit * 0.16f,
+        )
+        val knobOffsets = listOf(0.30f, 0.68f, 0.44f)
+        val knobRadius = maxOf(resources.displayMetrics.density * 2.0f, unit * 0.055f)
+        val fill = Paint(iconPaint).apply { style = Paint.Style.FILL }
+
+        ys.forEachIndexed { index, y ->
+            canvas.drawLine(left, y, right, y, iconPaint)
+            val knobX = left + (right - left) * knobOffsets[index]
+            canvas.drawCircle(knobX, y, knobRadius, fill)
+        }
     }
 
 
@@ -995,7 +1077,6 @@ class KeyboardView @JvmOverloads constructor(
         Action.SYMBOLS_MORE -> "More symbols"
         Action.EMOJI -> "Emoji"
         Action.SETTINGS -> "Keyboard settings"
-        Action.HIDE -> "Hide keyboard"
         Action.EMOJI_SEARCH_CLEAR -> "Clear emoji search"
         Action.EMOJI_SEARCH_CLOSE -> "Close emoji search"
     }
@@ -1087,7 +1168,6 @@ class KeyboardView @JvmOverloads constructor(
             Action.SYMBOLS_MORE -> switchLayer(KeyboardLayer.SYMBOLS_MORE)
             Action.EMOJI -> switchLayer(KeyboardLayer.EMOJI)
             Action.SETTINGS -> listener?.onOpenSettings()
-            Action.HIDE -> listener?.onHideKeyboard()
             Action.EMOJI_SEARCH_CLEAR -> {
                 emojiSearchSession.clear()
                 announceForAccessibility("Emoji search cleared")
