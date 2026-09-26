@@ -16,6 +16,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     // until onStartInput/onStartInputView provide concrete EditorInfo for the current session.
     private var sensitiveInput = true
     private var editorSuppressesLanguageAssistance = true
+    private var editorProhibitsPersonalizedLearning = true
     private var suggestionsSuppressed = true
     private var composingCaptureExhausted = false
     private var keyboardView: KeyboardView? = null
@@ -334,6 +335,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         sensitiveInput = InputPrivacyClassifier.isSensitive(inputType)
         editorSuppressesLanguageAssistance =
             EditorSuggestionPolicy.shouldSuppress(inputType, info.imeOptions)
+        editorProhibitsPersonalizedLearning =
+            EditorSuggestionPolicy.prohibitsPersonalizedLearning(info.imeOptions)
         suggestionsSuppressed =
             editorSuppressesLanguageAssistance || !typingSettings.suggestionsEnabled
         keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
@@ -349,6 +352,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         shifted = false
         sensitiveInput = true
         editorSuppressesLanguageAssistance = true
+        editorProhibitsPersonalizedLearning = true
         suggestionsSuppressed = true
         composingWord.clear()
         committedHistory.clear()
@@ -468,8 +472,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         val previous = committedHistory.lastOrNull()
         if (
             learn &&
-            typingSettings.learnFromTypingEnabled &&
-            languageCaptureAllowed()
+            personalizationAllowed()
         ) {
             learningStore.record(normalized, previous)
         }
@@ -546,7 +549,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     private fun activeDictionary(): List<String> {
-        if (!typingSettings.learnFromTypingEnabled) return QuillLexicon.expandedEnglish
+        if (!personalizationAllowed()) return QuillLexicon.expandedEnglish
         return buildList {
             addAll(learningStore.learnedWords())
             addAll(QuillLexicon.expandedEnglish)
@@ -554,7 +557,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     private fun predictionCandidates(): List<String> {
-        val learned = if (typingSettings.learnFromTypingEnabled) {
+        val learned = if (personalizationAllowed()) {
             learningStore.predictNext(committedHistory, limit = 3)
         } else {
             emptyList()
@@ -567,6 +570,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private fun languageCaptureAllowed(): Boolean =
         !sensitiveInput && !editorSuppressesLanguageAssistance
+
+    private fun personalizationAllowed(): Boolean =
+        typingSettings.learnFromTypingEnabled &&
+            languageCaptureAllowed() &&
+            !editorProhibitsPersonalizedLearning
 
     private fun refreshAutomaticShift() {
         if (
