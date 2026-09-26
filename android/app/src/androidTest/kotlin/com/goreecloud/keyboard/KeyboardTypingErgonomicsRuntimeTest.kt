@@ -226,6 +226,40 @@ class KeyboardTypingErgonomicsRuntimeTest {
     }
 
     @Test
+    fun smallReleaseDriftKeepsTheOriginallyPressedLetter() {
+        val view = createRenderedKeyboard()
+        renderIntoExistingSize(view)
+        val targets = view.accessibilityTargets()
+        val q = targets.first { it.label == "q" }.bounds
+        val w = targets.first { it.label == "w" }.bounds
+        val taps = mutableListOf<String>()
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) {
+                taps += value
+            }
+            override fun onSwipe(keyPath: List<String>) = Unit
+            override fun onSpace() = Unit
+            override fun onBackspace() = Unit
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        val downX = q.right - 1f
+        val releaseX = minOf(w.left + 1f, downX + 6f)
+        dispatch(view, MotionEvent.ACTION_DOWN, downX, q.centerY(), eventTime = 0L)
+        dispatch(view, MotionEvent.ACTION_UP, releaseX, q.centerY(), eventTime = 24L)
+
+        assertEquals(
+            "A small release drift must keep the key intentionally pressed on ACTION_DOWN",
+            listOf("q"),
+            taps,
+        )
+    }
+
+    @Test
     fun rapidLetterTapsAllCommitExactlyOnce() {
         val view = createRenderedKeyboard()
         renderIntoExistingSize(view)
