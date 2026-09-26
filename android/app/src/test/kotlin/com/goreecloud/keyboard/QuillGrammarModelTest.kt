@@ -26,6 +26,15 @@ class QuillGrammarModelTest {
     }
 
     @Test
+    fun repairsHighConfidenceSubjectAuxiliaryAgreement() {
+        assertEquals("am", QuillGrammarModel.boundaryCorrection("is", listOf("I")))
+        assertEquals("are", QuillGrammarModel.boundaryCorrection("is", listOf("they")))
+        assertEquals("is", QuillGrammarModel.boundaryCorrection("are", listOf("she")))
+        assertEquals("have", QuillGrammarModel.boundaryCorrection("has", listOf("you")))
+        assertEquals("has", QuillGrammarModel.boundaryCorrection("have", listOf("it")))
+    }
+
+    @Test
     fun commonCollapsedPhraseCorrectionCanReturnMultipleWords() {
         assertEquals(
             "a lot",
