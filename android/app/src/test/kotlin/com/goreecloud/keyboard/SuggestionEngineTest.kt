@@ -88,6 +88,27 @@ class SuggestionEngineTest {
     }
 
     @Test
+    fun highFrequencyNeighborKeySlipAutocorrectsBjtToBut() {
+        assertEquals(
+            "but",
+            engine.bestAutocorrection(
+                word = "bjt",
+                dictionary = QuillLexicon.expandedEnglish,
+            ),
+        )
+    }
+
+    @Test
+    fun closeRankNeighborKeyAlternativesRemainSuggestionOnly() {
+        assertNull(
+            engine.bestAutocorrection(
+                word = "bjt",
+                dictionary = listOf("but", "bit", "bat"),
+            ),
+        )
+    }
+
+    @Test
     fun autocorrectDoesNotReplaceKnownWords() {
         assertNull(
             engine.bestAutocorrection(
