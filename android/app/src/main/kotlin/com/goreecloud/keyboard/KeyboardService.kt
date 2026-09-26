@@ -62,7 +62,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         val builtInDictionary = packagedEnglishDictionary.words
         suggestionEngine.preload(builtInDictionary)
         swipeTypingEngine.preload(builtInDictionary)
-        return KeyboardView(this).also { view ->
+
+        val keyboard = KeyboardView(this).also { view ->
             keyboardView = view
             view.listener = this
             currentLayer = KeyboardLayer.LETTERS
@@ -76,7 +77,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             view.setLongPressHintsEnabled(typingSettings.longPressHintsEnabled)
             view.setLongPressDelay(typingSettings.longPressDelay)
             view.setSwipeTrailEnabled(typingSettings.swipeTrailEnabled)
-            view.setNumberRowVisible(KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput))
+            view.setNumberRowVisible(
+                KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput),
+            )
             view.setSwipeTypingEnabled(!sensitiveInput && typingSettings.swipeTypingEnabled)
             view.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
             view.setOnTouchListener(
@@ -90,6 +93,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                     onCursorSteps = ::moveCursorFromSpacebar,
                 ),
             )
+        }
+
+        return KeyboardInputSurfaceHost(this).also { host ->
+            inputSurfaceHost = host
+            host.showSurface(keyboard)
             updateSuggestions()
         }
     }
