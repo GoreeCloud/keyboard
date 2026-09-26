@@ -22,7 +22,7 @@ lifecycle_metadata:
     - IMPLEMENTED-FEATURES.md
     - PLANNED-FEATURES.md
     - CHANGELOGS.md
-version: "0.1.10-dev"
+version: "0.1.11-dev"
 
 supported_platforms:
   - android
