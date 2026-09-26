@@ -47,10 +47,8 @@ class SuggestionEngine {
         val result = mutableListOf<String>()
         if (exact != null) result += exact.word
 
-        val scoredSlotLimit =
-            if (exact == null && effectiveLimit > 1) effectiveLimit - 1 else effectiveLimit
         scored.forEach { scoredCandidate ->
-            if (result.size >= scoredSlotLimit) return@forEach
+            if (result.size >= effectiveLimit) return@forEach
             val word = scoredCandidate.candidate.word
             if (result.none { it.equals(word, ignoreCase = true) }) result += word
         }
@@ -129,7 +127,7 @@ class SuggestionEngine {
         if (candidate.normalized == typed) return null
 
         val completion = candidate.normalized.startsWith(typed)
-        val maximumDistance = maximumCorrectionDistance(typed)
+        val maximumDistance = maximumSuggestionDistance(typed)
         val distance = if (completion) {
             0
         } else {
@@ -238,6 +236,15 @@ class SuggestionEngine {
                 )
             }
             .toList()
+
+    private fun maximumSuggestionDistance(value: String): Int {
+        val length = codePointCount(value)
+        return when {
+            length >= 9 -> 3
+            length >= 5 -> 2
+            else -> 1
+        }
+    }
 
     private fun maximumCorrectionDistance(value: String): Int {
         val length = codePointCount(value)
