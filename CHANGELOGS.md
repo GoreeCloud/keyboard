@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Draft PR #97 cross-app gesture reliability, swipe precision, and brand vocabulary / 0.1.18-dev
+- Treats the latest representative-device screenshots and testing as continuing Weave-stage evidence: swipe entry can be disabled in some ordinary host editors such as note fields, rapid tap typing can still be promoted into swipe intent, gesture decoding can choose an unintended word, and common technology/company vocabulary remains incomplete.
+- Decouples Android `TYPE_TEXT_FLAG_NO_SUGGESTIONS` from gesture typing. Ordinary non-sensitive editors may suppress suggestion/autocorrect surfaces while still accepting deliberate local swipe input; sensitive/password fields remain fail-closed.
+- Strengthens tap-versus-swipe classification using accumulated gesture-path travel, a longer recent-fast-typing guard window, and stronger two-key path/net-travel/duration evidence. Curved or returning deliberate swipes remain eligible because classification no longer depends only on endpoint displacement.
+- Pins the physical decoder's best geometry candidate as the committed swipe winner. Predictive context may refine alternate candidates but can no longer replace the strongest traced result.
+- Improves swipe precision with a narrower endpoint candidate neighborhood, stronger ordered-key sequence weighting, ordered key-coverage evidence, and less frequency bias.
+- Adds a curated static local brand/company/product vocabulary including `Samsung`, `Ryzen`, `MIUI`, `OnePlus`, `Nvidia`, `Snapdragon`, `GitHub`, `OpenAI`, and other common technology terms, preserving familiar display casing where the packaged word is authoritative.
+- Advances the side-by-side Development package to `versionCode 19` / `0.1.18-dev` / `com.goreecloud.keyboard.dev.v19`.
+- Removes the hard-coded development version from the launcher label so the visible app name cannot become stale independently of Gradle package version metadata.
+- No network permission, remote language model, telemetry, Contacts access, clipboard authority, or new typed-text persistence was introduced.
+- This remains Draft / Weave Development work. Fresh exact-head CI and representative physical-device retesting remain required.
+
 ### September 26, 2026 — Draft PR #97 physical typing feedback correction / 0.1.17-dev
 - Treats the latest representative-device feedback as a continuing Weave-stage quality gate: swipe typing is improved but still inconsistent, fast ordinary typing can still be misclassified as swipe intent, common-word recognition/autocorrect can miss obvious neighbor-key slips such as `bjt → but`, and local grammar assistance remains too limited.
 - Advanced the side-by-side Development package to `versionCode 18` / `0.1.17-dev` / `com.goreecloud.keyboard.dev.v18` so this CI-signed device-test build can install beside the earlier 0.1.16 candidate.
