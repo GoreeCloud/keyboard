@@ -410,6 +410,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                     clipboardController.setCurrentAppPolicy(policy)
                     clipboardPanelView?.render(clipboardController.openSnapshot())
                 },
+                onAllowOnce = {
+                    clipboardController.authorizeOnce()
+                    clipboardPanelView?.render(clipboardController.snapshot())
+                },
             ),
         )
         clipboardPanelView = panel

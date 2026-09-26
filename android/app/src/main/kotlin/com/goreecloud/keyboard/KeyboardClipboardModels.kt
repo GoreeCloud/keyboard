@@ -2,6 +2,7 @@ package com.goreecloud.keyboard
 
 internal enum class ClipboardAppPolicy {
     ALLOW,
+    ASK,
     PASTE_ONLY,
     BLOCK,
 }
@@ -29,4 +30,5 @@ internal data class KeyboardClipboardSnapshot(
     val retention: ClipboardRetention,
     val entries: List<KeyboardClipboardEntry>,
     val blockedReason: String? = null,
+    val requiresAuthorization: Boolean = false,
 )

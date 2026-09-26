@@ -30,6 +30,7 @@ internal class KeyboardClipboardPanelView(
         val onClearUnpinned: () -> Unit,
         val onHistoryEnabledChanged: (Boolean) -> Unit,
         val onPolicyChanged: (ClipboardAppPolicy) -> Unit,
+        val onAllowOnce: () -> Unit,
     )
 
     private val palette = GlazeKeyboardTokens.palette(
@@ -91,6 +92,7 @@ internal class KeyboardClipboardPanelView(
                 ClipboardAppPolicy.entries.forEach { policy ->
                     val label = when (policy) {
                         ClipboardAppPolicy.ALLOW -> "Allow"
+                        ClipboardAppPolicy.ASK -> "Ask"
                         ClipboardAppPolicy.PASTE_ONLY -> "Paste only"
                         ClipboardAppPolicy.BLOCK -> "Block"
                     }
@@ -137,6 +139,15 @@ internal class KeyboardClipboardPanelView(
 
         snapshot.blockedReason?.let { reason ->
             addView(messageCard(reason), matchWidth().apply { topMargin = dp(8) })
+            if (snapshot.requiresAuthorization) {
+                addView(
+                    chip("Allow once", callbacks.onAllowOnce),
+                    matchWidth().apply {
+                        topMargin = dp(8)
+                        height = dp(44)
+                    },
+                )
+            }
             return
         }
 

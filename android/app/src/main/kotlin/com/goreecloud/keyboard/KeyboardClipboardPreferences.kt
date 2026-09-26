@@ -33,8 +33,8 @@ internal class KeyboardClipboardPreferences(context: Context) {
         if (packageName.isNullOrBlank()) return ClipboardAppPolicy.BLOCK
         return runCatching {
             ClipboardAppPolicy.valueOf(
-                preferences.getString(policyKey(packageName), ClipboardAppPolicy.ALLOW.name)
-                    ?: ClipboardAppPolicy.ALLOW.name,
+                preferences.getString(policyKey(packageName), ClipboardAppPolicy.ASK.name)
+                    ?: ClipboardAppPolicy.ASK.name,
             )
         }.getOrDefault(ClipboardAppPolicy.ALLOW)
     }

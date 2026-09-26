@@ -25,6 +25,7 @@ internal class KeyboardClipboardController(
     private var inputViewVisible = false
     private var listenerRegistered = false
     private var currentEntry: KeyboardClipboardEntry? = null
+    private var sessionAuthorizedPackage: String? = null
 
     var onChanged: (() -> Unit)? = null
 
@@ -35,9 +36,13 @@ internal class KeyboardClipboardController(
     }
 
     fun updateEditor(packageName: String?, sensitive: Boolean) {
+        if (activePackageName != packageName) sessionAuthorizedPackage = null
         activePackageName = packageName
         sensitiveEditor = sensitive
-        if (sensitive) currentEntry = null
+        if (sensitive) {
+            currentEntry = null
+            sessionAuthorizedPackage = null
+        }
         reconfigureListener()
     }
 
@@ -63,10 +68,15 @@ internal class KeyboardClipboardController(
 
     fun snapshot(nowMillis: Long = System.currentTimeMillis()): KeyboardClipboardSnapshot {
         val policy = effectivePolicy()
+        val requiresAuthorization =
+            policy == ClipboardAppPolicy.ASK &&
+                sessionAuthorizedPackage != activePackageName
         val blockedReason = when {
             sensitiveEditor -> "Clipboard access is disabled in sensitive fields."
             policy == ClipboardAppPolicy.BLOCK ->
                 "Clipboard access is blocked for this application."
+            requiresAuthorization ->
+                "This application is set to Ask. Choose Allow once before Keyboard reads the current clipboard."
             else -> null
         }
         if (blockedReason != null) {
@@ -77,11 +87,16 @@ internal class KeyboardClipboardController(
                 retention = preferences.retention(),
                 entries = emptyList(),
                 blockedReason = blockedReason,
+                requiresAuthorization = requiresAuthorization,
             )
         }
 
         val history =
-            if (policy == ClipboardAppPolicy.ALLOW) historyStore.load(nowMillis) else emptyList()
+            if (policy == ClipboardAppPolicy.ALLOW || policy == ClipboardAppPolicy.ASK) {
+                historyStore.load(nowMillis)
+            } else {
+                emptyList()
+            }
         val current = currentEntry
         val matchingHistory =
             current?.let { item -> history.firstOrNull { it.text == item.text } }
@@ -103,6 +118,13 @@ internal class KeyboardClipboardController(
         )
     }
 
+    fun authorizeOnce() {
+        if (sensitiveEditor || activePackageName.isNullOrBlank()) return
+        sessionAuthorizedPackage = activePackageName
+        captureCurrentClip(userInitiated = true)
+        onChanged?.invoke()
+    }
+
     fun setHistoryEnabled(enabled: Boolean) {
         preferences.setHistoryEnabled(enabled)
         if (!enabled) unregisterListener() else reconfigureListener()
@@ -112,7 +134,10 @@ internal class KeyboardClipboardController(
 
     fun setCurrentAppPolicy(policy: ClipboardAppPolicy) {
         preferences.setPolicy(activePackageName, policy)
-        if (policy == ClipboardAppPolicy.BLOCK) currentEntry = null
+        sessionAuthorizedPackage = null
+        if (policy == ClipboardAppPolicy.BLOCK || policy == ClipboardAppPolicy.ASK) {
+            currentEntry = null
+        }
         reconfigureListener()
         onChanged?.invoke()
     }
@@ -163,7 +188,11 @@ internal class KeyboardClipboardController(
 
     private fun captureCurrentClip(userInitiated: Boolean) {
         val policy = effectivePolicy()
-        if (sensitiveEditor || policy == ClipboardAppPolicy.BLOCK) {
+        if (
+            sensitiveEditor ||
+            policy == ClipboardAppPolicy.BLOCK ||
+            (policy == ClipboardAppPolicy.ASK && sessionAuthorizedPackage != activePackageName)
+        ) {
             currentEntry = null
             return
         }
@@ -202,7 +231,7 @@ internal class KeyboardClipboardController(
 
         if (
             preferences.historyEnabled() &&
-            policy == ClipboardAppPolicy.ALLOW &&
+            (policy == ClipboardAppPolicy.ALLOW || policy == ClipboardAppPolicy.ASK) &&
             !sensitive &&
             text.length <= EncryptedClipboardHistoryStore.MAX_PERSISTED_TEXT_CHARS
         ) {

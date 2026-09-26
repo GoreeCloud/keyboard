@@ -50,7 +50,7 @@ The Keyboard-side Development design is deliberately more privacy-bounded:
 - Android-marked sensitive clips are never persisted;
 - clipboard payloads are excluded from backup, synchronization, Identity association, prediction,
   correction, personalization, and learning;
-- per-application Allow / Paste only / Block policy is user-controlled;
+- per-application Allow / Ask / Paste only / Block policy is user-controlled, with Ask requiring an explicit per-session Allow once action before the current clipboard is read;
 - Paste Once removes the matching local history entry and clears the system clipboard only when its
   current value still matches the item the user explicitly selected;
 - content URIs and intents are not coerced or opened by the clipboard surface;

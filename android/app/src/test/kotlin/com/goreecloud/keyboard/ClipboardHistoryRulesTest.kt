@@ -47,6 +47,11 @@ class ClipboardHistoryRulesTest {
     }
 
     @Test
+    fun perAppAskPolicyIsAvailableAsAFirstClassState() {
+        assertEquals("ASK", ClipboardAppPolicy.ASK.name)
+    }
+
+    @Test
     fun clearUnpinnedPreservesPinnedEntries() {
         val result = ClipboardHistoryRules.clearUnpinned(
             listOf(entry("a"), entry("b", pinned = true)),
