@@ -401,6 +401,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             callbacks = KeyboardClipboardPanelView.Callbacks(
                 onClose = { closeClipboardPanel() },
                 onPaste = ::pasteClipboardEntry,
+                onPasteText = ::pasteClipboardText,
                 onTogglePin = { id ->
                     clipboardController.togglePin(id)
                     clipboardPanelView?.render(clipboardController.snapshot())
@@ -434,6 +435,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private fun pasteClipboardEntry(id: String, pasteOnce: Boolean) {
         val text = clipboardController.consume(id, pasteOnce) ?: return
+        pasteClipboardText(text)
+        clipboardPanelView?.render(clipboardController.snapshot())
+    }
+
+    private fun pasteClipboardText(text: String) {
+        if (text.isEmpty()) return
         currentInputConnection?.commitText(text, 1)
 
         // Clipboard payloads never enter learning, correction, prediction, or transient history.
@@ -445,7 +452,6 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         presentedSuggestions = emptyList()
         pendingSwipeCorrection = null
         pendingPhraseRewrite = null
-        clipboardPanelView?.render(clipboardController.snapshot())
     }
 
     private fun closeClipboardPanel(restoreKeyboard: Boolean = true) {
