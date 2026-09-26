@@ -139,3 +139,47 @@ jobs:
             adb shell ime set com.goreecloud.keyboard.dev.v22/com.goreecloud.keyboard.KeyboardService
             DEFAULT_IME="$(adb shell settings get secure default_input_method | tr -d '\r')"; echo "Android default IME: $DEFAULT_IME"; test "$DEFAULT_IME" = "com.goreecloud.keyboard.dev.v22/com.goreecloud.keyboard.KeyboardService"
             adb shell ime list -a -s | tr -d '\r' | grep -F -x 'com.goreecloud.keyboard.dev.v22/com.goreecloud.keyboard.KeyboardService'
+
+
+  setup-runtime-android12:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Enable KVM group permissions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Verify first-run setup and IME activation on Android 12
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 31
+          target: default
+          arch: x86_64
+          disable-animations: true
+          script: |
+            gradle --no-daemon :android:app:connectedDebugAndroidTest --stacktrace
+            gradle --no-daemon :android:app:installDebug --stacktrace
+            sleep 2
+            adb shell am start -W -n com.goreecloud.keyboard.dev.v22/com.goreecloud.keyboard.KeyboardSettingsActivity
+            adb shell pidof com.goreecloud.keyboard.dev.v22
+            adb shell ime enable com.goreecloud.keyboard.dev.v22/com.goreecloud.keyboard.KeyboardService
+            adb shell ime set com.goreecloud.keyboard.dev.v22/com.goreecloud.keyboard.KeyboardService
+            DEFAULT_IME="$(adb shell settings get secure default_input_method | tr -d '\r')"; echo "Android 12 default IME: $DEFAULT_IME"; test "$DEFAULT_IME" = "com.goreecloud.keyboard.dev.v22/com.goreecloud.keyboard.KeyboardService"
