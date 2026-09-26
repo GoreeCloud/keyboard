@@ -42,7 +42,7 @@ Open Draft pull requests remain candidate-only. In particular, PR #78 and the ol
 ## Product capability backlog
 
 ### Local typing quality and correction
-Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. The current Weave-stage Development path includes frequency-ordered local suggestions, conservative one-edit automatic correction, and a one-to-three candidate presentation contract for non-empty ordinary-text prefixes.
+Continue Unicode-safe input/deletion, Unicode-normalized matching, correction confidence, context-aware prediction, user dictionaries, broader language dictionaries, and privacy-minimized personalization without retaining typed content by default. Draft PR #97 now includes a 0.1.8 candidate for broader conversational context plus an explicit **Learn from what you type** mode that is OFF by default, device-local, bounded, sensitive/no-suggestions-field excluded, and user-clearable. This remains candidate-only until accepted on authoritative main.
 
 ### Spacebar cursor control
 The privacy-bounded cursor-control work represented by legacy FR-011 and Draft PRs #63/#64 is not accepted on current `main`. Draft PR #78 is a separate newer direct-main accessibility candidate. Any accepted cursor-control implementation must preserve ordinary Space behavior, bounded/fail-closed movement, privacy boundaries, RTL/BiDi correctness, accessibility, and representative physical-device ergonomics.
@@ -57,7 +57,7 @@ A Weave-stage Development foundation now provides bounded local gesture capture 
 Expand the accepted local emoji/symbol/alternate foundations with broader Unicode/grapheme correctness, richer discovery, complete catalog/search/composition behavior, accessibility, and representative device acceptance.
 
 ### Configurable utility toolbar
-A toolbar must expose only real underlying actions. The old Draft PR #60 stack is not current implementation authority. Draft PR #97 now carries a candidate toolbar foundation with implemented Emoji, Symbols/Letters, Settings, and Hide Keyboard actions; it remains candidate-only until accepted on authoritative main.
+A toolbar must expose only real underlying actions. The old Draft PR #60 stack is not current implementation authority. Draft PR #97 now carries a candidate toolbar foundation with implemented Emoji, Settings, and Hide Keyboard actions; Symbols/Letters remain on the bottom-row mode key instead of being duplicated in the toolbar. The candidate defaults to icons-only with an optional Icons + labels presentation. It remains candidate-only until accepted on authoritative main.
 
 Requested future toolbar actions include clipboard/paste and GIF/media insertion. Clipboard controls must use the governed GoreeCloud Secure Paste architecture and applicable Privacy Shield/Wardveil authority rather than silently reading or retaining clipboard content. GIF/media insertion requires an explicit local/remote provider, network/retention behavior, search/content-safety boundary, user controls, and privacy/security acceptance. Neither action may be exposed as a decorative or nonfunctional button before its underlying capability is real.
 
