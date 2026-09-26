@@ -79,6 +79,16 @@
     <string name="keyboard_settings_dictionary_section">Dictionary &amp; privacy</string>
     <string name="keyboard_settings_dictionary_title">Built-in GoreeCloud dictionary</string>
     <string name="keyboard_settings_dictionary_badge">Built-in • local • read-only</string>
+    <string name="keyboard_settings_clipboard_section">Clipboard &amp; Secure Paste</string>
+    <string name="keyboard_settings_clipboard_history">Clipboard history</string>
+    <string name="keyboard_settings_clipboard_history_summary">Off by default. When enabled, GoreeCloud Keyboard stores recent non-sensitive text clips in encrypted device-local history while the keyboard is active.</string>
+    <string name="keyboard_settings_clipboard_retention">History expiration</string>
+    <string name="keyboard_settings_clipboard_retention_summary">Unpinned history entries expire automatically. Pinned entries remain until you unpin or delete them.</string>
+    <string name="keyboard_settings_clipboard_retention_10m">10 min</string>
+    <string name="keyboard_settings_clipboard_retention_1h">1 hour</string>
+    <string name="keyboard_settings_clipboard_retention_24h">24 hours</string>
+    <string name="keyboard_settings_clipboard_privacy_note">Clipboard history is encrypted locally, excluded from Android backup, never synchronized, and never used for prediction or learning. Android-marked sensitive clips are never saved to history. Per-app clipboard policy is controlled from the Clipboard panel.</string>
+    <string name="keyboard_settings_clear_clipboard_history">Clear clipboard history</string>
     <string name="keyboard_settings_more_section">More</string>
     <string name="keyboard_settings_dictionary_summary">The built-in local dictionary keeps the GoreeCloud frequency lexicon first and adds 46,691 packaged English words in corpus-frequency order for broader local suggestions, correction, and swipe typing. Optional learned language data is stored separately.</string>
     <string name="keyboard_settings_learn_from_typing">Learn from what you type</string>

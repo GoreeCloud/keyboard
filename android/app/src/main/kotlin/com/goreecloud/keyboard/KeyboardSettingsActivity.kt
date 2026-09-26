@@ -227,6 +227,67 @@ class KeyboardSettingsActivity : Activity() {
         }
         root.addView(dictionaryCard, matchWidth().apply { bottomMargin = dp(22) })
 
+        root.addView(sectionLabel(getString(R.string.keyboard_settings_clipboard_section)), matchWidth())
+        val clipboardPreferences = KeyboardClipboardPreferences(this)
+        val clipboardHistoryStore = EncryptedClipboardHistoryStore(this)
+        val clipboardCard = card().apply {
+            addView(
+                settingRow(
+                    title = getString(R.string.keyboard_settings_clipboard_history),
+                    summary = getString(R.string.keyboard_settings_clipboard_history_summary),
+                    checked = clipboardPreferences.historyEnabled(),
+                    onChecked = clipboardPreferences::setHistoryEnabled,
+                ),
+                matchWidth(),
+            )
+            addDivider()
+
+            addView(
+                TextView(this@KeyboardSettingsActivity).apply {
+                    text = getString(R.string.keyboard_settings_clipboard_retention)
+                    textSize = 17f
+                    setTextColor(palette.onSurfaceArgb)
+                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                },
+                matchWidth(),
+            )
+            addView(
+                TextView(this@KeyboardSettingsActivity).apply {
+                    text = getString(R.string.keyboard_settings_clipboard_retention_summary)
+                    textSize = 14f
+                    setTextColor(palette.onSurfaceMutedArgb)
+                    setPadding(0, dp(5), 0, dp(14))
+                },
+                matchWidth(),
+            )
+            addView(
+                buildClipboardRetentionSegment(
+                    selected = clipboardPreferences.retention(),
+                    onSelected = clipboardPreferences::setRetention,
+                ),
+                matchWidth(),
+            )
+
+            addDivider()
+            addView(
+                TextView(this@KeyboardSettingsActivity).apply {
+                    text = getString(R.string.keyboard_settings_clipboard_privacy_note)
+                    textSize = 13.5f
+                    setTextColor(palette.onSurfaceMutedArgb)
+                    setPadding(0, 0, 0, dp(10))
+                },
+                matchWidth(),
+            )
+            addView(
+                actionButton(
+                    label = getString(R.string.keyboard_settings_clear_clipboard_history),
+                    onClick = clipboardHistoryStore::clearAll,
+                ),
+                matchWidth(),
+            )
+        }
+        root.addView(clipboardCard, matchWidth().apply { bottomMargin = dp(22) })
+
         root.addView(sectionLabel(getString(R.string.keyboard_settings_more_section)), matchWidth())
 
         root.addView(actionButton(
@@ -407,6 +468,68 @@ class KeyboardSettingsActivity : Activity() {
         buttons.forEach { (option, item) ->
             item.setOnClickListener {
                 settingsStore.setToolbarStyle(option)
+                refresh(option)
+            }
+        }
+        refresh(selected)
+        return container
+    }
+
+    private fun buildClipboardRetentionSegment(
+        selected: ClipboardRetention,
+        onSelected: (ClipboardRetention) -> Unit,
+    ): LinearLayout {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            background = roundedDrawable(palette.canvasArgb, palette.lineArgb, 16)
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+        }
+        val buttons = linkedMapOf<ClipboardRetention, TextView>()
+        ClipboardRetention.entries.forEach { option ->
+            val label = when (option) {
+                ClipboardRetention.TEN_MINUTES ->
+                    getString(R.string.keyboard_settings_clipboard_retention_10m)
+                ClipboardRetention.ONE_HOUR ->
+                    getString(R.string.keyboard_settings_clipboard_retention_1h)
+                ClipboardRetention.ONE_DAY ->
+                    getString(R.string.keyboard_settings_clipboard_retention_24h)
+            }
+            val item = TextView(this).apply {
+                text = label
+                gravity = Gravity.CENTER
+                textSize = 14f
+                minHeight = dp(44)
+                isClickable = true
+                isFocusable = true
+                contentDescription = label
+            }
+            buttons[option] = item
+            container.addView(
+                item,
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    if (option != ClipboardRetention.ONE_DAY) marginEnd = dp(4)
+                },
+            )
+        }
+        fun refresh(value: ClipboardRetention) {
+            buttons.forEach { (option, item) ->
+                val selectedNow = option == value
+                item.setTextColor(if (selectedNow) Color.WHITE else palette.onSurfaceArgb)
+                item.typeface = Typeface.create(
+                    "sans-serif-medium",
+                    if (selectedNow) Typeface.BOLD else Typeface.NORMAL,
+                )
+                item.background = if (selectedNow) {
+                    roundedDrawable(accentColor, null, 12)
+                } else {
+                    roundedDrawable(Color.TRANSPARENT, null, 12)
+                }
+                item.isSelected = selectedNow
+            }
+        }
+        buttons.forEach { (option, item) ->
+            item.setOnClickListener {
+                onSelected(option)
                 refresh(option)
             }
         }

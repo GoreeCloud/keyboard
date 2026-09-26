@@ -28,6 +28,20 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private val packagedEnglishDictionary by lazy { PackagedEnglishDictionary(this) }
     private val settingsStore by lazy { KeyboardSettingsStore(this) }
     private val learningStore by lazy { KeyboardLearningStore(this) }
+    private val clipboardPreferences by lazy { KeyboardClipboardPreferences(this) }
+    private val clipboardHistoryStore by lazy { EncryptedClipboardHistoryStore(this) }
+    private val clipboardController by lazy {
+        KeyboardClipboardController(
+            context = this,
+            preferences = clipboardPreferences,
+            historyStore = clipboardHistoryStore,
+        ).also { controller ->
+            controller.onChanged = {
+                clipboardPanelView?.render(controller.snapshot())
+            }
+        }
+    }
+    private var clipboardPanelView: KeyboardClipboardPanelView? = null
     private var typingSettings = KeyboardTypingSettings()
     private val composingWord = StringBuilder()
     private val committedHistory = mutableListOf<String>()
@@ -87,6 +101,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         beginEditorSession(info)
+        clipboardController.onInputViewVisible()
         currentLayer = KeyboardLayer.LETTERS
         keyboardView?.setLayer(currentLayer)
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
@@ -104,11 +119,15 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onFinishInput() {
+        clipboardController.onInputViewHidden()
+        closeClipboardPanel(restoreKeyboard = false)
         super.onFinishInput()
         resetEditorSession()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        clipboardController.onInputViewHidden()
+        closeClipboardPanel(restoreKeyboard = false)
         super.onFinishInputView(finishingInput)
         resetEditorSession()
     }
@@ -121,6 +140,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         committedHistory.clear()
         sentenceStartPending = false
         presentedSuggestions = emptyList()
+        clipboardController.onInputViewHidden()
+        closeClipboardPanel(restoreKeyboard = false)
         keyboardView = null
         super.onDestroy()
     }
@@ -357,6 +378,77 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         updateSuggestions()
     }
 
+    override fun onOpenClipboard() {
+        pendingSwipeCorrection = null
+        pendingPhraseRewrite = null
+        clearComposingBoundary()
+        presentedSuggestions = emptyList()
+        keyboardView?.setSuggestions(emptyList())
+
+        val panel = KeyboardClipboardPanelView(
+            context = this,
+            callbacks = KeyboardClipboardPanelView.Callbacks(
+                onClose = { closeClipboardPanel() },
+                onPaste = ::pasteClipboardEntry,
+                onTogglePin = { id ->
+                    clipboardController.togglePin(id)
+                    clipboardPanelView?.render(clipboardController.snapshot())
+                },
+                onDelete = { id ->
+                    clipboardController.delete(id)
+                    clipboardPanelView?.render(clipboardController.snapshot())
+                },
+                onClearUnpinned = {
+                    clipboardController.clearUnpinned()
+                    clipboardPanelView?.render(clipboardController.snapshot())
+                },
+                onHistoryEnabledChanged = { enabled ->
+                    clipboardController.setHistoryEnabled(enabled)
+                    clipboardPanelView?.render(clipboardController.openSnapshot())
+                },
+                onPolicyChanged = { policy ->
+                    clipboardController.setCurrentAppPolicy(policy)
+                    clipboardPanelView?.render(clipboardController.openSnapshot())
+                },
+            ),
+        )
+        clipboardPanelView = panel
+        panel.render(clipboardController.openSnapshot())
+        setInputView(panel)
+    }
+
+    private fun pasteClipboardEntry(id: String, pasteOnce: Boolean) {
+        val text = clipboardController.consume(id, pasteOnce) ?: return
+        currentInputConnection?.commitText(text, 1)
+
+        // Clipboard payloads never enter learning, correction, prediction, or transient history.
+        composingWord.clear()
+        committedHistory.clear()
+        composingStartsCapitalized = false
+        composingCaptureExhausted = false
+        sentenceStartPending = false
+        presentedSuggestions = emptyList()
+        pendingSwipeCorrection = null
+        pendingPhraseRewrite = null
+        clipboardPanelView?.render(clipboardController.snapshot())
+    }
+
+    private fun closeClipboardPanel(restoreKeyboard: Boolean = true) {
+        val panel = clipboardPanelView ?: return
+        clipboardPanelView = null
+        clipboardController.closePanel()
+        panel.removeAllViews()
+
+        if (!restoreKeyboard) return
+        keyboardView?.let { keyboard ->
+            setInputView(keyboard)
+            currentLayer = KeyboardLayer.LETTERS
+            keyboard.setLayer(currentLayer)
+            refreshAutomaticShift()
+            updateSuggestions()
+        }
+    }
+
     override fun onOpenSettings() {
         startActivity(
             Intent(this, KeyboardSettingsActivity::class.java)
@@ -426,6 +518,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             editorSuppressesLanguageAssistance = true
             editorProhibitsPersonalizedLearning = true
             suggestionsSuppressed = true
+            clipboardController.updateEditor(packageName = null, sensitive = true)
             keyboardView?.setNumberRowVisible(
                 KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput),
             )
@@ -447,6 +540,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             !EditorSuggestionPolicy.shouldSuppressGestureTyping(inputType) &&
                 typingSettings.swipeTypingEnabled,
         )
+        clipboardController.updateEditor(
+            packageName = info.packageName,
+            sensitive = sensitiveInput,
+        )
     }
 
     private fun resetEditorSession() {
@@ -464,6 +561,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
         pendingSwipeCorrection = null
+        pendingPhraseRewrite = null
+        clipboardController.updateEditor(packageName = null, sensitive = true)
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setShifted(false)
         keyboardView?.setSwipeTypingEnabled(false)
