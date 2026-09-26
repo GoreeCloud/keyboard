@@ -119,6 +119,30 @@ class SuggestionEngineTest {
     }
 
     @Test
+    fun builtInDictionaryKnowsModernKeyboardVocabulary() {
+        val result = engine.suggest(
+            prefix = "ico",
+            dictionary = QuillLexicon.expandedEnglish,
+            limit = 3,
+        )
+
+        assertEquals("icon", result.first())
+    }
+
+    @Test
+    fun contextCanPromoteARelevantCompletion() {
+        val result = engine.suggest(
+            prefix = "set",
+            dictionary = listOf("set", "setting", "settings", "settle"),
+            contextualPredictions = listOf("settings"),
+            limit = 3,
+        )
+
+        assertEquals("set", result.first())
+        assertEquals("settings", result[1])
+    }
+
+    @Test
     fun returnsNothingForNonPositiveLimit() {
         assertEquals(emptyList<String>(), engine.suggest("go", listOf("good"), limit = 0))
     }
