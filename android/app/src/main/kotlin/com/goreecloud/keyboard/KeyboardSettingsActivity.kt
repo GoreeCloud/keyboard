@@ -56,18 +56,6 @@ class KeyboardSettingsActivity : Activity() {
             setPadding(dp(20), dp(22), dp(20), dp(28))
             setBackgroundColor(palette.canvasArgb)
         }
-        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(
-                dp(20) + bars.left,
-                dp(22) + bars.top,
-                dp(20) + bars.right,
-                dp(28) + bars.bottom,
-            )
-            insets
-        }
-        ViewCompat.requestApplyInsets(root)
-
         root.addView(buildHeader(), matchWidth())
         root.addView(sectionLabel(getString(R.string.keyboard_settings_typing_section)), matchWidth())
 
@@ -276,7 +264,7 @@ class KeyboardSettingsActivity : Activity() {
             )
             ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
                 val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                view.setPadding(0, bars.top, 0, bars.bottom)
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
                 insets
             }
             ViewCompat.requestApplyInsets(this)
