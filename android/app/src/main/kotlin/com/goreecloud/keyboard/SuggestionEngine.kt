@@ -122,10 +122,56 @@ class SuggestionEngine {
         if (best.score > AUTOCORRECT_MAX_SCORE) return null
 
         val runnerUp = corrections.getOrNull(1)
-        if (runnerUp != null && runnerUp.score - best.score < AUTOCORRECT_SCORE_MARGIN) {
+        val requiredMargin = autocorrectScoreMargin(
+            typed = normalized,
+            best = best,
+            runnerUp = runnerUp,
+        )
+        if (runnerUp != null && runnerUp.score - best.score < requiredMargin) {
             return null
         }
         return best.candidate.word
+    }
+
+    /**
+     * Keep the default ambiguity margin conservative, but allow a clearly higher-frequency
+     * everyday word to win a single adjacent-key substitution when the lower-frequency runner-up
+     * is far behind in dictionary rank. This covers physical slips such as bjt -> but without
+     * weakening the guard for genuinely close alternatives.
+     */
+    private fun autocorrectScoreMargin(
+        typed: String,
+        best: ScoredCandidate,
+        runnerUp: ScoredCandidate?,
+    ): Double {
+        if (runnerUp == null) return 0.0
+
+        val rankAdvantage = runnerUp.candidate.rank - best.candidate.rank
+        val highConfidenceCommonSlip =
+            best.distance == 1 &&
+                best.candidate.rank <= COMMON_WORD_RANK_CEILING &&
+                rankAdvantage >= COMMON_WORD_RANK_ADVANTAGE &&
+                isSingleNeighborSubstitution(typed, best.candidate.normalized)
+
+        return if (highConfidenceCommonSlip) {
+            COMMON_WORD_AUTOCORRECT_SCORE_MARGIN
+        } else {
+            AUTOCORRECT_SCORE_MARGIN
+        }
+    }
+
+    private fun isSingleNeighborSubstitution(typed: String, candidate: String): Boolean {
+        val left = typed.codePoints().toArray()
+        val right = candidate.codePoints().toArray()
+        if (left.size != right.size) return false
+
+        var substitutions = 0
+        for (index in left.indices) {
+            if (left[index] == right[index]) continue
+            substitutions += 1
+            if (substitutions > 1 || !areNeighborKeys(left[index], right[index])) return false
+        }
+        return substitutions == 1
     }
 
     private fun scoreCandidate(
@@ -460,6 +506,9 @@ class SuggestionEngine {
 
         const val AUTOCORRECT_MAX_SCORE = 3.2
         const val AUTOCORRECT_SCORE_MARGIN = 0.28
+        const val COMMON_WORD_AUTOCORRECT_SCORE_MARGIN = 0.12
+        const val COMMON_WORD_RANK_CEILING = 160
+        const val COMMON_WORD_RANK_ADVANTAGE = 120
 
         val KEY_POINTS = buildMap {
             "qwertyuiop".forEachIndexed { index, character ->
