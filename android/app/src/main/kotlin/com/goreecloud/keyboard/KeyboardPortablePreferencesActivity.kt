@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
@@ -45,6 +47,19 @@ class KeyboardPortablePreferencesActivity : Activity() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
             )
         }
+
+        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val padding = dp(24)
+            view.setPadding(
+                padding + bars.left,
+                padding + bars.top,
+                padding + bars.right,
+                padding + bars.bottom,
+            )
+            insets
+        }
+        ViewCompat.requestApplyInsets(content)
 
         content.addView(TextView(this).apply {
             text = getString(R.string.portable_preferences_summary)
