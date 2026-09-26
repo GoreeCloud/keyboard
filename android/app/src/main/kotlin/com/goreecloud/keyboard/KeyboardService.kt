@@ -23,6 +23,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var keyboardView: KeyboardView? = null
     private val suggestionEngine = SuggestionEngine()
     private val swipeTypingEngine = SwipeTypingEngine()
+    private val packagedEnglishDictionary by lazy { PackagedEnglishDictionary(this) }
     private val settingsStore by lazy { KeyboardSettingsStore(this) }
     private val learningStore by lazy { KeyboardLearningStore(this) }
     private var typingSettings = KeyboardTypingSettings()
@@ -35,6 +36,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onCreateInputView(): View {
         typingSettings = settingsStore.load()
+        packagedEnglishDictionary.preload()
         return KeyboardView(this).also { view ->
             keyboardView = view
             view.listener = this
@@ -693,17 +695,19 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     private fun activeDictionary(): List<String> {
-        if (!personalizationAllowed()) return QuillLexicon.expandedEnglish
+        val builtIn = packagedEnglishDictionary.words
+        if (!personalizationAllowed()) return builtIn
         return buildList {
-            addAll(QuillLexicon.expandedEnglish)
+            addAll(builtIn)
             addAll(learningStore.learnedWords())
         }.distinctBy { it.lowercase() }
     }
 
     private fun activeSwipeDictionary(): List<String> {
-        if (!personalizationAllowed()) return QuillLexicon.swipeEnglish
+        val builtIn = packagedEnglishDictionary.words
+        if (!personalizationAllowed()) return builtIn
         return buildList {
-            addAll(QuillLexicon.swipeEnglish)
+            addAll(builtIn)
             addAll(learningStore.learnedWords())
         }.distinctBy { it.lowercase() }
     }
