@@ -147,6 +147,7 @@ class KeyboardView @JvmOverloads constructor(
     private var swipeDownX = 0f
     private var swipeDownY = 0f
     private var swipeDownTimeMs = 0L
+    private var lastLetterTapUpTimeMs = Long.MIN_VALUE
     private var touchDownHit: HitKey? = null
 
     init {
@@ -877,12 +878,29 @@ class KeyboardView @JvmOverloads constructor(
                         SWIPE_MIN_TRAVEL_DP * density,
                     )
                     val elapsedMs = event.eventTime - swipeDownTimeMs
+                    val recentFastTyping =
+                        lastLetterTapUpTimeMs != Long.MIN_VALUE &&
+                            swipeDownTimeMs - lastLetterTapUpTimeMs <= FAST_TYPING_GUARD_WINDOW_MS
+                    val requiredTravel = if (recentFastTyping) {
+                        max(threshold, SWIPE_RECENT_TYPING_MIN_TRAVEL_DP * density)
+                    } else {
+                        threshold
+                    }
+                    val requiredDuration = if (recentFastTyping) {
+                        SWIPE_RECENT_TYPING_MIN_GESTURE_MS
+                    } else {
+                        SWIPE_MIN_GESTURE_MS
+                    }
+                    val velocityDpPerMs =
+                        if (elapsedMs > 0L) travel / density / elapsedMs.toFloat()
+                        else 0f
                     val movedToDifferentLetter =
                         canParticipateInSwipe(hit) &&
                             hit!!.key.label.lowercase() != swipeKeyPath.firstOrNull()
                     if (
-                        travel >= threshold &&
-                        elapsedMs >= SWIPE_MIN_GESTURE_MS &&
+                        travel >= requiredTravel &&
+                        elapsedMs >= requiredDuration &&
+                        velocityDpPerMs >= SWIPE_MIN_VELOCITY_DP_PER_MS &&
                         movedToDifferentLetter
                     ) {
                         swipeGestureActive = true
@@ -995,6 +1013,14 @@ class KeyboardView @JvmOverloads constructor(
         }
         touchDownHit = null
         val hit = exactHit ?: fallbackHit ?: return true
+        if (
+            layer == KeyboardLayer.LETTERS &&
+            hit.key.action == Action.TEXT &&
+            hit.key.label.length == 1 &&
+            hit.key.label[0].lowercaseChar() in 'a'..'z'
+        ) {
+            lastLetterTapUpTimeMs = event.eventTime
+        }
         return activateKey(hit)
     }
 
@@ -1260,6 +1286,10 @@ class KeyboardView @JvmOverloads constructor(
         const val SWIPE_START_SLOP_MULTIPLIER = 2.0f
         const val SWIPE_MIN_TRAVEL_DP = 20f
         const val SWIPE_MIN_GESTURE_MS = 55L
+        const val SWIPE_RECENT_TYPING_MIN_GESTURE_MS = 82L
+        const val FAST_TYPING_GUARD_WINDOW_MS = 240L
+        const val SWIPE_RECENT_TYPING_MIN_TRAVEL_DP = 32f
+        const val SWIPE_MIN_VELOCITY_DP_PER_MS = 0.22f
         const val SWIPE_MIN_PATH_KEYS = 3
         const val SWIPE_TOUCH_SAMPLE_DP = 3.5f
         val DIGIT_ROW = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
