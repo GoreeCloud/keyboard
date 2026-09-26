@@ -1,6 +1,6 @@
 # Spacebar cursor control — Development
 
-GoreeCloud Keyboard 0.1.13-dev introduced the bounded horizontal cursor-control implementation from the rendered Space key, and the 0.1.14-dev stabilization candidate retains it unchanged while focusing on dictionary, swipe-quality, and touch reliability. It is a GoreeCloud-owned reimplementation of the earlier Draft PR #63/#64 design adapted to the current PR #97 runtime and settings architecture.
+GoreeCloud Keyboard 0.1.13-dev introduced the bounded horizontal cursor-control implementation from the rendered Space key, and the 0.1.15-dev stabilization candidate retains it unchanged while focusing on dictionary ranking, rapid-typing responsiveness, swipe quality, and touch reliability. It is a GoreeCloud-owned reimplementation of the earlier Draft PR #63/#64 design adapted to the current PR #97 runtime and settings architecture.
 
 ## Behavior
 
