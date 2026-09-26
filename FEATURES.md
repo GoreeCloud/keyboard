@@ -41,7 +41,8 @@
 - A bounded GLAZE UI V1.6 presentation-context layer accepted through PR #73, using Android font scale, animator enablement, and touch-exploration signals without relabeling the V1.2 optical substrate as V1.6-complete.
 - Touch Assistance keeps the 56 dp interaction floor for candidate/alternate targets. The current five-row letters layout requests 320 dp ordinary preferred height and 364 dp Touch Assistance preferred height while Android retains final measurement authority.
 - Platform Contract 0.4 declaration with current repository identity `GoreeCloud/keyboard` and all nine Integral Platform Systems represented.
-- No Android network permission in the current foundation; emoji recents, emoji search, suggestions, alternates, and portable preferences do not synchronize or emit telemetry.
+- No Android network permission in the current foundation; emoji recents, emoji search, suggestions, alternates, portable preferences, and the 0.1.20 Draft clipboard surface do not synchronize or emit telemetry.
+- Draft PR #97 / 0.1.20-dev adds a first-party Clipboard toolbar action and Keyboard-side panel with deliberate paste, Paste Once, opt-in Android-Keystore-encrypted device-local history, pin/unpin, delete, clear-unpinned, bounded expiration, per-app Allow/Ask/Paste-only/Block policy, and Android-sensitive non-persistence. Clipboard payloads are excluded from backup, portable preferences, language learning, and suggestion/prediction context. Privileged system-wide Secure Paste enforcement remains unimplemented.
 - Unit, build, governance, and Android emulator validation paths covering registration, privacy lifecycle, Unicode deletion, suggestion authority, emoji search, portable preference boundaries, Glaze UI mapping/context, accessibility, and native interaction.
 
 ## Development / acceptance work still required
@@ -65,7 +66,7 @@
 - Stronger local prediction/correction and user/language dictionaries.
 - Multilingual input and language switching.
 - User-controlled personalization and learned-language features where separately approved.
-- GoreeCloud Secure Paste and other clipboard tools with explicit Privacy Shield and privileged-platform enforcement boundaries.
+- Privileged GoreeCloud Secure Paste Broker integration and system-wide cross-application enforcement beyond the implemented 0.1.20 Draft Keyboard-side clipboard controls.
 - Optional voice input/adapters where platform, privacy, and security policies permit.
 - One-handed, split, tablet, foldable, and posture-aware keyboard experiences.
 - Richer emoji, symbol, kaomoji, and specialized input discovery.

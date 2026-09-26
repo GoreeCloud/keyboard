@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Draft PR #97 Keyboard-side Clipboard, contraction repair, and compound guidance / 0.1.20-dev
+- Adds a real first-party **Clipboard** toolbar action and rounded-outline Clipboard glyph; the toolbar now exposes only implemented Emoji, Clipboard, and Settings actions.
+- Adds an IME-local Clipboard panel with user-mediated direct-text paste, **Paste Once**, pin/unpin, delete, clear-unpinned history, and explicit current-app **Allow / Ask / Paste only / Block** controls. The default Ask state requires **Allow once** before Keyboard reads the current clipboard for that app session.
+- Adds opt-in device-local clipboard history bounded to 24 non-sensitive text entries. Persisted payloads are AES-GCM encrypted with an Android Keystore key; unpinned entries expire after the selected 10-minute, 1-hour, or 24-hour window. Android-marked sensitive clips are never persisted and are exposed only through Paste Once.
+- Keeps clipboard payloads outside Quill suggestions/correction/prediction, optional language learning, portable preference export, Android backup, synchronization, Identity/Mesh state, telemetry, and network access. Direct Clipboard reads accept text only and do not coerce content URIs or launch intents.
+- Documents the authority boundary: this Keyboard-side implementation does **not** provide the future privileged GoreeCloud Secure Paste Broker and cannot revoke another application's Android clipboard API authority.
+- Records independent open-source research of HeliBoard, FlorisBoard, and AnySoftKeyboard at pinned revisions in `OPEN-SOURCE-RESEARCH.md`; no third-party clipboard source or assets were copied into the implementation.
+- Strengthens local language quality with broader contractions, keyboard-proximity disambiguation for contraction typos such as `csnt → can't`, one-edit missed-space recovery such as `helpcme → help me`, canonical first-party dictionary priority, and explicit common hyphenated-compound suggestions such as `up-to-date` and `built-in`.
+- Adds unit/runtime coverage for contraction repair, one-edit run-together recovery, compound-tail recognition, clipboard history retention/pinning, the accessible Clipboard toolbar action, Android-Keystore encrypted history round-trip/expiration, and Ask-state rendering.
+- Advances the side-by-side Development package to `versionCode 21` / `0.1.20-dev` / `com.goreecloud.keyboard.dev.v21`.
+- This remains Draft / Weave Development work. Exact-head CI, Android 15 IME/runtime validation, and representative physical-device clipboard/typing acceptance are still required before any merge or maturity claim.
+
 ### September 26, 2026 — Draft PR #97 rapid-tap isolation and missed-space recovery / 0.1.19-dev
 - Records representative-device 0.1.18 feedback: the version-bound Development label now renders correctly and company/brand swipe recognition improved, but sustained fast tap typing can still be promoted into swipe mode and run-together words remain difficult to recover.
 - Extracts swipe activation into a pure `SwipeIntentClassifier` so tap-versus-gesture evidence is independently regression-tested instead of being embedded only in `KeyboardView` thresholds.

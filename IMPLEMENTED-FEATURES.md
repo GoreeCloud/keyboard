@@ -84,6 +84,8 @@ Draft PR #78 (`stabilize/touch-assistance-gap-compression-20260921`) and older o
 
 ## Implemented-but-incomplete capability families
 
+Draft PR #97 / 0.1.20-dev adds a candidate-only Keyboard-side clipboard foundation: a real toolbar action and first-party panel; user-mediated current-text paste; Paste Once; opt-in bounded local text history encrypted with an Android Keystore AES-GCM key; expiration; pin/unpin; delete; clear-unpinned; Android-sensitive non-persistence; and current-app Allow/Ask/Paste-only/Block policy. Clipboard payloads are excluded from backup, portable preference export, synchronization, prediction, correction, personalization, and learning. This is not accepted on authoritative `main` and does not establish the privileged Secure Paste Broker or system-wide cross-app enforcement.
+
 These foundations are implemented only for the bounded scope described above and retain open obligations in `PLANNED-FEATURES.md`:
 - local typing quality and correction;
 - emoji/symbol/alternate discovery;
