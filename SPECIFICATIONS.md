@@ -125,7 +125,7 @@ Keyboard may publish minimized operational/version/capability state to Manager w
 
 ### GoreeCloud Policy and Observability
 
-GoreeCloud Policy and GoreeCloud Observability are applicable under the current Platform Contract 0.4 model but remain blocked pending accepted integration. Policy must not manufacture privacy/security authority outside producer contracts. Observability must remain privacy-safe and must not collect typed text, editor contents, clipboard payloads, credentials, or hidden input history.
+GoreeCloud Policy and GoreeCloud Observability are applicable under the current Platform Contract 2.0 model but remain blocked pending accepted integration. Policy must not manufacture privacy/security authority outside producer contracts. Observability must remain privacy-safe and must not collect typed text, editor contents, clipboard payloads, credentials, or hidden input history.
 
 ## GLAZE UI / Design Center
 
