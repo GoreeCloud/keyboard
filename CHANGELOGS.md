@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Draft PR #97 unified functional iconography / 0.1.16-dev
+- Advanced the side-by-side Development package to `versionCode 17` / `0.1.16-dev` / `com.goreecloud.keyboard.dev.v17`; corrected the stale debug launcher label so the installed development app identifies itself as **GoreeCloud Keyboard Dev 0.1.16**.
+- Implemented a first-party shared functional glyph system for Shift, Backspace, Enter, Emoji, and Settings instead of mixing text symbols and unrelated custom icon styles.
+- Standardized the default glyph stroke family at 1.85 dp with round caps/joins, compact optical geometry, monochrome default presentation, and selected-state accent treatment.
+- Replaced the toolbar's previous settings-slider glyph with a compact first-party gear and refined the Emoji face to the same optical/stroke family.
+- Changed the default icons-only toolbar so controls sit directly on the quiet Glaze toolbar surface rather than each receiving a permanent filled pill; pressed state remains a temporary soft surface treatment.
+- Preserved the full 48 dp interaction row behind compact 40 dp visual icon containers so the lighter visual treatment does not shrink touch or accessibility targets.
+- Added a dedicated repository design record at `docs/development/functional-iconography.md`, grounded in the owner-provided contemporary Android keyboard reference and current GLAZE UI V1.6 inherited functional-icon rules.
+- Added Android runtime coverage for functional-glyph geometry and toolbar interaction-floor preservation.
+- No inactive Clipboard, GIF, voice, translation, handwriting, or plugin controls were added. The toolbar continues to expose only real implemented Emoji and Settings actions.
+- This remains Draft / Weave Development work pending fresh exact-head source/build/emulator validation and representative physical-device visual/ergonomic review.
+
 ### September 26, 2026 — Draft PR #97 frequency ranking and rapid-typing responsiveness / 0.1.15-dev
 - Advanced the side-by-side Development package to `versionCode 16` / `0.1.15-dev` / `com.goreecloud.keyboard.dev.v16`.
 - Replaced the interim 0.1.14 alphabetical Moby fallback with a 46,691-word supplement derived from FrequencyWords `content/2018/en/en_50k.txt` at exact revision `525f9b560de45753a5ea01069454e72e9aa541c6` / blob `bbf5fa991058ff642732784b31af023f66462e1d`.
