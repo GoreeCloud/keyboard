@@ -43,6 +43,10 @@ internal class SwipeTypingEngine {
     private var cachedDictionary: Collection<String>? = null
     private var cachedIndex: SwipeDictionaryIndex? = null
 
+    fun preload(dictionary: Collection<String>) {
+        indexFor(dictionary)
+    }
+
     fun decode(
         gesture: SwipeGesture,
         dictionary: Collection<String>,
