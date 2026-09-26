@@ -25,6 +25,16 @@ GoreeCloud Keyboard is distributed under the repository's GNU AGPL-3.0 license. 
 
 The Apache-2.0 license text used by these references is preserved at `LICENSES/Apache-2.0.txt`.
 
+## Moby Words II public-domain English fallback lexicon
+
+- Project: Moby Words II by Grady Ward
+- Source mirror: `fordsfords/moby_words_2`
+- Exact source revision: `b84076e29e6a4c686e36c259df5ffe10bafbdaed`
+- Source file/blob: `common.txt` / `c5ce15eb98035e4d2ea05aefac10c499c1260d37`
+- Upstream status: the original Moby Words II content is expressly released into the public domain; the mirror states its formatting-only modifications are dedicated under CC0 1.0.
+- GoreeCloud use: the build imports only unique lowercase ASCII alphabetic entries of 2–24 characters from `common.txt`, producing 46,855 packaged fallback words. GoreeCloud's own ordered Quill lexicon remains first in ranking; the Moby data extends lexical coverage for local suggestions, spelling correction, and swipe decoding.
+- Privacy boundary: the bundled list is static local application data. It adds no network permission, telemetry, account dependency, remote lookup, or typed-text collection.
+
 ## Android Open Source Project LatinIME
 
 - Project: AOSP LatinIME
