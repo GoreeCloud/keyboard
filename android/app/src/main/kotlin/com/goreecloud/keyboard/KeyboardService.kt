@@ -539,6 +539,32 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             candidate
         }
 
+    private fun synchronizeComposingWordFromEditor(): String {
+        if (!languageCaptureAllowed()) return composingWord.toString()
+
+        val beforeCursor = currentInputConnection
+            ?.getTextBeforeCursor(CURRENT_WORD_LOOKBEHIND_UTF16, 0)
+            ?: return composingWord.toString()
+        if (beforeCursor.isEmpty()) return composingWord.toString()
+
+        val editorWord = EditorContextParser.currentWordBeforeCursor(beforeCursor)
+        if (editorWord == null) {
+            composingWord.clear()
+            composingStartsCapitalized = false
+            return ""
+        }
+
+        val normalized = editorWord.lowercase().replace('’', '\'')
+        if (normalized != composingWord.toString()) {
+            composingWord.clear()
+            composingWord.append(normalized)
+            composingStartsCapitalized =
+                editorWord.codePointAt(0).let { Character.isUpperCase(it) }
+            composingCaptureExhausted = false
+        }
+        return composingWord.toString()
+    }
+
     private fun updateSuggestions() {
         if (
             sensitiveInput ||
@@ -550,14 +576,15 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             return
         }
 
+        val synchronizedPrefix = synchronizeComposingWordFromEditor()
         val contextHistory = transientContextHistory(
-            excludeCurrentComposingWord = composingWord.isNotEmpty(),
+            excludeCurrentComposingWord = synchronizedPrefix.isNotEmpty(),
         )
 
         presentedSuggestions = when {
-            composingWord.isNotEmpty() && typingSettings.suggestionsEnabled ->
+            synchronizedPrefix.isNotEmpty() && typingSettings.suggestionsEnabled ->
                 suggestionEngine.suggest(
-                    prefix = composingWord.toString(),
+                    prefix = synchronizedPrefix,
                     dictionary = activeDictionary(),
                     contextualPredictions = contextualPredictions(contextHistory, limit = 8),
                 ).map(::formatCandidateCase)
@@ -574,16 +601,16 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private fun activeDictionary(): List<String> {
         if (!personalizationAllowed()) return QuillLexicon.expandedEnglish
         return buildList {
-            addAll(learningStore.learnedWords())
             addAll(QuillLexicon.expandedEnglish)
+            addAll(learningStore.learnedWords())
         }.distinctBy { it.lowercase() }
     }
 
     private fun activeSwipeDictionary(): List<String> {
         if (!personalizationAllowed()) return QuillLexicon.swipeEnglish
         return buildList {
-            addAll(learningStore.learnedWords())
             addAll(QuillLexicon.swipeEnglish)
+            addAll(learningStore.learnedWords())
         }.distinctBy { it.lowercase() }
     }
 
@@ -597,7 +624,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             emptyList()
         }
         val builtIn = contextualPredictions(contextHistory, limit = maxOf(limit, 8))
-        return (learned + builtIn)
+        return (builtIn + learned)
             .distinctBy { it.lowercase() }
             .take(limit)
     }
@@ -606,12 +633,10 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         contextHistory: List<String>,
         limit: Int,
     ): List<String> =
-        (
-            QuillGrammarModel.predict(contextHistory, limit = maxOf(limit, 8)) +
-                QuillPredictionModel.predict(contextHistory, limit = maxOf(limit, 8))
+        QuillPredictionModel.predict(
+            committedHistory = contextHistory,
+            limit = limit,
         )
-            .distinctBy { it.lowercase() }
-            .take(limit)
 
     private fun transientContextHistory(
         excludeCurrentComposingWord: Boolean = false,
@@ -692,6 +717,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private companion object {
         const val BACKSPACE_LOOKBEHIND_UTF16 = 64
         const val EDITOR_CONTEXT_LOOKBEHIND_UTF16 = 160
+        const val CURRENT_WORD_LOOKBEHIND_UTF16 = 64
         const val MAX_CONTEXT_WORDS = 4
         const val MAX_PREDICTION_HISTORY_WORDS = 2
         const val SWIPE_DECODE_CANDIDATE_POOL = 12
