@@ -40,6 +40,9 @@ data class SwipeGesture(
  * fallback and unit-test surface.
  */
 internal class SwipeTypingEngine {
+    private var cachedDictionary: Collection<String>? = null
+    private var cachedIndex: SwipeDictionaryIndex? = null
+
     fun decode(
         gesture: SwipeGesture,
         dictionary: Collection<String>,
@@ -86,17 +89,14 @@ internal class SwipeTypingEngine {
             count = END_KEY_CANDIDATES,
         )
 
-        val physicalCandidates = dictionary.asSequence()
-            .filter { it.isNotBlank() }
-            .distinctBy { it.lowercase() }
-            .withIndex()
+        val physicalCandidates = indexedCandidates(
+            dictionary = dictionary,
+            likelyStarts = likelyStarts,
+            likelyEnds = likelyEnds,
+        ).asSequence()
             .mapNotNull { indexed ->
-                val word = indexed.value
-                val wordLabels = normalizedWordTrace(word)
-                if (wordLabels.size < MIN_TRACE_KEYS) return@mapNotNull null
-                if (wordLabels.first() !in likelyStarts || wordLabels.last() !in likelyEnds) {
-                    return@mapNotNull null
-                }
+                val word = indexed.word
+                val wordLabels = indexed.labels
 
                 val variants = idealGestureVariants(word, centers, scale)
                 if (variants.isEmpty()) return@mapNotNull null
@@ -152,7 +152,7 @@ internal class SwipeTypingEngine {
                     val sequencePenalty =
                         sequenceDistance(traceLabels, wordLabels) * SEQUENCE_DISTANCE_WEIGHT
                     val rankPenalty =
-                        ln(indexed.index.toDouble() + 2.0) * FREQUENCY_LOG_WEIGHT
+                        ln(indexed.rank.toDouble() + 2.0) * FREQUENCY_LOG_WEIGHT
                     val endpointPenalty =
                         startDistance * START_ENDPOINT_WEIGHT +
                             endDistance * END_ENDPOINT_WEIGHT
@@ -177,7 +177,7 @@ internal class SwipeTypingEngine {
                 SwipeCandidate(
                     word = word,
                     score = bestScore,
-                    rank = indexed.index,
+                    rank = indexed.rank,
                 )
             }
             .sortedWith(
@@ -224,17 +224,14 @@ internal class SwipeTypingEngine {
             END_KEY_CANDIDATES,
         )
 
-        return dictionary.asSequence()
-            .filter { it.isNotBlank() }
-            .distinctBy { it.lowercase() }
-            .withIndex()
+        return indexedCandidates(
+            dictionary = dictionary,
+            likelyStarts = likelyStarts,
+            likelyEnds = likelyEnds,
+        ).asSequence()
             .mapNotNull { indexed ->
-                val word = indexed.value
-                val wordLabels = normalizedWordTrace(word)
-                if (wordLabels.size < MIN_TRACE_KEYS) return@mapNotNull null
-                if (wordLabels.first() !in likelyStarts || wordLabels.last() !in likelyEnds) {
-                    return@mapNotNull null
-                }
+                val word = indexed.word
+                val wordLabels = indexed.labels
 
                 val wordPoints = wordLabels.mapNotNull(::pointFor)
                 if (wordPoints.size != wordLabels.size) return@mapNotNull null
@@ -264,7 +261,7 @@ internal class SwipeTypingEngine {
                 val lengthPenalty =
                     abs(wordLabels.size - traceLabels.size) * FALLBACK_LENGTH_WEIGHT
                 val frequencyPenalty =
-                    ln(indexed.index.toDouble() + 2.0) * FALLBACK_FREQUENCY_WEIGHT
+                    ln(indexed.rank.toDouble() + 2.0) * FALLBACK_FREQUENCY_WEIGHT
 
                 SwipeCandidate(
                     word = word,
@@ -277,7 +274,7 @@ internal class SwipeTypingEngine {
                             sequencePenalty +
                             lengthPenalty +
                             frequencyPenalty,
-                    rank = indexed.index,
+                    rank = indexed.rank,
                 )
             }
             .sortedWith(
@@ -288,6 +285,47 @@ internal class SwipeTypingEngine {
             .take(limit)
             .map { it.word }
             .toList()
+    }
+
+    private fun indexedCandidates(
+        dictionary: Collection<String>,
+        likelyStarts: Set<String>,
+        likelyEnds: Set<String>,
+    ): List<IndexedSwipeWord> {
+        val index = indexFor(dictionary)
+        val result = ArrayList<IndexedSwipeWord>()
+        likelyStarts.forEach { start ->
+            likelyEnds.forEach { end ->
+                index.byEndpoints[start to end]?.let(result::addAll)
+            }
+        }
+        return result.sortedBy { it.rank }
+    }
+
+    private fun indexFor(dictionary: Collection<String>): SwipeDictionaryIndex {
+        val current = cachedIndex
+        if (cachedDictionary === dictionary && current != null) return current
+
+        val seen = HashSet<String>()
+        val byEndpoints = LinkedHashMap<Pair<String, String>, MutableList<IndexedSwipeWord>>()
+        dictionary.forEachIndexed { rank, word ->
+            if (word.isBlank()) return@forEachIndexed
+            val normalized = word.lowercase()
+            if (!seen.add(normalized)) return@forEachIndexed
+            val labels = normalizedWordTrace(word)
+            if (labels.size < MIN_TRACE_KEYS) return@forEachIndexed
+            byEndpoints.getOrPut(labels.first() to labels.last()) { mutableListOf() } +=
+                IndexedSwipeWord(
+                    word = word,
+                    labels = labels,
+                    rank = rank,
+                )
+        }
+
+        return SwipeDictionaryIndex(byEndpoints = byEndpoints).also { index ->
+            cachedDictionary = dictionary
+            cachedIndex = index
+        }
     }
 
     private fun normalizeTrace(keyPath: List<String>): List<String> {
@@ -642,6 +680,16 @@ internal class SwipeTypingEngine {
     private fun pointFor(label: String): Point? = KEY_POINTS[label]
 
     private data class Point(val x: Double, val y: Double)
+
+    private data class IndexedSwipeWord(
+        val word: String,
+        val labels: List<String>,
+        val rank: Int,
+    )
+
+    private data class SwipeDictionaryIndex(
+        val byEndpoints: Map<Pair<String, String>, List<IndexedSwipeWord>>,
+    )
 
     private data class SwipeCandidate(
         val word: String,
