@@ -18,8 +18,10 @@
 - Fail-closed handling when bounded ordinary-field look-behind may begin inside a larger text unit; sensitive fields retain the stricter no-look-behind path.
 - Local-only GoreeCloud Quill suggestion boundary with an ordinary-text one-to-three candidate contract.
 - Frequency-ordered prefix suggestions, expanded packaged English inflections, Unicode-aware typo-correction candidates, conservative automatic correction when a completed token is a confident one-edit misspelling, and typed-token fallback so a non-empty ordinary prefix always has at least one visible candidate.
-- A static device-local 46,855-word lowercase English fallback derived from the public-domain Moby Words II common-word list, appended after the first-party Quill frequency lexicon and used by suggestions, correction, and swipe decoding without network access or typed-text collection.
+- A static device-local 46,691-word lowercase English supplement derived from FrequencyWords/OpenSubtitles 2018, appended after the first-party Quill frequency lexicon in corpus-frequency order and used by suggestions, correction, and swipe decoding without network access or typed-text collection.
 - Cached suggestion indexes and start/end-bucketed swipe indexes so the expanded dictionary does not require an unrestricted whole-dictionary spelling/geometry pass on every ordinary keypress or swipe.
+- Per-key suggestion refresh coalescing so rapid typing can commit text immediately while language-assistance refresh work is bounded to a near-frame cadence instead of running synchronously after every letter.
+- Touch-up stabilization that preserves the key originally pressed when release drift remains within tap slop, reducing accidental adjacent-key commits on small finger movement.
 - Bounded transient suggestion capture that suppresses misleading mid-word recapture when complete context is no longer known.
 - Suggestion commit authority bound to the exact candidates currently presented for the active editor session rather than accepting arbitrary callback values.
 - Sensitive-editor privacy gating for suggestion capture/display/acceptance and text look-behind deletion logic.
