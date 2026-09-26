@@ -7,7 +7,7 @@ class QuillPredictionModelTest {
     @Test
     fun predictsBeforeTypingWithoutReadingEditorText() {
         assertEquals(
-            listOf("I", "The", "How"),
+            listOf("I", "I'm", "The"),
             QuillPredictionModel.predict(emptyList()),
         )
     }
@@ -25,6 +25,18 @@ class QuillPredictionModelTest {
         assertEquals(
             listOf("settings", "suggestions", "typing"),
             QuillPredictionModel.predict(listOf("GoreeCloud", "Keyboard")),
+        )
+    }
+
+    @Test
+    fun commonFunctionWordsReceiveUsefulFallbackContext() {
+        assertEquals(
+            listOf("the", "you"),
+            QuillPredictionModel.predict(listOf("for"), limit = 2),
+        )
+        assertEquals(
+            listOf("the", "you"),
+            QuillPredictionModel.predict(listOf("could"), limit = 2),
         )
     }
 
