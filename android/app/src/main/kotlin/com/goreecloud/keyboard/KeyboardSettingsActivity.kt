@@ -99,6 +99,8 @@ class KeyboardSettingsActivity : Activity() {
             addView(settingRow(getString(R.string.keyboard_settings_swipe), getString(R.string.keyboard_settings_swipe_summary), current.swipeTypingEnabled, settingsStore::setSwipeTypingEnabled), matchWidth())
             addDivider()
             addView(settingRow(getString(R.string.keyboard_settings_swipe_trail), getString(R.string.keyboard_settings_swipe_trail_summary), current.swipeTrailEnabled, settingsStore::setSwipeTrailEnabled), matchWidth())
+            addDivider()
+            addView(settingRow(getString(R.string.keyboard_settings_spacebar_cursor), getString(R.string.keyboard_settings_spacebar_cursor_summary), current.spacebarCursorControlEnabled, settingsStore::setSpacebarCursorControlEnabled), matchWidth())
         }
         root.addView(gestureCard, matchWidth().apply { bottomMargin = dp(22) })
 
