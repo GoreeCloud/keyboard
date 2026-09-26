@@ -35,6 +35,15 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Draft PR #97 continuous Backspace repeat candidate / 0.1.10-dev
+- Advanced the side-by-side Development package to `versionCode 11` / `0.1.10-dev` / `com.goreecloud.keyboard.dev.v11`.
+- Changed Backspace press behavior so one deletion occurs immediately on press, then deletion repeats continuously after a bounded hold delay until the finger is released.
+- Cancels held deletion on touch cancellation or when the finger moves outside the Backspace target plus normal touch slop, preventing runaway deletion after a drag-away.
+- Keeps each repeat on the existing Unicode-aware deletion path, so ordinary text deletes progressively while supported emoji/grapheme clusters continue to use the bounded safe deletion logic.
+- Added Android runtime coverage that verifies immediate Backspace response, repeated deletion while held, and prompt cessation after release.
+- Retains the 0.1.9 statistical swipe, prediction, grammar, dictionary, toolbar, settings, privacy, and FOSS-provenance improvements; representative physical-device acceptance remains required.
+- This entry describes the open Draft PR #97 candidate and is not accepted authoritative-main implementation until governed merge/readback and fresh exact-main validation occur.
+
 ### September 25, 2026 — Draft PR #97 FOSS-informed typing-quality candidate / 0.1.9-dev
 - Advanced the side-by-side Development package to `versionCode 10` / `0.1.9-dev` / `com.goreecloud.keyboard.dev.v10`.
 - Researched current free/open-source keyboard implementations including FlorisBoard/SwiftFloris, AnySoftKeyboard, AOSP LatinIME, and HeliBoard, and recorded source-reuse/license boundaries in `THIRD-PARTY-NOTICES.md`.
