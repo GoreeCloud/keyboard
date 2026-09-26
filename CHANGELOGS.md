@@ -35,6 +35,15 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Launcher crash recovery and dual-API first-run validation / 0.1.22-dev
+- Records representative-device rejection of 0.1.21 because **GoreeCloud Keyboard Dev 0.1.21** could stop immediately when the launcher/setup app opened.
+- Preserves the 0.1.21 IME-surface recovery, first-run preference wizard, expanded Clipboard manager, encrypted saved-clip editing, Pinned/Recent collections, and local smart-content detection while treating its physical-device launcher result as failed evidence.
+- Adds instrumentation that explicitly forces first-run setup state, launches `KeyboardSettingsActivity`, and requires the Activity to reach the resumed lifecycle state.
+- Adds an Android 12 / API 31 runtime lane that runs the Android instrumentation suite, explicitly launches the Development setup activity, verifies the app process remains alive, checks for a package-specific AndroidRuntime fatal exception, and verifies exact IME enable/select/default state. Android 15 runtime/IME validation remains required in parallel.
+- Makes setup's enabled/default IME status reads fail closed to **not enabled / not selected** if a vendor Android build rejects or fails the secure-settings read, instead of allowing that status check to terminate the setup app.
+- Advances the side-by-side Development package to `versionCode 23` / `0.1.22-dev` / `com.goreecloud.keyboard.dev.v23`.
+- This remains Draft / Weave Development work. Exact-head build/unit, Android 12 launcher/runtime, Android 15 runtime/IME, and fresh representative physical-device acceptance are all required before any merge or maturity claim.
+
 ### September 26, 2026 — Physical-device IME recovery, first-run setup, and expanded Clipboard / 0.1.21-dev
 - Records representative-device rejection of the 0.1.20 candidate because the installed keyboard could stop appearing; the prior 0.1.20 exact-head green CI evidence is retained as automated evidence only and is not physical-device acceptance.
 - Replaces auxiliary `InputMethodService.setInputView(...)` root swaps with a stable `KeyboardInputSurfaceHost`. Keyboard, Clipboard, and Clipboard-edit surfaces now swap inside one Android-owned IME root, and every new editor session explicitly restores the Keyboard surface.
