@@ -7,6 +7,8 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
@@ -126,6 +128,7 @@ class KeyboardView @JvmOverloads constructor(
     private val emojiRecents = EmojiRecents(initialValues = emojiRecentsStore.load())
     private val emojiSearchSession = EmojiSearchSession()
     private val accessibilityDelegate = KeyboardAccessibilityDelegate(this)
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var shifted = false
     private var suggestions: List<String> = emptyList()
     private var layer = KeyboardLayer.LETTERS
@@ -198,7 +201,7 @@ class KeyboardView @JvmOverloads constructor(
             if (hit.key.action != Action.BACKSPACE) return
             performKeyPressHaptic()
             listener?.onBackspace()
-            postDelayed(this, BACKSPACE_REPEAT_INTERVAL_MS)
+            mainHandler.postDelayed(this, BACKSPACE_REPEAT_INTERVAL_MS)
         }
     }
 
@@ -1313,11 +1316,11 @@ class KeyboardView @JvmOverloads constructor(
         backspaceRepeatHit = hit
         performKeyPressHaptic()
         listener?.onBackspace()
-        postDelayed(backspaceRepeatRunnable, BACKSPACE_REPEAT_INITIAL_DELAY_MS)
+        mainHandler.postDelayed(backspaceRepeatRunnable, BACKSPACE_REPEAT_INITIAL_DELAY_MS)
     }
 
     private fun cancelBackspaceRepeat() {
-        removeCallbacks(backspaceRepeatRunnable)
+        mainHandler.removeCallbacks(backspaceRepeatRunnable)
         backspaceRepeatHit = null
     }
 
