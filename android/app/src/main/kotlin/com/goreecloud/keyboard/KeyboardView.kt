@@ -1067,7 +1067,10 @@ class KeyboardView @JvmOverloads constructor(
             releaseTravel <= ViewConfiguration.get(context).scaledTouchSlop * TAP_RELEASE_SLOP_MULTIPLIER
         }
         touchDownHit = null
-        val hit = exactHit ?: fallbackHit ?: return true
+        // A tap that stays inside release slop belongs to the key that received ACTION_DOWN.
+        // This avoids accidental adjacent-key commits when a finger drifts across a visual gap
+        // just before release. Larger motion still uses the release hit and swipe path.
+        val hit = fallbackHit ?: exactHit ?: return true
         if (
             layer == KeyboardLayer.LETTERS &&
             hit.key.action == Action.TEXT &&
