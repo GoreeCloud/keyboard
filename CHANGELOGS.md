@@ -37,7 +37,7 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ### September 25, 2026 — Draft PR #97 physical-device feedback candidate / 0.1.8-dev
 - Advanced the side-by-side Development package to `versionCode 9` / `0.1.8-dev` / `com.goreecloud.keyboard.dev.v9`.
-- Added **Learn from what you type** as an explicit privacy-sensitive control that is OFF by default. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in app-private local storage, excludes sensitive and host no-suggestions editors, exposes local deletion, and adds no network/sync/telemetry authority.
+- Added **Learn from what you type** as an explicit privacy-sensitive control that is OFF by default. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in app-private local storage, excludes sensitive editors, host no-suggestions editors, and Android no-personalized-learning editors from collection and learned-data use, exposes local deletion, and adds no network/sync/telemetry authority.
 - Added key-press haptic feedback enabled by default with a user setting to disable it.
 - Added toolbar style control: icons-only by default, optional Icons + labels.
 - Removed Emoji from the ordinary/symbol bottom rows and removed the duplicated Symbols mode action from the toolbar. The candidate toolbar now exposes Emoji, Settings, and Hide Keyboard only; Clipboard/GIF remain unimplemented rather than decorative.
