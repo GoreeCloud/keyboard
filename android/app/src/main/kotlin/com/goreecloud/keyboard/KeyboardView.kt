@@ -921,7 +921,7 @@ class KeyboardView @JvmOverloads constructor(
             MotionEvent.ACTION_DOWN -> {
                 cancelAlternateInteraction()
                 cancelSwipeInteraction()
-                val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
+                val hit = hitKeyAt(event.x, event.y)
                 touchDownHit = hit
                 pressedKeyBounds = hit?.let { RectF(it.bounds) }
                 swipeDownX = event.x
@@ -950,7 +950,7 @@ class KeyboardView @JvmOverloads constructor(
                     return true
                 }
 
-                val hit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
+                val hit = hitKeyAt(event.x, event.y)
                 backspaceRepeatHit?.let { repeatHit ->
                     val slop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
                     val expanded = RectF(repeatHit.bounds).apply { inset(-slop, -slop) }
@@ -1061,7 +1061,7 @@ class KeyboardView @JvmOverloads constructor(
             return activateSuggestion(hit)
         }
 
-        val exactHit = hitKeys.lastOrNull { it.bounds.contains(event.x, event.y) }
+        val exactHit = hitKeyAt(event.x, event.y)
         val releaseTravel = hypot(event.x - swipeDownX, event.y - swipeDownY)
         val fallbackHit = touchDownHit?.takeIf {
             releaseTravel <= ViewConfiguration.get(context).scaledTouchSlop * TAP_RELEASE_SLOP_MULTIPLIER
@@ -1077,6 +1077,34 @@ class KeyboardView @JvmOverloads constructor(
             lastLetterTapUpTimeMs = event.eventTime
         }
         return activateKey(hit)
+    }
+
+    private fun hitKeyAt(x: Float, y: Float): HitKey? {
+        hitKeys.lastOrNull { it.bounds.contains(x, y) }?.let { return it }
+
+        val density = resources.displayMetrics.density
+        val nearMissRadius = minOf(
+            ViewConfiguration.get(context).scaledTouchSlop * 0.75f,
+            TAP_NEAR_MISS_MAX_DP * density,
+        )
+        if (nearMissRadius <= 0f) return null
+
+        return hitKeys.asSequence()
+            .mapNotNull { hit ->
+                val expanded = RectF(hit.bounds).apply {
+                    inset(-nearMissRadius, -nearMissRadius)
+                }
+                if (!expanded.contains(x, y)) {
+                    null
+                } else {
+                    hit to hypot(
+                        (x - hit.bounds.centerX()).toDouble(),
+                        (y - hit.bounds.centerY()).toDouble(),
+                    )
+                }
+            }
+            .minByOrNull { (_, distance) -> distance }
+            ?.first
     }
 
     private fun canParticipateInSwipe(hit: HitKey?): Boolean =
@@ -1137,7 +1165,7 @@ class KeyboardView @JvmOverloads constructor(
 
     private fun appendSwipeSample(x: Float, y: Float) {
         appendSwipeTouchPoint(x, y)
-        val hit = hitKeys.lastOrNull { it.bounds.contains(x, y) }
+        val hit = hitKeyAt(x, y)
         if (canParticipateInSwipe(hit)) {
             val label = hit!!.key.label.lowercase()
             if (swipeKeyPath.lastOrNull() != label) swipeKeyPath += label
