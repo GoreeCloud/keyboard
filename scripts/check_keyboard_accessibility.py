@@ -99,7 +99,7 @@ def main() -> None:
             'it.label == "Clear emoji search"',
             'it.label == "Close emoji search"',
             'it.label == "Shift"',
-            '"utilityToolbarExposesOnlyImplementedActions"',
+            "utilityToolbarExposesOnlyImplementedActions",
         ),
     )
 
