@@ -327,6 +327,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             // as sensitive so backspace avoids surrounding-text inspection and suggestions remain
             // suppressed until Android provides a concrete EditorInfo for the active session.
             sensitiveInput = true
+            editorSuppressesLanguageAssistance = true
+            editorProhibitsPersonalizedLearning = true
             suggestionsSuppressed = true
             return
         }
@@ -360,6 +362,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         sentenceStartPending = false
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
+        pendingSwipeCorrection = null
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setShifted(false)
         keyboardView?.setSwipeTypingEnabled(false)
