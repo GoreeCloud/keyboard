@@ -191,6 +191,41 @@ class KeyboardTypingErgonomicsRuntimeTest {
     }
 
     @Test
+    fun smallVisualGapNearMissStillActivatesNearestLetter() {
+        val view = createRenderedKeyboard()
+        renderIntoExistingSize(view)
+        val targets = view.accessibilityTargets()
+        val q = targets.first { it.label == "q" }.bounds
+        val w = targets.first { it.label == "w" }.bounds
+        val taps = mutableListOf<String>()
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) {
+                taps += value
+            }
+            override fun onSwipe(keyPath: List<String>) = Unit
+            override fun onSpace() = Unit
+            override fun onBackspace() = Unit
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        assertTrue("Expected a visual gap between Q and W hit bounds", w.left > q.right)
+        val x = q.right + minOf(1f, (w.left - q.right) / 3f)
+        val y = q.centerY()
+        dispatch(view, MotionEvent.ACTION_DOWN, x, y, eventTime = 0L)
+        dispatch(view, MotionEvent.ACTION_UP, x, y, eventTime = 20L)
+
+        assertEquals(
+            "A small touch in the visual key gap should resolve to the nearest key rather than disappear",
+            listOf("q"),
+            taps,
+        )
+    }
+
+    @Test
     fun rapidLetterTapsAllCommitExactlyOnce() {
         val view = createRenderedKeyboard()
         renderIntoExistingSize(view)
