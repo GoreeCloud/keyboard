@@ -34,7 +34,11 @@ internal object ContractionModel {
 
         val best = ranked.firstOrNull() ?: return null
         val runnerUp = ranked.getOrNull(1)
-        if (runnerUp != null && runnerUp.second == best.second) return null
+        if (
+            runnerUp != null &&
+            runnerUp.second == best.second &&
+            !isAdjacentKeyboardCorrection(letters, best.first.letters)
+        ) return null
         if (best.second == 1 && letters.length < 4) return null
         return best.first.value
     }
@@ -57,6 +61,23 @@ internal object ContractionModel {
 
     private fun lettersOnly(value: String): String =
         value.filter { it in 'a'..'z' }
+
+    private fun isAdjacentKeyboardCorrection(typed: String, candidate: String): Boolean {
+        if (typed.length != candidate.length) return false
+        val differences = typed.indices.filter { typed[it] != candidate[it] }
+        if (differences.size != 1) return false
+        val index = differences.single()
+        val row = when (typed[index]) {
+            'q' -> "wa"; 'w' -> "qeas"; 'e' -> "wrsd"; 'r' -> "etdf"; 't' -> "ryfg"
+            'y' -> "tugh"; 'u' -> "yihj"; 'i' -> "uojk"; 'o' -> "ipkl"; 'p' -> "ol"
+            'a' -> "qwsz"; 's' -> "wedxza"; 'd' -> "erfcxs"; 'f' -> "rtgcvd"
+            'g' -> "tyhbvf"; 'h' -> "yujnbg"; 'j' -> "uikmnh"; 'k' -> "iolmj"
+            'l' -> "opk"; 'z' -> "asx"; 'x' -> "sdcz"; 'c' -> "dfvx"
+            'v' -> "fgbc"; 'b' -> "ghnv"; 'n' -> "hjmb"; 'm' -> "jkn"
+            else -> ""
+        }
+        return candidate[index] in row
+    }
 
     private fun damerauLevenshtein(left: String, right: String, maxDistance: Int): Int {
         if (kotlin.math.abs(left.length - right.length) > maxDistance) return maxDistance + 1
