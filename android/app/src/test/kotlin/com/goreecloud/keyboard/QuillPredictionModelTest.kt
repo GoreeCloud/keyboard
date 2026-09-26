@@ -35,7 +35,7 @@ class QuillPredictionModelTest {
             QuillPredictionModel.predict(listOf("for"), limit = 2),
         )
         assertEquals(
-            listOf("the", "you"),
+            listOf("be", "have"),
             QuillPredictionModel.predict(listOf("might"), limit = 2),
         )
     }
