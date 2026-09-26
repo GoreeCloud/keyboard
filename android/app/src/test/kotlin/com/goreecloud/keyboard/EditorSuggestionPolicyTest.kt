@@ -42,6 +42,15 @@ class EditorSuggestionPolicyTest {
             ),
         )
         assertFalse(InputPrivacyClassifier.isSensitive(inputType))
+        assertTrue(
+            "The same editor flag must prohibit optional persisted language personalization",
+            EditorSuggestionPolicy.prohibitsPersonalizedLearning(
+                EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING,
+            ),
+        )
+        assertFalse(
+            EditorSuggestionPolicy.prohibitsPersonalizedLearning(EditorInfo.IME_ACTION_DONE),
+        )
     }
 
     @Test
