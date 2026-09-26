@@ -15,12 +15,14 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     // No active editor has granted ordinary-field behavior yet. Keep the process default fail-closed
     // until onStartInput/onStartInputView provide concrete EditorInfo for the current session.
     private var sensitiveInput = true
+    private var editorSuppressesLanguageAssistance = true
     private var suggestionsSuppressed = true
     private var composingCaptureExhausted = false
     private var keyboardView: KeyboardView? = null
     private val suggestionEngine = SuggestionEngine()
     private val swipeTypingEngine = SwipeTypingEngine()
     private val settingsStore by lazy { KeyboardSettingsStore(this) }
+    private val learningStore by lazy { KeyboardLearningStore(this) }
     private var typingSettings = KeyboardTypingSettings()
     private val composingWord = StringBuilder()
     private val committedHistory = mutableListOf<String>()
@@ -36,6 +38,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             view.setLayer(KeyboardLayer.LETTERS)
             view.setShifted(shifted)
             view.setKeyHeightPreference(typingSettings.keyHeight)
+            view.setToolbarStyle(typingSettings.toolbarStyle)
+            view.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
             view.setSwipeTypingEnabled(!sensitiveInput && typingSettings.swipeTypingEnabled)
             view.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
             updateSuggestions()
@@ -52,6 +56,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         beginEditorSession(info)
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
+        keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
+        keyboardView?.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
         keyboardView?.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
         refreshAutomaticShift()
         updateSuggestions()
@@ -91,7 +97,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         currentInputConnection?.commitText(output, 1)
 
-        if (!suggestionsSuppressed) {
+        if (languageCaptureAllowed()) {
             if (isLetterText) {
                 sentenceStartPending = false
                 if (composingWord.isEmpty()) {
@@ -128,7 +134,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         val candidate = swipeTypingEngine.decode(
             keyPath = keyPath,
-            dictionary = QuillLexicon.expandedEnglish,
+            dictionary = activeDictionary(),
             limit = 1,
         ).firstOrNull() ?: return
 
@@ -190,7 +196,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             return
         }
 
-        if (!suggestionsSuppressed && !composingCaptureExhausted && composingWord.isNotEmpty()) {
+        if (languageCaptureAllowed() && !composingCaptureExhausted && composingWord.isNotEmpty()) {
             val lastCodePointStart = composingWord.offsetByCodePoints(composingWord.length, -1)
             composingWord.delete(lastCodePointStart, composingWord.length)
             if (composingWord.isEmpty()) composingStartsCapitalized = false
@@ -220,7 +226,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onSuggestion(value: String) {
-        if (suggestionsSuppressed || sensitiveInput || composingCaptureExhausted) return
+        if (
+            editorSuppressesLanguageAssistance ||
+            !typingSettings.suggestionsEnabled ||
+            sensitiveInput ||
+            composingCaptureExhausted
+        ) return
         if (!SuggestionCommitPolicy.isPresentedCandidate(value, presentedSuggestions)) return
 
         val connection = currentInputConnection ?: return
@@ -291,17 +302,23 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         val inputType = info.inputType
         sensitiveInput = InputPrivacyClassifier.isSensitive(inputType)
+        editorSuppressesLanguageAssistance =
+            EditorSuggestionPolicy.shouldSuppress(inputType, info.imeOptions)
         suggestionsSuppressed =
-            EditorSuggestionPolicy.shouldSuppress(inputType, info.imeOptions) ||
-                !typingSettings.suggestionsEnabled
+            editorSuppressesLanguageAssistance || !typingSettings.suggestionsEnabled
+        keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
+        keyboardView?.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
         keyboardView?.setSwipeTypingEnabled(
-            !sensitiveInput && typingSettings.swipeTypingEnabled,
+            !sensitiveInput &&
+                !editorSuppressesLanguageAssistance &&
+                typingSettings.swipeTypingEnabled,
         )
     }
 
     private fun resetEditorSession() {
         shifted = false
         sensitiveInput = true
+        editorSuppressesLanguageAssistance = true
         suggestionsSuppressed = true
         composingWord.clear()
         committedHistory.clear()
@@ -329,7 +346,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         if (
             typingSettings.autocorrectEnabled &&
-            !suggestionsSuppressed &&
+            !editorSuppressesLanguageAssistance &&
             !sensitiveInput &&
             !composingCaptureExhausted &&
             prefix.isNotEmpty()
@@ -338,7 +355,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                 QuillPredictionModel.boundaryCorrection(prefix)
                     ?: suggestionEngine.bestAutocorrection(
                         word = prefix,
-                        dictionary = QuillLexicon.expandedEnglish,
+                        dictionary = activeDictionary(),
                     )
 
             if (correction != null) {
@@ -417,6 +434,15 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private fun recordCommittedWord(word: String) {
         val normalized = word.trim().lowercase()
         if (normalized.isEmpty()) return
+
+        val previous = committedHistory.lastOrNull()
+        if (
+            typingSettings.learnFromTypingEnabled &&
+            languageCaptureAllowed()
+        ) {
+            learningStore.record(normalized, previous)
+        }
+
         committedHistory += normalized
         while (committedHistory.size > MAX_PREDICTION_HISTORY_WORDS) {
             committedHistory.removeAt(0)
@@ -433,25 +459,54 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         }
 
     private fun updateSuggestions() {
-        if (suggestionsSuppressed || composingCaptureExhausted) {
+        if (
+            sensitiveInput ||
+            editorSuppressesLanguageAssistance ||
+            composingCaptureExhausted
+        ) {
             presentedSuggestions = emptyList()
             keyboardView?.setSuggestions(emptyList())
             return
         }
 
-        presentedSuggestions = if (composingWord.isNotEmpty()) {
-            suggestionEngine.suggest(
-                prefix = composingWord.toString(),
-                dictionary = QuillLexicon.expandedEnglish,
-            ).map(::formatCandidateCase)
-        } else if (typingSettings.predictionsEnabled) {
-            QuillPredictionModel.predict(committedHistory).map(::formatPredictionCase)
-        } else {
-            emptyList()
+        presentedSuggestions = when {
+            composingWord.isNotEmpty() && typingSettings.suggestionsEnabled ->
+                suggestionEngine.suggest(
+                    prefix = composingWord.toString(),
+                    dictionary = activeDictionary(),
+                ).map(::formatCandidateCase)
+
+            composingWord.isEmpty() && typingSettings.predictionsEnabled ->
+                predictionCandidates().map(::formatPredictionCase)
+
+            else -> emptyList()
         }.take(3)
 
         keyboardView?.setSuggestions(presentedSuggestions)
     }
+
+    private fun activeDictionary(): List<String> {
+        if (!typingSettings.learnFromTypingEnabled) return QuillLexicon.expandedEnglish
+        return buildList {
+            addAll(learningStore.learnedWords())
+            addAll(QuillLexicon.expandedEnglish)
+        }.distinctBy { it.lowercase() }
+    }
+
+    private fun predictionCandidates(): List<String> {
+        val learned = if (typingSettings.learnFromTypingEnabled) {
+            learningStore.predictNext(committedHistory, limit = 3)
+        } else {
+            emptyList()
+        }
+        val builtIn = QuillPredictionModel.predict(committedHistory, limit = 3)
+        return (learned + builtIn)
+            .distinctBy { it.lowercase() }
+            .take(3)
+    }
+
+    private fun languageCaptureAllowed(): Boolean =
+        !sensitiveInput && !editorSuppressesLanguageAssistance
 
     private fun refreshAutomaticShift() {
         if (
