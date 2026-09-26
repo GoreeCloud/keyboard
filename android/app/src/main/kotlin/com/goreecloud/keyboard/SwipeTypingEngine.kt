@@ -153,8 +153,14 @@ internal class SwipeTypingEngine {
                         continue
                     }
 
+                    val orderedKeyMissRatio =
+                        orderedKeyMissRatio(traceLabels, wordLabels)
+                    if (orderedKeyMissRatio > MAX_ORDERED_KEY_MISS_RATIO) continue
+
                     val sequencePenalty =
                         sequenceDistance(traceLabels, wordLabels) * SEQUENCE_DISTANCE_WEIGHT
+                    val orderedKeyPenalty =
+                        orderedKeyMissRatio * ORDERED_KEY_COVERAGE_WEIGHT
                     val rankPenalty =
                         ln(indexed.rank.toDouble() + 2.0) * FREQUENCY_LOG_WEIGHT
                     val endpointPenalty =
@@ -169,6 +175,7 @@ internal class SwipeTypingEngine {
                             lengthRatioPenalty * LENGTH_WEIGHT +
                             endpointPenalty +
                             sequencePenalty +
+                            orderedKeyPenalty +
                             rankPenalty
 
                     if (score < bestScore) bestScore = score
@@ -260,8 +267,12 @@ internal class SwipeTypingEngine {
                 )
                 val startDistance = distance(wordPoints.first(), tracePoints.first())
                 val endDistance = distance(wordPoints.last(), tracePoints.last())
+                val orderedKeyMissRatio = orderedKeyMissRatio(traceLabels, wordLabels)
+                if (orderedKeyMissRatio > MAX_ORDERED_KEY_MISS_RATIO) return@mapNotNull null
                 val sequencePenalty =
                     sequenceDistance(traceLabels, wordLabels) * FALLBACK_SEQUENCE_WEIGHT
+                val orderedKeyPenalty =
+                    orderedKeyMissRatio * FALLBACK_ORDERED_KEY_COVERAGE_WEIGHT
                 val lengthPenalty =
                     abs(wordLabels.size - traceLabels.size) * FALLBACK_LENGTH_WEIGHT
                 val frequencyPenalty =
@@ -276,6 +287,7 @@ internal class SwipeTypingEngine {
                             directionMismatch * FALLBACK_DIRECTION_WEIGHT +
                             (startDistance + endDistance) * FALLBACK_ENDPOINT_WEIGHT +
                             sequencePenalty +
+                            orderedKeyPenalty +
                             lengthPenalty +
                             frequencyPenalty,
                     rank = indexed.rank,
@@ -627,6 +639,25 @@ internal class SwipeTypingEngine {
         )
     }
 
+    private fun orderedKeyMissRatio(
+        observed: List<String>,
+        candidate: List<String>,
+    ): Double {
+        if (observed.isEmpty() || candidate.isEmpty()) return 1.0
+        var observedIndex = 0
+        var matched = 0
+        candidate.forEach { target ->
+            while (observedIndex < observed.size && observed[observedIndex] != target) {
+                observedIndex += 1
+            }
+            if (observedIndex < observed.size) {
+                matched += 1
+                observedIndex += 1
+            }
+        }
+        return 1.0 - matched.toDouble() / candidate.size.toDouble()
+    }
+
     private fun sequenceDistance(
         observed: List<String>,
         candidate: List<String>,
@@ -710,8 +741,8 @@ internal class SwipeTypingEngine {
         const val MIN_TRACE_SAMPLE_SPACING = 0.10
 
         const val STATISTICAL_SAMPLE_POINTS = 72
-        const val START_KEY_CANDIDATES = 4
-        const val END_KEY_CANDIDATES = 4
+        const val START_KEY_CANDIDATES = 3
+        const val END_KEY_CANDIDATES = 3
         const val DUPLICATE_LETTER_LOOP_RADIUS = 0.18
 
         const val MAX_LOG_LENGTH_RATIO = 0.82
@@ -720,7 +751,8 @@ internal class SwipeTypingEngine {
         const val MAX_NORMALIZED_SHAPE_DISTANCE = 0.52
         const val MAX_DIRECTION_MISMATCH = 0.72
         const val MAX_CORNER_COVERAGE = 1.45
-        const val MAX_TOTAL_SCORE = 5.80
+        const val MAX_TOTAL_SCORE = 6.15
+        const val MAX_ORDERED_KEY_MISS_RATIO = 0.50
 
         const val SHAPE_WEIGHT = 3.20
         const val LOCATION_WEIGHT = 1.05
@@ -729,8 +761,9 @@ internal class SwipeTypingEngine {
         const val LENGTH_WEIGHT = 0.60
         const val START_ENDPOINT_WEIGHT = 1.15
         const val END_ENDPOINT_WEIGHT = 0.72
-        const val SEQUENCE_DISTANCE_WEIGHT = 0.34
-        const val FREQUENCY_LOG_WEIGHT = 0.008
+        const val SEQUENCE_DISTANCE_WEIGHT = 0.48
+        const val ORDERED_KEY_COVERAGE_WEIGHT = 1.10
+        const val FREQUENCY_LOG_WEIGHT = 0.005
         const val CORNER_TURN_STRENGTH = 0.035
 
         const val FALLBACK_SAMPLE_POINTS = 24
@@ -741,7 +774,8 @@ internal class SwipeTypingEngine {
         const val FALLBACK_TRACE_COVERAGE_WEIGHT = 0.30
         const val FALLBACK_DIRECTION_WEIGHT = 0.75
         const val FALLBACK_ENDPOINT_WEIGHT = 1.05
-        const val FALLBACK_SEQUENCE_WEIGHT = 0.40
+        const val FALLBACK_SEQUENCE_WEIGHT = 0.52
+        const val FALLBACK_ORDERED_KEY_COVERAGE_WEIGHT = 1.05
         const val FALLBACK_LENGTH_WEIGHT = 0.06
         const val FALLBACK_FREQUENCY_WEIGHT = 0.018
 

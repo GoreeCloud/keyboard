@@ -29,6 +29,18 @@ class SwipeCandidateRankerTest {
     }
 
     @Test
+    fun strongestGeometryCandidateCannotBeDisplacedByPredictionContext() {
+        assertEquals(
+            listOf("there", "the", "then"),
+            SwipeCandidateRanker.rank(
+                decoded = listOf("there", "the", "then"),
+                contextualPredictions = listOf("the"),
+                limit = 3,
+            ),
+        )
+    }
+
+    @Test
     fun decoderOrderRemainsWhenContextDoesNotMatch() {
         assertEquals(
             listOf("hello", "help", "held"),
@@ -42,7 +54,7 @@ class SwipeCandidateRankerTest {
     @Test
     fun resultRemainsBounded() {
         assertEquals(
-            listOf("the", "there"),
+            listOf("there", "the"),
             SwipeCandidateRanker.rank(
                 decoded = listOf("there", "the", "then"),
                 contextualPredictions = listOf("the"),

@@ -191,7 +191,6 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private fun commitDecodedSwipe(decodedCandidates: List<String>) {
         if (
             sensitiveInput ||
-            editorSuppressesLanguageAssistance ||
             !typingSettings.swipeTypingEnabled ||
             decodedCandidates.isEmpty()
         ) return
@@ -199,7 +198,11 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         val connection = currentInputConnection ?: return
         val candidates = SwipeCandidateRanker.rank(
             decoded = decodedCandidates,
-            contextualPredictions = predictionCandidates(limit = SWIPE_DECODE_CANDIDATE_POOL),
+            contextualPredictions = if (editorSuppressesLanguageAssistance) {
+                emptyList()
+            } else {
+                predictionCandidates(limit = SWIPE_DECODE_CANDIDATE_POOL)
+            },
             limit = 3,
         )
         if (candidates.isEmpty()) return
@@ -435,8 +438,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput),
         )
         keyboardView?.setSwipeTypingEnabled(
-            !sensitiveInput &&
-                !editorSuppressesLanguageAssistance &&
+            !EditorSuggestionPolicy.shouldSuppressGestureTyping(inputType) &&
                 typingSettings.swipeTypingEnabled,
         )
     }

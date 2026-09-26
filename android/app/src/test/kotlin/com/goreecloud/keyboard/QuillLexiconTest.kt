@@ -38,6 +38,17 @@ class QuillLexiconTest {
         assertTrue("prediction" in words)
         assertTrue("gesture" in words)
         assertTrue("haptic" in words)
+        assertTrue("samsung" in words)
+        assertTrue("ryzen" in words)
+        assertTrue("miui" in words)
+        assertTrue("nvidia" in words)
+        assertTrue("snapdragon" in words)
+        assertTrue("oneplus" in words)
+        assertTrue("github" in words)
+        assertTrue("openai" in words)
+        assertTrue(QuillLexicon.expandedEnglish.contains("Samsung"))
+        assertTrue(QuillLexicon.expandedEnglish.contains("Ryzen"))
+        assertTrue(QuillLexicon.expandedEnglish.contains("MIUI"))
     }
 
     @Test

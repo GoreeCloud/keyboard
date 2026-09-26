@@ -3,9 +3,9 @@ package com.goreecloud.keyboard
 /**
  * Re-ranks already-decoded swipe candidates using local next-word context.
  *
- * Geometry remains dominant. Context may gently promote an already-plausible candidate, but cannot
- * pull a weak geometric match from the bottom of the decoder pool to the top. This avoids a common
- * failure mode where language context overwhelms what the finger actually traced.
+ * The decoder's first result is pinned because it represents the strongest physical gesture match.
+ * Context may refine only alternate slots; prediction must never replace what the finger most
+ * strongly traced.
  */
 internal object SwipeCandidateRanker {
     fun rank(
@@ -15,23 +15,25 @@ internal object SwipeCandidateRanker {
     ): List<String> {
         if (limit <= 0 || decoded.isEmpty()) return emptyList()
 
+        val unique = decoded.distinctBy { it.lowercase() }
+        val geometryWinner = unique.first()
+        if (limit == 1 || unique.size == 1) return listOf(geometryWinner)
+
         val contextRank = contextualPredictions
             .distinctBy { it.lowercase() }
             .mapIndexed { index, value -> value.lowercase() to index }
             .toMap()
 
-        return decoded
-            .distinctBy { it.lowercase() }
-            .withIndex()
+        val alternates = unique.drop(1).withIndex()
             .sortedWith(
                 compareBy<IndexedValue<String>> { candidate ->
-                    val geometryRank = candidate.index.toDouble()
-                    val contextIndex = contextRank[candidate.value.lowercase()]
-                    geometryRank - contextBoost(contextIndex)
+                    val geometryRank = candidate.index.toDouble() + 1.0
+                    geometryRank - contextBoost(contextRank[candidate.value.lowercase()])
                 }.thenBy { it.index },
             )
             .map { it.value }
-            .take(limit)
+
+        return (listOf(geometryWinner) + alternates).take(limit)
     }
 
     private fun contextBoost(contextIndex: Int?): Double = when (contextIndex) {

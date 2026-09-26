@@ -29,6 +29,16 @@ class EditorSuggestionPolicyTest {
 
         assertTrue(EditorSuggestionPolicy.shouldSuppress(inputType))
         assertFalse(InputPrivacyClassifier.isSensitive(inputType))
+        assertFalse(
+            "No-suggestions ordinary editors may still accept deliberate local gesture input",
+            EditorSuggestionPolicy.shouldSuppressGestureTyping(inputType),
+        )
+    }
+
+    @Test
+    fun gestureTypingRemainsSuppressedForSensitiveEditors() {
+        val password = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        assertTrue(EditorSuggestionPolicy.shouldSuppressGestureTyping(password))
     }
 
     @Test

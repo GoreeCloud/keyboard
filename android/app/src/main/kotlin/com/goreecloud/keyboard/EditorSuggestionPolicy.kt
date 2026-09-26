@@ -23,6 +23,14 @@ object EditorSuggestionPolicy {
             flags and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0
     }
 
+    /**
+     * Gesture typing is direct user input, not a suggestion surface. An ordinary editor may request
+     * TYPE_TEXT_FLAG_NO_SUGGESTIONS without losing deliberate local swipe entry. Sensitive fields
+     * remain fail-closed and never receive gesture typing.
+     */
+    fun shouldSuppressGestureTyping(inputType: Int): Boolean =
+        InputPrivacyClassifier.isSensitive(inputType)
+
     fun prohibitsPersonalizedLearning(imeOptions: Int): Boolean =
         imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0
 }

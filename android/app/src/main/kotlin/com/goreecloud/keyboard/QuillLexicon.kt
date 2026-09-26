@@ -107,6 +107,7 @@ internal object QuillLexicon {
         words += GoreeCloudDictionary.canonicalTerms
         words += GoreeCloudDictionary.commonContractions
         words += goreeCloudVocabulary
+        words += brandVocabulary
         words += irregularForms
         english.forEach { base ->
             derivedForms(base).forEach(words::add)
@@ -128,6 +129,7 @@ internal object QuillLexicon {
         words += GoreeCloudDictionary.canonicalTerms
         words += GoreeCloudDictionary.commonContractions
         words += goreeCloudVocabulary
+        words += brandVocabulary
         words += irregularForms
         words.toList()
     }
@@ -136,6 +138,26 @@ internal object QuillLexicon {
         "goreecloud", "quill", "glaze", "wardveil", "privacy", "keyboard", "browser",
         "launcher", "gallery", "camera", "gateway", "notify", "monitor", "memos", "notes",
         "autocorrect", "swiping", "swiped", "suggestions", "suggested", "dictionary",
+    )
+
+    /**
+     * Curated static local brand/company/product vocabulary. No contacts, accounts, telemetry, or
+     * network sources are consulted; familiar display casing is preserved in suggestions.
+     */
+    private val brandVocabulary = listOf(
+        "Samsung", "Galaxy", "Xiaomi", "Redmi", "Poco", "MIUI", "HyperOS", "OnePlus",
+        "Oppo", "Vivo", "Realme", "Honor", "Huawei", "Motorola", "Nokia", "Google", "Pixel",
+        "Apple", "iPhone", "iPad", "MacBook", "Microsoft", "Windows", "Surface", "Xbox",
+        "Sony", "PlayStation", "Nintendo", "Switch", "Valve", "Steam",
+        "AMD", "Ryzen", "Radeon", "Intel", "Nvidia", "GeForce", "Qualcomm", "Snapdragon",
+        "MediaTek", "Dimensity", "Asus", "ROG", "Acer", "Lenovo", "ThinkPad", "IdeaPad",
+        "Dell", "Alienware", "HP", "Omen", "Logitech", "Corsair", "Razer", "SteelSeries",
+        "Kingston", "Crucial", "Seagate", "SanDisk", "Synology", "QNAP", "Ubiquiti", "Netgear",
+        "TPLink", "Cisco", "Broadcom", "ARM", "Ubuntu", "Debian", "Fedora", "Arch", "Linux",
+        "Chrome", "Chromium", "Firefox", "Brave", "GitHub", "GitLab", "Docker", "Kubernetes",
+        "Discord", "Reddit", "WhatsApp", "Telegram", "Signal", "Spotify", "Netflix", "Twitch",
+        "YouTube", "TikTok", "Instagram", "Facebook", "Meta", "OpenAI", "ChatGPT", "Amazon",
+        "AWS", "Alexa", "Tesla",
     )
 
     private val irregularForms = listOf(

@@ -116,6 +116,25 @@ class SwipeTypingEngineTest {
     }
 
     @Test
+    fun orderedCrossedKeysKeepSamsungAheadOfEndpointOnlyAlternatives() {
+        val centers = qwertyCenters()
+        val labels = listOf("s", "a", "m", "s", "u", "n", "g")
+        val gesture = SwipeGesture(
+            keyPath = labels,
+            points = interpolate(labels.map { centers.getValue(it) }),
+            keyCenters = centers,
+        )
+
+        val result = engine.decode(
+            gesture = gesture,
+            dictionary = listOf("song", "sing", "Samsung", "sung", "something"),
+            limit = 3,
+        )
+
+        assertEquals("Samsung", result.first())
+    }
+
+    @Test
     fun remainsBoundedByRequestedLimit() {
         val result = engine.decode(
             keyPath = listOf("t", "h", "g", "e"),

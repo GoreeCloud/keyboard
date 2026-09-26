@@ -1075,44 +1075,82 @@ class KeyboardView @JvmOverloads constructor(
     private fun maybeActivateSwipe(event: MotionEvent) {
         if (swipeGestureActive || swipeKeyPath.isEmpty()) return
 
-        val travel = hypot(event.x - swipeDownX, event.y - swipeDownY)
         val density = resources.displayMetrics.density
-        val threshold = max(
-            ViewConfiguration.get(context).scaledTouchSlop * SWIPE_START_SLOP_MULTIPLIER,
-            SWIPE_MIN_TRAVEL_DP * density,
-        )
         val elapsedMs = event.eventTime - swipeDownTimeMs
         val recentFastTyping =
             lastLetterTapUpTimeMs != Long.MIN_VALUE &&
                 swipeDownTimeMs - lastLetterTapUpTimeMs <= FAST_TYPING_GUARD_WINDOW_MS
-        val requiredTravel = if (recentFastTyping) {
-            max(threshold, SWIPE_RECENT_TYPING_MIN_TRAVEL_DP * density)
+        val distinctLetterCount = swipeKeyPath.distinct().size
+        if (distinctLetterCount < 2) return
+
+        // Accumulated path distance preserves curved/returning swipes while short tap drift remains
+        // below the gesture-intent gate.
+        val pathTravel = swipePathTravel()
+        val netTravel = hypot(event.x - swipeDownX, event.y - swipeDownY)
+        val touchSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
+        val basePathThreshold = max(
+            touchSlop * SWIPE_START_SLOP_MULTIPLIER,
+            SWIPE_MIN_PATH_TRAVEL_DP * density,
+        )
+        val requiredPathTravel = if (recentFastTyping) {
+            max(basePathThreshold, SWIPE_RECENT_TYPING_MIN_PATH_TRAVEL_DP * density)
         } else {
-            threshold
+            basePathThreshold
         }
         val requiredDuration = if (recentFastTyping) {
             SWIPE_RECENT_TYPING_MIN_GESTURE_MS
         } else {
             SWIPE_MIN_GESTURE_MS
         }
-        val distinctLetterCount = swipeKeyPath.distinct().size
-        val movedToDifferentLetter = distinctLetterCount >= 2
-        val strongTwoKeySwipe =
-            !recentFastTyping ||
-                distinctLetterCount >= 3 ||
-                travel >= SWIPE_RECENT_TYPING_TWO_KEY_MIN_TRAVEL_DP * density
+
+        val twoKeyIntent = if (distinctLetterCount == 2) {
+            val twoKeyPath = if (recentFastTyping) {
+                SWIPE_RECENT_TYPING_TWO_KEY_MIN_PATH_TRAVEL_DP
+            } else {
+                SWIPE_TWO_KEY_MIN_PATH_TRAVEL_DP
+            } * density
+            val twoKeyNet = if (recentFastTyping) {
+                SWIPE_RECENT_TYPING_TWO_KEY_MIN_NET_TRAVEL_DP
+            } else {
+                SWIPE_TWO_KEY_MIN_NET_TRAVEL_DP
+            } * density
+            val twoKeyDuration = if (recentFastTyping) {
+                SWIPE_RECENT_TYPING_TWO_KEY_MIN_GESTURE_MS
+            } else {
+                SWIPE_TWO_KEY_MIN_GESTURE_MS
+            }
+
+            pathTravel >= twoKeyPath &&
+                netTravel >= twoKeyNet &&
+                elapsedMs >= twoKeyDuration
+        } else {
+            true
+        }
 
         if (
-            travel >= requiredTravel &&
+            pathTravel >= requiredPathTravel &&
             elapsedMs >= requiredDuration &&
-            movedToDifferentLetter &&
-            strongTwoKeySwipe
+            twoKeyIntent
         ) {
             swipeGestureActive = true
             removeCallbacks(showAlternatesRunnable)
             pendingAlternateHit = null
             alternatePopup = null
         }
+    }
+
+    private fun swipePathTravel(): Float {
+        if (swipeTouchPoints.size < 2) return 0f
+        var total = 0.0
+        for (index in 0 until swipeTouchPoints.lastIndex) {
+            val left = swipeTouchPoints[index]
+            val right = swipeTouchPoints[index + 1]
+            total += hypot(
+                (right.x - left.x).toDouble(),
+                (right.y - left.y).toDouble(),
+            )
+        }
+        return total.toFloat()
     }
 
     private fun appendSwipeMotionSamples(event: MotionEvent) {
@@ -1421,13 +1459,18 @@ class KeyboardView @JvmOverloads constructor(
         const val TAP_RELEASE_SLOP_MULTIPLIER = 1.6f
         const val TAP_NEAR_MISS_MAX_DP = 10f
         const val FUNCTIONAL_ICON_ALPHA = 224
-        const val SWIPE_START_SLOP_MULTIPLIER = 2.0f
-        const val SWIPE_MIN_TRAVEL_DP = 20f
-        const val SWIPE_MIN_GESTURE_MS = 55L
-        const val SWIPE_RECENT_TYPING_MIN_GESTURE_MS = 96L
-        const val FAST_TYPING_GUARD_WINDOW_MS = 240L
-        const val SWIPE_RECENT_TYPING_MIN_TRAVEL_DP = 40f
-        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_TRAVEL_DP = 64f
+        const val SWIPE_START_SLOP_MULTIPLIER = 2.25f
+        const val SWIPE_MIN_PATH_TRAVEL_DP = 34f
+        const val SWIPE_MIN_GESTURE_MS = 70L
+        const val SWIPE_RECENT_TYPING_MIN_GESTURE_MS = 105L
+        const val FAST_TYPING_GUARD_WINDOW_MS = 320L
+        const val SWIPE_RECENT_TYPING_MIN_PATH_TRAVEL_DP = 56f
+        const val SWIPE_TWO_KEY_MIN_PATH_TRAVEL_DP = 68f
+        const val SWIPE_TWO_KEY_MIN_NET_TRAVEL_DP = 34f
+        const val SWIPE_TWO_KEY_MIN_GESTURE_MS = 100L
+        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_PATH_TRAVEL_DP = 88f
+        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_NET_TRAVEL_DP = 46f
+        const val SWIPE_RECENT_TYPING_TWO_KEY_MIN_GESTURE_MS = 130L
         const val SWIPE_MIN_PATH_KEYS = 2
         const val SWIPE_TOUCH_SAMPLE_DP = 3.5f
         const val BACKSPACE_REPEAT_INITIAL_DELAY_MS = 360L
