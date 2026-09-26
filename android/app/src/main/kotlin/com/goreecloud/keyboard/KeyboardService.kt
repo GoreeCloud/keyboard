@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo
 
 class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var shifted = false
+    private var currentLayer = KeyboardLayer.LETTERS
 
     // No active editor has granted ordinary-field behavior yet. Keep the process default fail-closed
     // until onStartInput/onStartInputView provide concrete EditorInfo for the current session.
@@ -37,7 +38,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         return KeyboardView(this).also { view ->
             keyboardView = view
             view.listener = this
-            view.setLayer(KeyboardLayer.LETTERS)
+            currentLayer = KeyboardLayer.LETTERS
+            view.setLayer(currentLayer)
             view.setShifted(shifted)
             view.setKeyHeightPreference(typingSettings.keyHeight)
             view.setToolbarStyle(typingSettings.toolbarStyle)
@@ -50,6 +52,17 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             view.setNumberRowVisible(KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput))
             view.setSwipeTypingEnabled(!sensitiveInput && typingSettings.swipeTypingEnabled)
             view.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
+            view.setOnTouchListener(
+                SpacebarCursorTouchListener(
+                    keyboardView = view,
+                    isEnabled = {
+                        settingsStore.load().spacebarCursorControlEnabled &&
+                            currentLayer != KeyboardLayer.EMOJI &&
+                            !touchExplorationEnabled()
+                    },
+                    onCursorSteps = ::moveCursorFromSpacebar,
+                ),
+            )
             updateSuggestions()
         }
     }
@@ -62,7 +75,8 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         beginEditorSession(info)
-        keyboardView?.setLayer(KeyboardLayer.LETTERS)
+        currentLayer = KeyboardLayer.LETTERS
+        keyboardView?.setLayer(currentLayer)
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
         keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
         keyboardView?.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
@@ -315,6 +329,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     }
 
     override fun onLayerChanged(layer: KeyboardLayer) {
+        currentLayer = layer
         pendingSwipeCorrection = null
         shifted = false
         clearComposingBoundary()
@@ -330,9 +345,41 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         )
     }
 
+    private fun moveCursorFromSpacebar(requestedSteps: Int) {
+        if (requestedSteps == 0) return
+        val connection = currentInputConnection ?: return
+        val steps = requestedSteps.coerceIn(
+            -MAX_CURSOR_STEPS_PER_CALLBACK,
+            MAX_CURSOR_STEPS_PER_CALLBACK,
+        )
+        val keyCode =
+            if (steps < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+
+        repeat(kotlin.math.abs(steps)) {
+            connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+            connection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+        }
+
+        pendingSwipeCorrection = null
+        composingWord.clear()
+        composingStartsCapitalized = false
+        composingCaptureExhausted = true
+        committedHistory.clear()
+        sentenceStartPending = false
+        presentedSuggestions = emptyList()
+        keyboardView?.setSuggestions(emptyList())
+    }
+
+    private fun touchExplorationEnabled(): Boolean {
+        val accessibilityManager =
+            getSystemService(ACCESSIBILITY_SERVICE) as? AccessibilityManager
+        return accessibilityManager?.isTouchExplorationEnabled == true
+    }
+
     private fun beginEditorSession(info: EditorInfo?) {
         typingSettings = settingsStore.load()
         shifted = false
+        currentLayer = KeyboardLayer.LETTERS
         composingWord.clear()
         committedHistory.clear()
         composingStartsCapitalized = false
@@ -385,6 +432,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     private fun resetEditorSession() {
         shifted = false
+        currentLayer = KeyboardLayer.LETTERS
         sensitiveInput = true
         editorSuppressesLanguageAssistance = true
         editorProhibitsPersonalizedLearning = true
@@ -767,6 +815,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         const val DOUBLE_SPACE_LOOKBEHIND_UTF16 = 8
         const val MAX_CONTEXT_WORDS = 4
         const val MAX_PREDICTION_HISTORY_WORDS = 2
+        const val MAX_CURSOR_STEPS_PER_CALLBACK = 24
         const val SWIPE_DECODE_CANDIDATE_POOL = 12
         val AUTOCORRECT_BOUNDARIES = setOf(".", ",", "!", "?", ";", ":")
         val SENTENCE_ENDINGS = setOf(".", "!", "?")
