@@ -73,8 +73,10 @@ class KeyboardClipboardRuntimeTest {
             callbacks = KeyboardClipboardPanelView.Callbacks(
                 onClose = {},
                 onPaste = { _, _ -> },
+                onPasteText = {},
                 onTogglePin = {},
                 onDelete = {},
+                onEditSaved = { _, _ -> },
                 onClearUnpinned = {},
                 onHistoryEnabledChanged = {},
                 onPolicyChanged = {},
