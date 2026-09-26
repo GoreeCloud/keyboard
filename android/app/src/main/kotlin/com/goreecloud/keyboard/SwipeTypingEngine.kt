@@ -20,9 +20,9 @@ import kotlin.math.min
  * THIRD-PARTY-NOTICES.md.
  */
 
-internal data class SwipePoint(val x: Float, val y: Float)
+data class SwipePoint(val x: Float, val y: Float)
 
-internal data class SwipeGesture(
+data class SwipeGesture(
     val keyPath: List<String>,
     val points: List<SwipePoint>,
     val keyCenters: Map<String, SwipePoint>,
