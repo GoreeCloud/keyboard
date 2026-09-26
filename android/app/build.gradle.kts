@@ -3,6 +3,9 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val goreeCloudCandidateVersionName = "0.1.18-dev"
+val goreeCloudCandidateDisplayVersion = goreeCloudCandidateVersionName.removeSuffix("-dev")
+
 android {
     namespace = "com.goreecloud.keyboard"
     compileSdk = 35
@@ -12,7 +15,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 19
-        versionName = "0.1.18-dev"
+        versionName = goreeCloudCandidateVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -23,6 +26,18 @@ android {
             // com.goreecloud.keyboard build instead of Android treating it as an incompatible
             // signature update.
             applicationIdSuffix = ".dev.v19"
+            // Derive the visible side-by-side Development identity from the same source as
+            // versionName so Android's installer/IME picker cannot show a stale candidate number.
+            resValue(
+                "string",
+                "app_name",
+                "GoreeCloud Keyboard Dev $goreeCloudCandidateDisplayVersion",
+            )
+            resValue(
+                "string",
+                "ime_name",
+                "GoreeCloud Keyboard Dev $goreeCloudCandidateDisplayVersion",
+            )
         }
 
         release {

@@ -43,7 +43,7 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 - Improves swipe precision with stronger ordered-key sequence weighting, ordered key-coverage evidence, and less frequency bias while retaining the four-key endpoint tolerance required by neighboring-endpoint regression coverage.
 - Adds a curated static local brand/company/product vocabulary including `Samsung`, `Ryzen`, `MIUI`, `OnePlus`, `Nvidia`, `Snapdragon`, `GitHub`, `OpenAI`, and other common technology terms, preserving familiar display casing where the packaged word is authoritative.
 - Advances the side-by-side Development package to `versionCode 19` / `0.1.18-dev` / `com.goreecloud.keyboard.dev.v19`.
-- Removes the hard-coded development version from the launcher label so the visible app name cannot become stale independently of Gradle package version metadata.
+- Generates the Development launcher and IME labels from the same Gradle candidate-version source, so Android shows **GoreeCloud Keyboard Dev 0.1.18** and the visible identity cannot drift to an older candidate number.
 - No network permission, remote language model, telemetry, Contacts access, clipboard authority, or new typed-text persistence was introduced.
 - This remains Draft / Weave Development work. Fresh exact-head CI and representative physical-device retesting remain required.
 
