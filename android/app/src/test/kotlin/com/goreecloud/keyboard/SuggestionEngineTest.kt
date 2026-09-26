@@ -195,4 +195,28 @@ class SuggestionEngineTest {
     fun returnsNothingForNonPositiveLimit() {
         assertEquals(emptyList<String>(), engine.suggest("go", listOf("good"), limit = 0))
     }
+    @Test
+    fun commonMissingLetterTypoOffersLaggingBeforeUnrelatedWords() {
+        val result = engine.suggest(
+            prefix = "laging",
+            dictionary = listOf("larding", "lasting", "landing", "lagging"),
+            limit = 3,
+        )
+
+        assertEquals("lagging", result.first())
+    }
+
+    @Test
+    fun largeDictionaryCacheDoesNotChangeResultsAcrossRepeatedQueries() {
+        val dictionary = buildList {
+            addAll(listOf("lag", "lagging", "jump", "hill"))
+            repeat(5_000) { index -> add("word$index") }
+        }
+
+        assertEquals(
+            engine.suggest("laging", dictionary, limit = 3),
+            engine.suggest("laging", dictionary, limit = 3),
+        )
+    }
+
 }
