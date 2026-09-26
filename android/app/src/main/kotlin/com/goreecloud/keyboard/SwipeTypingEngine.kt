@@ -39,6 +39,7 @@ internal class SwipeTypingEngine {
             gesture.points.map { Point(it.x.toDouble(), it.y.toDouble()) },
             minimumSpacing = scale * MIN_TRACE_SAMPLE_SPACING,
         )
+        val gestureCorners = extractCorners(sampledTrace)
 
         if (
             sampledTrace.size < MIN_TRACE_POINTS ||
@@ -63,8 +64,8 @@ internal class SwipeTypingEngine {
                 val startDistance = distance(wordPoints.first(), sampledTrace.first()) / scale
                 val endDistance = distance(wordPoints.last(), sampledTrace.last()) / scale
                 if (
-                    startDistance > MAX_PHYSICAL_ENDPOINT_DISTANCE ||
-                    endDistance > MAX_PHYSICAL_ENDPOINT_DISTANCE
+                    startDistance > MAX_PHYSICAL_START_DISTANCE ||
+                    endDistance > MAX_PHYSICAL_END_DISTANCE
                 ) return@mapNotNull null
 
                 val orderedCost = orderedCoverageCost(wordPoints, sampledTrace) / scale
@@ -87,6 +88,15 @@ internal class SwipeTypingEngine {
                     scale = scale,
                 )
                 if (!shapeCost.isFinite() || shapeCost > MAX_PHYSICAL_SHAPE_COST) {
+                    return@mapNotNull null
+                }
+
+                val candidateCorners = extractCorners(wordPoints)
+                val directionCost = directionalShapeCost(
+                    candidate = candidateCorners,
+                    observed = gestureCorners,
+                )
+                if (!directionCost.isFinite() || directionCost > MAX_DIRECTION_COST) {
                     return@mapNotNull null
                 }
 
@@ -117,6 +127,7 @@ internal class SwipeTypingEngine {
                         candidateCoverage * PHYSICAL_CANDIDATE_COVERAGE_WEIGHT +
                         traceCoverage * PHYSICAL_TRACE_COVERAGE_WEIGHT +
                         shapeCost * PHYSICAL_SHAPE_WEIGHT +
+                        directionCost * PHYSICAL_DIRECTION_WEIGHT +
                         routeLengthPenalty +
                         sequencePenalty +
                         lengthPenalty +
@@ -232,6 +243,81 @@ internal class SwipeTypingEngine {
         }
         if (result.last() != points.last()) result += points.last()
         return result
+    }
+
+
+    /**
+     * Keeps the route endpoints plus meaningful bends. This follows the same broad principle used
+     * by mature open-source gesture keyboards: dense pointer streams are less useful than a small
+     * set of direction-changing points. This implementation is GoreeCloud-native and operates on
+     * normalized rendered geometry rather than imported upstream structures.
+     */
+    private fun extractCorners(points: List<Point>): List<Point> {
+        if (points.size <= 2) return points
+
+        val corners = mutableListOf(points.first())
+        for (index in 1 until points.lastIndex) {
+            val previous = points[index - 1]
+            val current = points[index]
+            val next = points[index + 1]
+            val incomingX = current.x - previous.x
+            val incomingY = current.y - previous.y
+            val outgoingX = next.x - current.x
+            val outgoingY = next.y - current.y
+            val incomingLength = hypot(incomingX, incomingY)
+            val outgoingLength = hypot(outgoingX, outgoingY)
+            if (incomingLength <= 0.000001 || outgoingLength <= 0.000001) continue
+
+            val cosine = (
+                incomingX * outgoingX + incomingY * outgoingY
+            ) / (incomingLength * outgoingLength)
+            val turnStrength = 1.0 - cosine.coerceIn(-1.0, 1.0)
+            if (turnStrength >= CORNER_TURN_STRENGTH) corners += current
+        }
+        corners += points.last()
+        return corners
+    }
+
+    /**
+     * Compares route direction independently of absolute pointer position. A candidate that passes
+     * near the same keys but travels through them in the wrong direction receives a strong penalty.
+     */
+    private fun directionalShapeCost(
+        candidate: List<Point>,
+        observed: List<Point>,
+    ): Double {
+        if (candidate.size < 2 || observed.size < 2) return Double.POSITIVE_INFINITY
+
+        val sampleCount = maxOf(
+            MIN_DIRECTION_SAMPLES,
+            minOf(MAX_DIRECTION_SAMPLES, maxOf(candidate.size, observed.size) * 2),
+        )
+        val candidateSamples = resamplePolyline(candidate, sampleCount)
+        val observedSamples = resamplePolyline(observed, sampleCount)
+        if (candidateSamples.size != sampleCount || observedSamples.size != sampleCount) {
+            return Double.POSITIVE_INFINITY
+        }
+
+        var total = 0.0
+        var compared = 0
+        for (index in 0 until sampleCount - 1) {
+            val candidateDx = candidateSamples[index + 1].x - candidateSamples[index].x
+            val candidateDy = candidateSamples[index + 1].y - candidateSamples[index].y
+            val observedDx = observedSamples[index + 1].x - observedSamples[index].x
+            val observedDy = observedSamples[index + 1].y - observedSamples[index].y
+
+            val candidateLength = hypot(candidateDx, candidateDy)
+            val observedLength = hypot(observedDx, observedDy)
+            if (candidateLength <= 0.000001 || observedLength <= 0.000001) continue
+
+            val cosine = (
+                candidateDx * observedDx + candidateDy * observedDy
+            ) / (candidateLength * observedLength)
+            total += (1.0 - cosine.coerceIn(-1.0, 1.0)) * 0.5
+            compared += 1
+        }
+
+        return if (compared == 0) Double.POSITIVE_INFINITY else total / compared
     }
 
     private fun keyboardScale(centers: Map<String, Point>): Double {
@@ -425,7 +511,8 @@ internal class SwipeTypingEngine {
         const val MAX_TRACE_POINTS = 72
         const val MIN_TRACE_SAMPLE_SPACING = 0.16
 
-        const val MAX_PHYSICAL_ENDPOINT_DISTANCE = 1.75
+        const val MAX_PHYSICAL_START_DISTANCE = 1.45
+        const val MAX_PHYSICAL_END_DISTANCE = 2.05
         const val MAX_PHYSICAL_ORDERED_COST = 1.65
         const val MAX_PHYSICAL_CANDIDATE_COVERAGE = 1.20
         const val PHYSICAL_ENDPOINT_WEIGHT = 1.30
@@ -433,10 +520,15 @@ internal class SwipeTypingEngine {
         const val PHYSICAL_CANDIDATE_COVERAGE_WEIGHT = 1.55
         const val PHYSICAL_TRACE_COVERAGE_WEIGHT = 0.24
         const val PHYSICAL_SHAPE_WEIGHT = 2.65
+        const val PHYSICAL_DIRECTION_WEIGHT = 1.45
         const val PHYSICAL_ROUTE_LENGTH_WEIGHT = 0.45
         const val PHYSICAL_LENGTH_DELTA_WEIGHT = 0.045
         const val PHYSICAL_FREQUENCY_LOG_WEIGHT = 0.010
         const val MAX_PHYSICAL_SHAPE_COST = 1.35
+        const val MAX_DIRECTION_COST = 0.82
+        const val CORNER_TURN_STRENGTH = 0.12
+        const val MIN_DIRECTION_SAMPLES = 8
+        const val MAX_DIRECTION_SAMPLES = 20
         const val SHAPE_SAMPLE_COUNT = 24
 
         const val MAX_ENDPOINT_DISTANCE = 1.45
