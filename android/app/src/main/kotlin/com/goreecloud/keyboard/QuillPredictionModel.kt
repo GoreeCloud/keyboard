@@ -8,7 +8,7 @@ package com.goreecloud.keyboard
  * network/account/clipboard data.
  */
 internal object QuillPredictionModel {
-    private val starterPredictions = listOf("I", "The", "How")
+    private val starterPredictions = listOf("I", "I'm", "The")
 
     private val phrasePredictions = mapOf(
         "does it" to listOf("feel", "work", "look"),
@@ -115,8 +115,40 @@ internal object QuillPredictionModel {
         "today" to listOf("I", "is", "we"),
         "tomorrow" to listOf("I", "we", "is"),
         "now" to listOf("I", "we", "it"),
+        "hello" to listOf("there", "everyone", "again"),
+        "hey" to listOf("there", "how", "can"),
+        "good" to listOf("morning", "idea", "luck"),
+        "great" to listOf("job", "idea", "thanks"),
+        "yes" to listOf("I", "that", "please"),
+        "no" to listOf("I", "problem", "thanks"),
+        "because" to listOf("I", "it", "the"),
+        "if" to listOf("you", "I", "the"),
+        "but" to listOf("I", "the", "it"),
+        "and" to listOf("the", "I", "you"),
+        "or" to listOf("the", "you", "I"),
+        "to" to listOf("the", "be", "you"),
+        "for" to listOf("the", "you", "a"),
+        "with" to listOf("the", "you", "a"),
+        "from" to listOf("the", "my", "your"),
+        "at" to listOf("the", "home", "work"),
+        "on" to listOf("the", "my", "your"),
+        "in" to listOf("the", "a", "my"),
+        "about" to listOf("the", "this", "it"),
+        "not" to listOf("sure", "the", "a"),
+        "very" to listOf("good", "nice", "important"),
+        "really" to listOf("like", "good", "want"),
+        "still" to listOf("have", "need", "want"),
+        "already" to listOf("have", "done", "know"),
     )
 
+    private val prepositions = setOf(
+        "at", "by", "for", "from", "in", "into", "of", "on", "to", "with", "without",
+    )
+    private val auxiliaries = setOf(
+        "am", "are", "can", "could", "did", "do", "does", "had", "has", "have", "is",
+        "might", "must", "should", "was", "were", "will", "would",
+    )
+    private val determiners = setOf("a", "an", "the", "this", "that", "these", "those", "my", "your", "our")
     private val fallbackPredictions = listOf("the", "to", "and")
 
     private val boundaryCorrections = mapOf(
@@ -170,11 +202,20 @@ internal object QuillPredictionModel {
         }
 
         val phrase = if (normalized.size == 2) normalized.joinToString(" ") else null
+        val last = normalized.last()
         val source = phrase?.let(phrasePredictions::get)
-            ?: wordPredictions[normalized.last()]
-            ?: fallbackPredictions
+            ?: wordPredictions[last]
+            ?: contextualFallback(last)
 
         return source.distinctBy { it.lowercase() }.take(limit)
+    }
+
+    private fun contextualFallback(last: String): List<String> = when {
+        last in prepositions -> listOf("the", "a", "my")
+        last in auxiliaries -> listOf("the", "you", "a")
+        last in determiners -> listOf("new", "good", "same")
+        last.endsWith("ing") -> listOf("the", "to", "and")
+        else -> fallbackPredictions
     }
 
     fun boundaryCorrection(word: String): String? {
