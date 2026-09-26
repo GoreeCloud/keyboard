@@ -18,6 +18,8 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 /**
  * Device-local settings surface for the native Keyboard runtime.
@@ -54,6 +56,17 @@ class KeyboardSettingsActivity : Activity() {
             setPadding(dp(20), dp(22), dp(20), dp(28))
             setBackgroundColor(palette.canvasArgb)
         }
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                dp(20) + bars.left,
+                dp(22) + bars.top,
+                dp(20) + bars.right,
+                dp(28) + bars.bottom,
+            )
+            insets
+        }
+        ViewCompat.requestApplyInsets(root)
 
         root.addView(buildHeader(), matchWidth())
         root.addView(sectionLabel(getString(R.string.keyboard_settings_typing_section)), matchWidth())
