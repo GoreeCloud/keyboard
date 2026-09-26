@@ -2,18 +2,117 @@ package com.goreecloud.keyboard
 
 import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.math.ln
+
+internal data class SwipePoint(val x: Float, val y: Float)
+
+internal data class SwipeGesture(
+    val keyPath: List<String>,
+    val points: List<SwipePoint>,
+    val keyCenters: Map<String, SwipePoint>,
+)
 
 /**
- * Local gesture decoder for GoreeCloud Quill.
+ * Local gesture decoder for GoreeCloud Keyboard.
  *
- * The decoder treats the traversed QWERTY keys as an ordered geometric path rather than a literal
- * character sequence. Candidate words are ranked by how well their letter path follows the gesture,
- * by ordered letter coverage, by excess detour, and finally by packaged-dictionary frequency.
- *
- * Gesture traces remain transient. This engine performs no editor reads, persistence, learning,
- * telemetry, account/contact/clipboard access, or network access.
+ * Physical-device decoding prefers the actual sampled finger path plus the current rendered key
+ * centers. The legacy key-path entrypoint remains for deterministic unit tests and fallback. No
+ * gesture trace is persisted or transmitted.
  */
 internal class SwipeTypingEngine {
+    fun decode(
+        gesture: SwipeGesture,
+        dictionary: Collection<String>,
+        limit: Int = 3,
+    ): List<String> {
+        if (limit <= 0) return emptyList()
+
+        val traceLabels = normalizeTrace(gesture.keyPath)
+        if (traceLabels.size < MIN_TRACE_KEYS) return emptyList()
+
+        val centers = gesture.keyCenters
+            .mapKeys { it.key.lowercase() }
+            .mapValues { Point(it.value.x.toDouble(), it.value.y.toDouble()) }
+
+        val scale = keyboardScale(centers)
+        val sampledTrace = simplifyTrace(
+            gesture.points.map { Point(it.x.toDouble(), it.y.toDouble()) },
+            minimumSpacing = scale * MIN_TRACE_SAMPLE_SPACING,
+        )
+
+        if (
+            sampledTrace.size < MIN_TRACE_POINTS ||
+            !scale.isFinite() ||
+            scale <= 0.0
+        ) {
+            return decode(gesture.keyPath, dictionary, limit)
+        }
+
+        return dictionary.asSequence()
+            .filter { it.isNotBlank() }
+            .distinctBy { it.lowercase() }
+            .withIndex()
+            .mapNotNull { indexed ->
+                val word = indexed.value
+                val wordLabels = normalizedWordTrace(word)
+                if (wordLabels.size < MIN_TRACE_KEYS) return@mapNotNull null
+
+                val wordPoints = wordLabels.mapNotNull(centers::get)
+                if (wordPoints.size != wordLabels.size) return@mapNotNull null
+
+                val startDistance = distance(wordPoints.first(), sampledTrace.first()) / scale
+                val endDistance = distance(wordPoints.last(), sampledTrace.last()) / scale
+                if (
+                    startDistance > MAX_PHYSICAL_ENDPOINT_DISTANCE ||
+                    endDistance > MAX_PHYSICAL_ENDPOINT_DISTANCE
+                ) return@mapNotNull null
+
+                val orderedCost = orderedCoverageCost(wordPoints, sampledTrace) / scale
+                if (!orderedCost.isFinite() || orderedCost > MAX_PHYSICAL_ORDERED_COST) {
+                    return@mapNotNull null
+                }
+
+                val candidateCoverage =
+                    averageDistanceToPolyline(wordPoints, sampledTrace) / scale
+                if (
+                    !candidateCoverage.isFinite() ||
+                    candidateCoverage > MAX_PHYSICAL_CANDIDATE_COVERAGE
+                ) return@mapNotNull null
+
+                val traceCoverage =
+                    averageDistanceToPolyline(sampledTrace, wordPoints) / scale
+                val sequencePenalty =
+                    sequenceDistance(traceLabels, wordLabels) * SEQUENCE_DISTANCE_WEIGHT
+                val lengthPenalty =
+                    abs(wordLabels.size - traceLabels.size) * PHYSICAL_LENGTH_DELTA_WEIGHT
+                val endpointPenalty =
+                    (startDistance + endDistance) * PHYSICAL_ENDPOINT_WEIGHT
+                val frequencyPenalty =
+                    ln(indexed.index.toDouble() + 2.0) * PHYSICAL_FREQUENCY_LOG_WEIGHT
+
+                SwipeCandidate(
+                    word = word,
+                    score =
+                        endpointPenalty +
+                        orderedCost * PHYSICAL_ORDERED_WEIGHT +
+                        candidateCoverage * PHYSICAL_CANDIDATE_COVERAGE_WEIGHT +
+                        traceCoverage * PHYSICAL_TRACE_COVERAGE_WEIGHT +
+                        sequencePenalty +
+                        lengthPenalty +
+                        frequencyPenalty,
+                    rank = indexed.index,
+                )
+            }
+            .sortedWith(
+                compareBy<SwipeCandidate> { it.score }
+                    .thenBy { it.rank }
+                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.word },
+            )
+            .take(limit)
+            .map { it.word }
+            .toList()
+    }
+
     fun decode(
         keyPath: List<String>,
         dictionary: Collection<String>,
@@ -54,9 +153,11 @@ internal class SwipeTypingEngine {
                 }
 
                 val traceCoverage = averageDistanceToPolyline(tracePoints, wordPoints)
+                val sequencePenalty =
+                    sequenceDistance(traceLabels, wordLabels) * SEQUENCE_DISTANCE_WEIGHT
                 val lengthPenalty = abs(wordLabels.size - traceLabels.size) * LENGTH_DELTA_WEIGHT
                 val endpointPenalty = (startDistance + endDistance) * ENDPOINT_WEIGHT
-                val frequencyPenalty = indexed.index * FREQUENCY_WEIGHT
+                val frequencyPenalty = ln(indexed.index.toDouble() + 2.0) * FREQUENCY_LOG_WEIGHT
 
                 SwipeCandidate(
                     word = word,
@@ -65,6 +166,7 @@ internal class SwipeTypingEngine {
                         orderedCost * ORDERED_WEIGHT +
                         candidateCoverage * CANDIDATE_COVERAGE_WEIGHT +
                         traceCoverage * TRACE_COVERAGE_WEIGHT +
+                        sequencePenalty +
                         lengthPenalty +
                         frequencyPenalty,
                     rank = indexed.index,
@@ -100,9 +202,33 @@ internal class SwipeTypingEngine {
         return result
     }
 
+    private fun simplifyTrace(points: List<Point>, minimumSpacing: Double): List<Point> {
+        if (points.size <= 2) return points
+        val result = mutableListOf(points.first())
+        for (point in points.drop(1).dropLast(1)) {
+            if (distance(result.last(), point) >= minimumSpacing) result += point
+            if (result.size >= MAX_TRACE_POINTS - 1) break
+        }
+        if (result.last() != points.last()) result += points.last()
+        return result
+    }
+
+    private fun keyboardScale(centers: Map<String, Point>): Double {
+        val neighborPairs = listOf(
+            "q" to "w", "w" to "e", "a" to "s", "s" to "d", "z" to "x", "x" to "c",
+        )
+        val values = neighborPairs.mapNotNull { (left, right) ->
+            val a = centers[left] ?: return@mapNotNull null
+            val b = centers[right] ?: return@mapNotNull null
+            distance(a, b)
+        }
+        if (values.isEmpty()) return Double.NaN
+        return values.average()
+    }
+
     /**
-     * Greedily matches each intended letter to the nearest remaining gesture point. This strongly
-     * penalizes candidates whose letters appear along the right route but in the wrong order.
+     * Greedily matches each intended letter to the nearest remaining gesture point, preserving
+     * order so routes that pass near the right letters in the wrong sequence are penalized.
      */
     private fun orderedCoverageCost(candidate: List<Point>, observed: List<Point>): Double {
         var searchStart = 0
@@ -133,6 +259,25 @@ internal class SwipeTypingEngine {
         }
 
         return total / candidate.size
+    }
+
+    private fun sequenceDistance(observed: List<String>, candidate: List<String>): Double {
+        if (observed.isEmpty() || candidate.isEmpty()) return 1.0
+        val matrix = Array(observed.size + 1) { IntArray(candidate.size + 1) }
+        for (i in observed.indices) matrix[i + 1][0] = i + 1
+        for (j in candidate.indices) matrix[0][j + 1] = j + 1
+        for (i in observed.indices) {
+            for (j in candidate.indices) {
+                val substitution = if (observed[i] == candidate[j]) 0 else 1
+                matrix[i + 1][j + 1] = minOf(
+                    matrix[i][j + 1] + 1,
+                    matrix[i + 1][j] + 1,
+                    matrix[i][j] + substitution,
+                )
+            }
+        }
+        return matrix[observed.size][candidate.size].toDouble() /
+            maxOf(observed.size, candidate.size)
     }
 
     private fun averageDistanceToPolyline(points: List<Point>, polyline: List<Point>): Double {
@@ -183,6 +328,20 @@ internal class SwipeTypingEngine {
 
     private companion object {
         const val MIN_TRACE_KEYS = 2
+        const val MIN_TRACE_POINTS = 3
+        const val MAX_TRACE_POINTS = 72
+        const val MIN_TRACE_SAMPLE_SPACING = 0.16
+
+        const val MAX_PHYSICAL_ENDPOINT_DISTANCE = 1.75
+        const val MAX_PHYSICAL_ORDERED_COST = 1.65
+        const val MAX_PHYSICAL_CANDIDATE_COVERAGE = 1.20
+        const val PHYSICAL_ENDPOINT_WEIGHT = 1.30
+        const val PHYSICAL_ORDERED_WEIGHT = 2.15
+        const val PHYSICAL_CANDIDATE_COVERAGE_WEIGHT = 1.55
+        const val PHYSICAL_TRACE_COVERAGE_WEIGHT = 0.28
+        const val PHYSICAL_LENGTH_DELTA_WEIGHT = 0.055
+        const val PHYSICAL_FREQUENCY_LOG_WEIGHT = 0.012
+
         const val MAX_ENDPOINT_DISTANCE = 1.45
         const val MAX_ORDERED_COST = 1.45
         const val MAX_CANDIDATE_COVERAGE = 1.10
@@ -191,7 +350,8 @@ internal class SwipeTypingEngine {
         const val CANDIDATE_COVERAGE_WEIGHT = 1.5
         const val TRACE_COVERAGE_WEIGHT = 0.35
         const val LENGTH_DELTA_WEIGHT = 0.07
-        const val FREQUENCY_WEIGHT = 0.0008
+        const val FREQUENCY_LOG_WEIGHT = 0.02
+        const val SEQUENCE_DISTANCE_WEIGHT = 0.55
 
         val KEY_POINTS = buildMap {
             "qwertyuiop".forEachIndexed { index, character ->
