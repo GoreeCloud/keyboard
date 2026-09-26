@@ -1457,6 +1457,7 @@ class KeyboardView @JvmOverloads constructor(
         const val ACCESSIBILITY_EMOJI_CATEGORY_BASE = 3_000
         const val ACCESSIBILITY_EMOJI_SEARCH_RESULT_BASE = 4_000
         const val TAP_RELEASE_SLOP_MULTIPLIER = 1.6f
+        const val TAP_NEAR_MISS_MAX_DP = 10f
         const val SWIPE_START_SLOP_MULTIPLIER = 2.0f
         const val SWIPE_MIN_TRAVEL_DP = 20f
         const val SWIPE_MIN_GESTURE_MS = 55L
