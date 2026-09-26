@@ -34,6 +34,7 @@ class KeyboardSettingsActivity : Activity() {
     private lateinit var setupPreferences: KeyboardSetupPreferences
     private lateinit var palette: GlazeKeyboardTokens.Palette
     private var setupStep: Int = 0
+    private var setupWizardActive: Boolean = false
     private var accentColor: Int = 0xFF2563EB.toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +55,319 @@ class KeyboardSettingsActivity : Activity() {
         } else {
             renderSetupWizard()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::setupPreferences.isInitialized && setupWizardActive) {
+            renderSetupWizard()
+        }
+    }
+
+    private fun renderSetupWizard() {
+        setupWizardActive = true
+        setContentView(buildSetupWizard())
+    }
+
+    private fun buildSetupWizard(): ScrollView {
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(22), dp(20), dp(28))
+            setBackgroundColor(palette.canvasArgb)
+        }
+
+        root.addView(TextView(this).apply {
+            text = getString(R.string.keyboard_setup_title)
+            textSize = 28f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            setTextColor(palette.onSurfaceArgb)
+        }, matchWidth())
+
+        root.addView(TextView(this).apply {
+            text = getString(R.string.keyboard_setup_progress, setupStep + 1, SETUP_STEP_COUNT)
+            textSize = 13f
+            setTextColor(palette.onSurfaceMutedArgb)
+            setPadding(0, dp(4), 0, dp(18))
+        }, matchWidth())
+
+        when (setupStep) {
+            0 -> buildSetupActivationStep(root)
+            1 -> buildSetupTypingStep(root)
+            2 -> buildSetupClipboardStep(root)
+            else -> buildSetupFinishStep(root)
+        }
+
+        val navigation = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(20), 0, 0)
+        }
+
+        if (setupStep > 0) {
+            navigation.addView(
+                actionButton(getString(R.string.keyboard_setup_back)) {
+                    setupStep -= 1
+                    renderSetupWizard()
+                },
+                LinearLayout.LayoutParams(0, dp(56), 1f).apply {
+                    marginEnd = dp(8)
+                },
+            )
+        }
+
+        navigation.addView(
+            actionButton(
+                if (setupStep == SETUP_STEP_COUNT - 1) {
+                    getString(R.string.keyboard_setup_finish)
+                } else {
+                    getString(R.string.keyboard_setup_continue)
+                },
+            ) {
+                if (setupStep == SETUP_STEP_COUNT - 1) {
+                    setupPreferences.markComplete()
+                    setupWizardActive = false
+                    setContentView(buildContent())
+                } else {
+                    setupStep += 1
+                    renderSetupWizard()
+                }
+            },
+            LinearLayout.LayoutParams(0, dp(56), 1f),
+        )
+
+        root.addView(navigation, matchWidth())
+
+        return ScrollView(this).apply {
+            isFillViewport = true
+            setBackgroundColor(palette.canvasArgb)
+            addView(
+                root,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+        }
+    }
+
+    private fun buildSetupActivationStep(root: LinearLayout) {
+        root.addView(
+            setupHeading(
+                getString(R.string.keyboard_setup_welcome_heading),
+                getString(R.string.keyboard_setup_welcome_summary),
+            ),
+            matchWidth(),
+        )
+
+        root.addView(card().apply {
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_setup_enable_title)
+                textSize = 17f
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                setTextColor(palette.onSurfaceArgb)
+            }, matchWidth())
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = if (isGoreeCloudKeyboardEnabled()) {
+                    getString(R.string.keyboard_setup_enabled)
+                } else {
+                    getString(R.string.keyboard_setup_not_enabled)
+                }
+                textSize = 14f
+                setTextColor(palette.onSurfaceMutedArgb)
+                setPadding(0, dp(5), 0, dp(12))
+            }, matchWidth())
+            addView(actionButton(getString(R.string.keyboard_setup_open_keyboard_settings)) {
+                startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+            }, matchWidth())
+        }, matchWidth())
+
+        root.addView(card().apply {
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_setup_select_title)
+                textSize = 17f
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                setTextColor(palette.onSurfaceArgb)
+            }, matchWidth())
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = if (isGoreeCloudKeyboardSelected()) {
+                    getString(R.string.keyboard_setup_selected)
+                } else {
+                    getString(R.string.keyboard_setup_not_selected)
+                }
+                textSize = 14f
+                setTextColor(palette.onSurfaceMutedArgb)
+                setPadding(0, dp(5), 0, dp(12))
+            }, matchWidth())
+            addView(actionButton(getString(R.string.keyboard_setup_choose_keyboard)) {
+                (getSystemService(INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager)
+                    ?.showInputMethodPicker()
+            }, matchWidth())
+        }, matchWidth().apply { topMargin = dp(12) })
+    }
+
+    private fun buildSetupTypingStep(root: LinearLayout) {
+        root.addView(
+            setupHeading(
+                getString(R.string.keyboard_setup_typing_heading),
+                getString(R.string.keyboard_setup_typing_summary),
+            ),
+            matchWidth(),
+        )
+
+        val current = settingsStore.load()
+        root.addView(card().apply {
+            addView(settingRow(
+                getString(R.string.keyboard_settings_suggestions),
+                getString(R.string.keyboard_settings_suggestions_summary),
+                current.suggestionsEnabled,
+                settingsStore::setSuggestionsEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_autocorrect),
+                getString(R.string.keyboard_settings_autocorrect_summary),
+                current.autocorrectEnabled,
+                settingsStore::setAutocorrectEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_predictions),
+                getString(R.string.keyboard_settings_predictions_summary),
+                current.predictionsEnabled,
+                settingsStore::setPredictionsEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_swipe),
+                getString(R.string.keyboard_settings_swipe_summary),
+                current.swipeTypingEnabled,
+                settingsStore::setSwipeTypingEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_number_row),
+                getString(R.string.keyboard_settings_number_row_summary),
+                current.numberRowEnabled,
+                settingsStore::setNumberRowEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_haptics),
+                getString(R.string.keyboard_settings_haptics_summary),
+                current.hapticFeedbackEnabled,
+                settingsStore::setHapticFeedbackEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_sound),
+                getString(R.string.keyboard_settings_sound_summary),
+                current.keyPressSoundEnabled,
+                settingsStore::setKeyPressSoundEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(settingRow(
+                getString(R.string.keyboard_settings_learn_from_typing),
+                getString(R.string.keyboard_settings_learn_from_typing_summary),
+                current.learnFromTypingEnabled,
+                settingsStore::setLearnFromTypingEnabled,
+            ), matchWidth())
+        }, matchWidth())
+    }
+
+    private fun buildSetupClipboardStep(root: LinearLayout) {
+        root.addView(
+            setupHeading(
+                getString(R.string.keyboard_setup_clipboard_heading),
+                getString(R.string.keyboard_setup_clipboard_summary),
+            ),
+            matchWidth(),
+        )
+
+        val clipboardPreferences = KeyboardClipboardPreferences(this)
+        root.addView(card().apply {
+            addView(settingRow(
+                getString(R.string.keyboard_settings_clipboard_history),
+                getString(R.string.keyboard_settings_clipboard_history_summary),
+                clipboardPreferences.historyEnabled(),
+                clipboardPreferences::setHistoryEnabled,
+            ), matchWidth())
+            addDivider()
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_setup_clipboard_retention)
+                textSize = 17f
+                setTextColor(palette.onSurfaceArgb)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            }, matchWidth())
+            addView(
+                buildClipboardRetentionSegment(
+                    selected = clipboardPreferences.retention(),
+                    onSelected = clipboardPreferences::setRetention,
+                ),
+                matchWidth(),
+            )
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_setup_clipboard_privacy)
+                textSize = 13.5f
+                setTextColor(palette.onSurfaceMutedArgb)
+                setPadding(0, dp(14), 0, 0)
+            }, matchWidth())
+        }, matchWidth())
+    }
+
+    private fun buildSetupFinishStep(root: LinearLayout) {
+        root.addView(
+            setupHeading(
+                getString(R.string.keyboard_setup_finish_heading),
+                getString(R.string.keyboard_setup_finish_summary),
+            ),
+            matchWidth(),
+        )
+
+        root.addView(card().apply {
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(
+                    R.string.keyboard_setup_finish_status,
+                    if (isGoreeCloudKeyboardEnabled()) "Enabled" else "Not enabled",
+                    if (isGoreeCloudKeyboardSelected()) "Selected" else "Not selected",
+                )
+                textSize = 15f
+                setTextColor(palette.onSurfaceArgb)
+            }, matchWidth())
+        }, matchWidth())
+    }
+
+    private fun setupHeading(title: String, summary: String): LinearLayout =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 0, 0, dp(16))
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = title
+                textSize = 21f
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                setTextColor(palette.onSurfaceArgb)
+            }, matchWidth())
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = summary
+                textSize = 14.5f
+                setTextColor(palette.onSurfaceMutedArgb)
+                setPadding(0, dp(6), 0, 0)
+            }, matchWidth())
+        }
+
+    private fun isGoreeCloudKeyboardEnabled(): Boolean {
+        val enabled = Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.ENABLED_INPUT_METHODS,
+        ).orEmpty()
+        return enabled.contains(packageName)
+    }
+
+    private fun isGoreeCloudKeyboardSelected(): Boolean {
+        val selected = Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.DEFAULT_INPUT_METHOD,
+        ).orEmpty()
+        return selected.startsWith(packageName + "/")
     }
 
     private fun buildContent(): ScrollView {
