@@ -91,6 +91,48 @@ class KeyboardTypingErgonomicsRuntimeTest {
     }
 
     @Test
+    fun backspaceSmallReleaseDriftStillActivatesThePressedKey() {
+        val view = createRenderedKeyboard()
+        renderIntoExistingSize(view)
+        val backspace = view.accessibilityTargets().first { it.label == "Backspace" }.bounds
+        var deletions = 0
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) = Unit
+            override fun onSwipe(keyPath: List<String>) = Unit
+            override fun onSpace() = Unit
+            override fun onBackspace() {
+                deletions += 1
+            }
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        dispatch(
+            view,
+            MotionEvent.ACTION_DOWN,
+            backspace.right - 2f,
+            backspace.centerY(),
+            eventTime = 0L,
+        )
+        dispatch(
+            view,
+            MotionEvent.ACTION_UP,
+            backspace.right + 4f,
+            backspace.centerY(),
+            eventTime = 30L,
+        )
+
+        assertEquals(
+            "A small release drift outside Backspace must still perform the deliberate key tap",
+            1,
+            deletions,
+        )
+    }
+
+    @Test
     fun swipeGestureEmitsOrderedLetterTraceInsteadOfSingleTap() {
         val view = createRenderedKeyboard()
         view.setSwipeTypingEnabled(true)
