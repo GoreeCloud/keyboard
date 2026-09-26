@@ -35,6 +35,18 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Draft PR #97 physical-device dictionary, swipe, and tap-reliability correction / 0.1.14-dev
+- Treats representative physical-device 0.1.13 feedback as a failed typing-quality gate: swiping `jump` repeatedly decoded as `hill`, the local dictionary did not recognize common words such as `lagging`, and some ordinary taps appeared to produce no key input.
+- Root-cause readback confirmed that `jump`, `lag`, and `lagging` were absent from the packaged 0.1.13 vocabulary while `hill` was present, so the decoder could not select the intended missing word regardless of geometry quality.
+- Advanced the side-by-side Development package to `versionCode 15` / `0.1.14-dev` / `com.goreecloud.keyboard.dev.v15`.
+- Added a static local English fallback asset derived from Moby Words II `common.txt` at exact public source revision `b84076e29e6a4c686e36c259df5ffe10bafbdaed` / blob `c5ce15eb98035e4d2ea05aefac10c499c1260d37`. The deterministic GoreeCloud import keeps 46,855 unique lowercase ASCII alphabetic entries of 2–24 characters. The original Moby content is public domain and the source mirror dedicates its formatting-only changes under CC0 1.0; provenance is recorded in `THIRD-PARTY-NOTICES.md`.
+- Keeps the first-party Quill frequency lexicon first in candidate order, then uses the packaged fallback for missing ordinary English words. The expanded dictionary remains read-only local application data and adds no Android network permission, remote lookup, telemetry, account dependency, or typed-text collection.
+- Reworked `SuggestionEngine` to cache a stable dictionary index and prune spelling/correction work by first-key neighborhood and bounded word length instead of rescoring every dictionary entry for every keystroke.
+- Reworked `SwipeTypingEngine` to cache normalized dictionary traces in start/end endpoint buckets before physical or ordered-route scoring, preventing the much larger fallback lexicon from turning each swipe into an unrestricted whole-dictionary geometry pass.
+- Added bounded nearest-key recovery for small touches landing in the visual gap immediately beside rendered keys; exact hit targets remain authoritative and recovery is capped by Android touch slop and a 10 dp maximum.
+- Added regressions for `laging → lagging`, a physical `j → u → m → p` swipe preferring `jump` over `hill`, 40,000+ packaged-word coverage, rapid ordinary taps, and visual-gap near-miss activation.
+- Fresh exact-head CI and representative physical-device retesting are required before the correction can be accepted. The candidate remains Draft / Weave Development work.
+
 ### September 25, 2026 — Draft PR #97 privacy-bounded spacebar cursor-control candidate / 0.1.13-dev
 - Advanced the side-by-side Development package to `versionCode 14` / `0.1.13-dev` / `com.goreecloud.keyboard.dev.v14`.
 - Reimplemented the earlier Draft PR #63/#64 spacebar cursor-control concept against the current PR #97 runtime instead of merging the stale stacked branch.
