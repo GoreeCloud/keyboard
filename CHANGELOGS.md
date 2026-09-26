@@ -35,6 +35,15 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Draft PR #97 expanded local settings candidate / 0.1.12-dev
+- Advanced the side-by-side Development package to `versionCode 13` / `0.1.12-dev` / `com.goreecloud.keyboard.dev.v13`.
+- Expanded the first-party settings surface with functional, device-local controls for the ordinary number row, password-field number-row override, double-space period, swipe-trail visibility, Emoji-toolbar visibility, long-press alternate hints, Fast/System/Relaxed long-press delay, and opt-in Android key-click sound.
+- Preserved existing defaults where changing them could surprise physical testers: the ordinary number row, password number row, swipe trail, Emoji shortcut, long-press hints, haptics, suggestions, autocorrection, predictions, automatic capitalization, and double-space period are enabled; key-click sound and learned language remain opt-in.
+- Number-row policy remains editor-local, double-space period is suppressed in sensitive or language-assistance-suppressed fields, and the new settings add no Android permission, network authority, contacts access, clipboard access, voice provider, telemetry, or external dictionary.
+- Corrected the swipe setting description so it no longer says three crossed keys are required; the 0.1.11 recognizer already permits a qualifying two-key sampled trace.
+- Added settings persistence/runtime coverage plus pure policy tests for sensitive-field number-row behavior and double-space-period qualification.
+- The candidate remains Draft / Weave Development work pending fresh exact-head source, build, Android runtime, and representative physical-device validation.
+
 ### September 25, 2026 — Draft PR #97 physical-device swipe and language-quality correction / 0.1.11-dev
 - Advanced the side-by-side Development package to `versionCode 12` / `0.1.11-dev` / `com.goreecloud.keyboard.dev.v12`.
 - Treats the 0.1.10 representative physical-device report as a failed acceptance gate: deliberate swiping could drop out, and the suggestion strip could drift into a malformed concatenated token.
