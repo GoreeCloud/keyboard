@@ -598,7 +598,7 @@ class KeyboardView @JvmOverloads constructor(
         val density = resources.displayMetrics.density
         val gap = GlazeKeyboardTokens.Space1Dp * density
         val verticalInset = GlazeKeyboardTokens.Space1Dp * density
-        val outerRadius = GlazeKeyboardTokens.RadiusLargeDp * density
+        val outerRadius = GlazeKeyboardTokens.OpticalContainerDp * density
         val buttonRadius = GlazeKeyboardTokens.RadiusMediumDp * density
         val actions = listOf(
             Key("emoji", action = Action.EMOJI),
