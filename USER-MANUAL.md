@@ -6,13 +6,13 @@ GoreeCloud Keyboard is currently a **Weave-stage** Android input-method implemen
 
 ## Install and enable the Development keyboard on Android
 
-Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.8** with package ID `com.goreecloud.keyboard.dev.v9`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.9** with package ID `com.goreecloud.keyboard.dev.v10`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
 When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
 
-After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.8**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.9**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
 
-Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.8 when a text field is active.
+Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.9 when a text field is active.
 
 Exact settings labels vary by Android device and version.
 
@@ -67,19 +67,19 @@ The current picker is not a complete emoji catalog. Offline search over the pack
 
 For ordinary text fields, the prediction bar can show up to three local starter predictions **before you type**. As you type, it switches to local completions and spelling candidates; after a committed word, it can show transient next-word predictions from the current editor session.
 
-Candidates are frequency-ordered from the packaged local lexicon and the broader everyday-English supplement. Likely spelling corrections are presented ahead of a misspelled token when the local engine has a bounded correction; the word you are actively typing remains available as a fallback. Built-in context uses only words committed by this Keyboard in the current editor session. If you explicitly enable **Learn from what you type**, bounded word and adjacent-word counters can also improve ranking locally across sessions.
+Candidates are ranked from the packaged local lexicon, broader everyday-English vocabulary, bounded spelling distance, QWERTY proximity, and current local context. The 0.1.9 candidate explicitly includes modern keyboard vocabulary such as **icon**, **icons**, **toolbar**, **emoji**, **grammar**, **prediction**, and **haptics**. Likely spelling corrections are presented ahead of a misspelled token when the local engine has a bounded correction; the word you are actively typing remains available as a fallback. Built-in context uses only a bounded ordinary-editor window and Keyboard's transient session history. If you explicitly enable **Learn from what you type**, bounded word and adjacent-word counters can also improve ranking locally across sessions.
 
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
-The current engine also performs conservative one-edit automatic correction at spaces and common punctuation boundaries when the local candidate is confident and the host text still matches the tracked prefix. Common missing-apostrophe forms such as **dont → don't**, **doesnt → doesn't**, and **im → I'm** are handled locally, and canonical first-party names such as **GoreeCloud** and **Wardveil** retain their expected casing. Sensitive/no-suggestions editor policy remains authoritative. The current engine is local and bounded; it is not a cloud language model.
+The current engine also performs conservative automatic correction at spaces and common punctuation boundaries when the local candidate is confident and the host text still matches the tracked prefix. In addition to missing-apostrophe forms such as **dont → don't**, **doesnt → doesn't**, and **im → I'm**, the deterministic grammar layer handles a bounded set of high-confidence common spelling repairs (for example **grammer → grammar**, **recieve → receive**, and **tommorow → tomorrow**) plus context-dependent repairs such as **should of → should have**. Canonical first-party names such as **GoreeCloud** and **Wardveil** retain their expected casing. Sensitive/no-suggestions editor policy remains authoritative. The current engine is local and bounded; it is not a cloud language model.
 
 ## Swipe typing
 
-In ordinary non-sensitive text fields, you can slide across letter keys and release to submit a locally decoded word. The current Development implementation uses the transient key path plus the packaged local lexicon and, when explicitly enabled, learned local vocabulary. After a swipe, the prediction strip can show up to three local swipe candidates so you can replace the committed word with a better alternative when needed.
+In ordinary non-sensitive text fields, you can slide across letter keys and release to submit a locally decoded word. The 0.1.9 candidate uses the actual transient pointer samples and rendered key centers rather than treating the crossed-key sequence as the whole gesture. Its local statistical classifier prunes by likely endpoints and path length, resamples the gesture, compares normalized shape and physical location against ideal word gestures, accounts for repeated-letter gesture variants and dictionary frequency, and then lets bounded local sentence context re-rank only candidates already accepted by the gesture classifier. When learning is explicitly enabled, learned local vocabulary may also participate. After a swipe, the prediction strip can show up to three local swipe candidates so you can replace the committed word with a better alternative when needed.
 
 Swipe typing is disabled in sensitive editors and while touch-exploration/screen-reader optimized presentation is active. The gesture path is not persisted, learned from, transmitted, or combined with surrounding editor text.
 
-The current gesture-start threshold requires deliberate travel, elapsed time, and movement across multiple letter keys before the keyboard switches from tapping to swipe decoding. This specifically reduces accidental swipes during fast typing. The decoder also tolerates a bounded amount of start/end drift so natural gestures do not have to begin and end on the exact key center. Recognition quality remains Weave-stage Development behavior and is still subject to physical-device refinement.
+The gesture-start threshold still requires deliberate travel, elapsed time, and movement across multiple letter keys before the keyboard switches from tapping to swipe decoding, reducing accidental swipes during fast typing. Endpoint selection allows nearby-key tolerance, while the statistical shape/location comparison is intended to distinguish gestures that cross similar keys but follow different routes. Recognition quality remains Weave-stage Development behavior and still requires representative physical-device acceptance.
 
 ## Sensitive text fields
 
@@ -95,7 +95,7 @@ Future network-backed capabilities, if implemented, require separate user-contro
 
 ## Keyboard settings and app shortcut
 
-The Development package now exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.8**. Opening it launches the first-party Keyboard settings screen. The same settings screen is also reachable from the **⚙** control in the dedicated utility toolbar and from Android's input-method settings entry for GoreeCloud Keyboard. The settings UI uses Glaze-style cards, grouped controls, and a segmented Compact / Standard / Tall key-height selector.
+The Development package exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.9**. Opening it launches the first-party Keyboard settings screen. The same settings screen is reachable from the Settings glyph in the utility toolbar and from Android's input-method settings entry for GoreeCloud Keyboard. The settings UI uses Glaze-style cards, grouped controls, and segmented appearance controls, and its content root now applies Android system-bar insets so the status and navigation bars do not overlap the settings content.
 
 Current device-local settings include:
 
@@ -123,13 +123,12 @@ The built-in dictionary itself is read-only. Optional **Learn from what you type
 
 ## Utility toolbar
 
-A dedicated toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. It currently exposes only implemented actions:
+A dedicated Glaze toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. The toolbar now exposes only two implemented actions:
 
-- **☺ Emoji**
-- **⚙ Settings**
-- **⌄ Hide keyboard**
+- **Emoji** — a first-party drawn smile/emoji-face glyph rather than a literal emoji character.
+- **Settings** — a first-party slider/tuning glyph rather than the generic gear character.
 
-The **?123 / ABC** mode control remains on the bottom row instead of being duplicated in the toolbar. Emoji is toolbar-only on letter/symbol layers and is no longer duplicated on the bottom row.
+The redundant Hide Keyboard action has been removed. The **?123 / ABC** mode control remains on the bottom row instead of being duplicated in the toolbar. Emoji is toolbar-only on letter/symbol layers and is no longer duplicated on the bottom row. The actions share a single rounded Glaze toolbar surface instead of appearing as a row of unrelated utility keycaps.
 
 Clipboard and GIF controls are not shown as placeholders. They remain separate capability work because clipboard access and GIF/provider behavior require real implementation, privacy/security authority, and user-control boundaries rather than decorative buttons.
 
