@@ -80,7 +80,7 @@
     <string name="keyboard_settings_dictionary_title">Built-in GoreeCloud dictionary</string>
     <string name="keyboard_settings_dictionary_badge">Built-in • local • read-only</string>
     <string name="keyboard_settings_more_section">More</string>
-    <string name="keyboard_settings_dictionary_summary">The built-in local dictionary includes common English, contractions, and canonical GoreeCloud product and system terms. Optional learned language data is stored separately.</string>
+    <string name="keyboard_settings_dictionary_summary">The built-in local dictionary includes the GoreeCloud frequency lexicon, more than 46,000 packaged English fallback words, contractions, and canonical GoreeCloud terms. Optional learned language data is stored separately.</string>
     <string name="keyboard_settings_learn_from_typing">Learn from what you type</string>
     <string name="keyboard_settings_learn_from_typing_summary">Off by default. When enabled, store bounded word and adjacent-word frequency counters on this device only. Sensitive and no-suggestions fields are excluded.</string>
     <string name="keyboard_settings_learned_count">%1$d learned words stored locally</string>
