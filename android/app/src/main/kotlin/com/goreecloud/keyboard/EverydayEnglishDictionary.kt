@@ -38,6 +38,7 @@ internal object EverydayEnglishDictionary {
         "possible", "probably", "problem", "project", "question", "quick", "ready", "really",
         "reason", "remember", "reply", "report", "right", "room", "same", "school", "screen",
         "search", "second", "send", "sent", "service", "share", "shopping", "short", "show",
+        "suck", "sucks", "sucked", "sucking",
         "simple", "sister", "sleep", "small", "someone", "something", "sorry", "sound", "start",
         "stay", "stop", "store", "street", "stuff", "sure", "take", "talk", "team", "tell",
         "text", "thanks", "thank", "thing", "things", "think", "thought", "time", "today",
