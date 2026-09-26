@@ -6,13 +6,13 @@ GoreeCloud Keyboard is currently a **Weave-stage** Android input-method implemen
 
 ## Install and enable the Development keyboard on Android
 
-Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.7** with package ID `com.goreecloud.keyboard.dev.v8`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.8** with package ID `com.goreecloud.keyboard.dev.v9`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
 When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
 
-After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.7**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.8**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
 
-Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.7 when a text field is active.
+Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.8 when a text field is active.
 
 Exact settings labels vary by Android device and version.
 
@@ -27,6 +27,8 @@ The keyboard opens in its **letters** layer.
 - Tap the direct **,** and **.** keys for common punctuation.
 - Tap the **English (US)** spacebar to insert a space.
 - Tap **↵** to send the Android Enter key action to the active editor.
+
+Backspace and Enter use first-party vector-style icons rather than generic text glyphs in the current Development candidate.
 
 The temporary shift state resets after a shifted alphabetic character is entered. In ordinary text fields, the current Development candidate can also automatically shift at sentence starts when **Automatic capitalization** is enabled.
 
@@ -65,7 +67,7 @@ The current picker is not a complete emoji catalog. Offline search over the pack
 
 For ordinary text fields, the prediction bar can show up to three local starter predictions **before you type**. As you type, it switches to local completions and spelling candidates; after a committed word, it can show transient next-word predictions from the current editor session.
 
-Candidates are frequency-ordered from the packaged local lexicon and the broader everyday-English supplement. Likely spelling corrections are presented ahead of a misspelled token when the local engine has a bounded correction; the word you are actively typing remains available as a fallback. Context uses only words committed by this Keyboard in the current editor session and is not persisted.
+Candidates are frequency-ordered from the packaged local lexicon and the broader everyday-English supplement. Likely spelling corrections are presented ahead of a misspelled token when the local engine has a bounded correction; the word you are actively typing remains available as a fallback. Built-in context uses only words committed by this Keyboard in the current editor session. If you explicitly enable **Learn from what you type**, bounded word and adjacent-word counters can also improve ranking locally across sessions.
 
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
@@ -73,7 +75,7 @@ The current engine also performs conservative one-edit automatic correction at s
 
 ## Swipe typing
 
-In ordinary non-sensitive text fields, you can slide across letter keys and release to submit a locally decoded word. The current Development implementation uses only the transient key path from that gesture and the packaged local Quill lexicon.
+In ordinary non-sensitive text fields, you can slide across letter keys and release to submit a locally decoded word. The current Development implementation uses the transient key path plus the packaged local lexicon and, when explicitly enabled, learned local vocabulary. After a swipe, the prediction strip can show up to three local swipe candidates so you can replace the committed word with a better alternative when needed.
 
 Swipe typing is disabled in sensitive editors and while touch-exploration/screen-reader optimized presentation is active. The gesture path is not persisted, learned from, transmitted, or combined with surrounding editor text.
 
@@ -93,7 +95,7 @@ Future network-backed capabilities, if implemented, require separate user-contro
 
 ## Keyboard settings and app shortcut
 
-The Development package now exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.7**. Opening it launches the first-party Keyboard settings screen. The same settings screen is also reachable from the **⚙** control in the dedicated utility toolbar and from Android's input-method settings entry for GoreeCloud Keyboard. The settings UI uses Glaze-style cards, grouped controls, and a segmented Compact / Standard / Tall key-height selector.
+The Development package now exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.8**. Opening it launches the first-party Keyboard settings screen. The same settings screen is also reachable from the **⚙** control in the dedicated utility toolbar and from Android's input-method settings entry for GoreeCloud Keyboard. The settings UI uses Glaze-style cards, grouped controls, and a segmented Compact / Standard / Tall key-height selector.
 
 Current device-local settings include:
 
@@ -102,24 +104,32 @@ Current device-local settings include:
 - **Autocorrect**
 - **Next-word predictions**
 - **Automatic capitalization**
+- **Key press vibration** — enabled by default
+- **Learn from what you type** — disabled by default
+- **Toolbar style:** Icons only or Icons + labels
 - **Key height:** Compact, Standard, or Tall
 
 Key-height choices change the visible keycap height while preserving the larger touch-target geometry used for dependable typing and accessibility.
+
+## Key press vibration
+
+Key press vibration is enabled by default. Taps on ordinary keys, suggestions, emoji controls, toolbar controls, and completed swipe gestures use Android keyboard haptic feedback. Turn **Key press vibration** off in GoreeCloud Keyboard Settings if you prefer a silent touch response. Android and device-level haptic policy still retain final authority over whether vibration is physically produced.
 
 ## Built-in GoreeCloud dictionary
 
 The packaged local dictionary includes common English vocabulary, common derived/irregular forms, common contractions, and canonical GoreeCloud product/system terminology derived from the first-party branding catalog. It includes names such as **GoreeCloud**, **Glaze**, **Quill**, **Wardveil**, **Everkeep**, and the named GoreeCloud applications represented in that catalog.
 
-This dictionary is read-only in the current Development candidate. It is not learned from your typing, synchronized, uploaded, or built from editor contents.
+The built-in dictionary itself is read-only. Optional **Learn from what you type** data is stored separately and is **off by default**. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in private app storage; it excludes sensitive and host no-suggestions editors, never stores full sentences or clipboard contents, does not synchronize or upload the data, and provides **Clear learned language data** in Settings. Disabling learning stops new collection; clearing removes the stored learned counters.
 
 ## Utility toolbar
 
-A dedicated toolbar sits between the prediction bar and the number row. It currently exposes only implemented actions:
+A dedicated toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. It currently exposes only implemented actions:
 
 - **☺ Emoji**
-- **?123 / ABC Symbols or Letters**
 - **⚙ Settings**
 - **⌄ Hide keyboard**
+
+The **?123 / ABC** mode control remains on the bottom row instead of being duplicated in the toolbar. Emoji is toolbar-only on letter/symbol layers and is no longer duplicated on the bottom row.
 
 Clipboard and GIF controls are not shown as placeholders. They remain separate capability work because clipboard access and GIF/provider behavior require real implementation, privacy/security authority, and user-control boundaries rather than decorative buttons.
 
