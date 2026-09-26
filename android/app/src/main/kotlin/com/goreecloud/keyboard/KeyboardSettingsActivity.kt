@@ -60,86 +60,50 @@ class KeyboardSettingsActivity : Activity() {
         root.addView(sectionLabel(getString(R.string.keyboard_settings_typing_section)), matchWidth())
 
         val typingCard = card().apply {
-            addView(
-                settingRow(
-                    title = getString(R.string.keyboard_settings_swipe),
-                    summary = getString(R.string.keyboard_settings_swipe_summary),
-                    checked = current.swipeTypingEnabled,
-                    onChecked = settingsStore::setSwipeTypingEnabled,
-                ),
-                matchWidth(),
-            )
+            addView(settingRow(getString(R.string.keyboard_settings_suggestions), getString(R.string.keyboard_settings_suggestions_summary), current.suggestionsEnabled, settingsStore::setSuggestionsEnabled), matchWidth())
             addDivider()
-            addView(
-                settingRow(
-                    title = getString(R.string.keyboard_settings_suggestions),
-                    summary = getString(R.string.keyboard_settings_suggestions_summary),
-                    checked = current.suggestionsEnabled,
-                    onChecked = settingsStore::setSuggestionsEnabled,
-                ),
-                matchWidth(),
-            )
+            addView(settingRow(getString(R.string.keyboard_settings_autocorrect), getString(R.string.keyboard_settings_autocorrect_summary), current.autocorrectEnabled, settingsStore::setAutocorrectEnabled), matchWidth())
             addDivider()
-            addView(
-                settingRow(
-                    title = getString(R.string.keyboard_settings_autocorrect),
-                    summary = getString(R.string.keyboard_settings_autocorrect_summary),
-                    checked = current.autocorrectEnabled,
-                    onChecked = settingsStore::setAutocorrectEnabled,
-                ),
-                matchWidth(),
-            )
+            addView(settingRow(getString(R.string.keyboard_settings_predictions), getString(R.string.keyboard_settings_predictions_summary), current.predictionsEnabled, settingsStore::setPredictionsEnabled), matchWidth())
             addDivider()
-            addView(
-                settingRow(
-                    title = getString(R.string.keyboard_settings_predictions),
-                    summary = getString(R.string.keyboard_settings_predictions_summary),
-                    checked = current.predictionsEnabled,
-                    onChecked = settingsStore::setPredictionsEnabled,
-                ),
-                matchWidth(),
-            )
+            addView(settingRow(getString(R.string.keyboard_settings_auto_capitalize), getString(R.string.keyboard_settings_auto_capitalize_summary), current.autoCapitalizeEnabled, settingsStore::setAutoCapitalizeEnabled), matchWidth())
             addDivider()
-            addView(
-                settingRow(
-                    title = getString(R.string.keyboard_settings_auto_capitalize),
-                    summary = getString(R.string.keyboard_settings_auto_capitalize_summary),
-                    checked = current.autoCapitalizeEnabled,
-                    onChecked = settingsStore::setAutoCapitalizeEnabled,
-                ),
-                matchWidth(),
-            )
-            addDivider()
-            addView(
-                settingRow(
-                    title = getString(R.string.keyboard_settings_haptics),
-                    summary = getString(R.string.keyboard_settings_haptics_summary),
-                    checked = current.hapticFeedbackEnabled,
-                    onChecked = settingsStore::setHapticFeedbackEnabled,
-                ),
-                matchWidth(),
-            )
+            addView(settingRow(getString(R.string.keyboard_settings_double_space_period), getString(R.string.keyboard_settings_double_space_period_summary), current.doubleSpacePeriodEnabled, settingsStore::setDoubleSpacePeriodEnabled), matchWidth())
         }
         root.addView(typingCard, matchWidth().apply { bottomMargin = dp(22) })
 
-        root.addView(sectionLabel(getString(R.string.keyboard_settings_appearance_section)), matchWidth())
-        val appearanceCard = card().apply {
+        root.addView(sectionLabel(getString(R.string.keyboard_settings_layout_section)), matchWidth())
+        val layoutCard = card().apply {
+            addView(settingRow(getString(R.string.keyboard_settings_number_row), getString(R.string.keyboard_settings_number_row_summary), current.numberRowEnabled, settingsStore::setNumberRowEnabled), matchWidth())
+            addDivider()
+            addView(settingRow(getString(R.string.keyboard_settings_number_row_sensitive), getString(R.string.keyboard_settings_number_row_sensitive_summary), current.numberRowInSensitiveFieldsEnabled, settingsStore::setNumberRowInSensitiveFieldsEnabled), matchWidth())
+            addDivider()
             addView(TextView(this@KeyboardSettingsActivity).apply {
                 text = getString(R.string.keyboard_settings_key_height)
                 textSize = 17f
                 setTextColor(palette.onSurfaceArgb)
                 typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             }, matchWidth())
-
             addView(TextView(this@KeyboardSettingsActivity).apply {
                 text = getString(R.string.keyboard_settings_key_height_summary)
                 textSize = 14f
                 setTextColor(palette.onSurfaceMutedArgb)
                 setPadding(0, dp(5), 0, dp(14))
             }, matchWidth())
-
             addView(buildHeightSegment(current.keyHeight), matchWidth())
+        }
+        root.addView(layoutCard, matchWidth().apply { bottomMargin = dp(22) })
+
+        root.addView(sectionLabel(getString(R.string.keyboard_settings_gesture_section)), matchWidth())
+        val gestureCard = card().apply {
+            addView(settingRow(getString(R.string.keyboard_settings_swipe), getString(R.string.keyboard_settings_swipe_summary), current.swipeTypingEnabled, settingsStore::setSwipeTypingEnabled), matchWidth())
             addDivider()
+            addView(settingRow(getString(R.string.keyboard_settings_swipe_trail), getString(R.string.keyboard_settings_swipe_trail_summary), current.swipeTrailEnabled, settingsStore::setSwipeTrailEnabled), matchWidth())
+        }
+        root.addView(gestureCard, matchWidth().apply { bottomMargin = dp(22) })
+
+        root.addView(sectionLabel(getString(R.string.keyboard_settings_appearance_section)), matchWidth())
+        val appearanceCard = card().apply {
             addView(TextView(this@KeyboardSettingsActivity).apply {
                 text = getString(R.string.keyboard_settings_toolbar_style)
                 textSize = 17f
@@ -153,8 +117,34 @@ class KeyboardSettingsActivity : Activity() {
                 setPadding(0, dp(5), 0, dp(14))
             }, matchWidth())
             addView(buildToolbarStyleSegment(current.toolbarStyle), matchWidth())
+            addDivider()
+            addView(settingRow(getString(R.string.keyboard_settings_emoji_toolbar), getString(R.string.keyboard_settings_emoji_toolbar_summary), current.emojiToolbarEnabled, settingsStore::setEmojiToolbarEnabled), matchWidth())
+            addDivider()
+            addView(settingRow(getString(R.string.keyboard_settings_long_press_hints), getString(R.string.keyboard_settings_long_press_hints_summary), current.longPressHintsEnabled, settingsStore::setLongPressHintsEnabled), matchWidth())
         }
         root.addView(appearanceCard, matchWidth().apply { bottomMargin = dp(22) })
+
+        root.addView(sectionLabel(getString(R.string.keyboard_settings_feedback_section)), matchWidth())
+        val feedbackCard = card().apply {
+            addView(settingRow(getString(R.string.keyboard_settings_haptics), getString(R.string.keyboard_settings_haptics_summary), current.hapticFeedbackEnabled, settingsStore::setHapticFeedbackEnabled), matchWidth())
+            addDivider()
+            addView(settingRow(getString(R.string.keyboard_settings_sound), getString(R.string.keyboard_settings_sound_summary), current.keyPressSoundEnabled, settingsStore::setKeyPressSoundEnabled), matchWidth())
+            addDivider()
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_settings_long_press_delay)
+                textSize = 17f
+                setTextColor(palette.onSurfaceArgb)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            }, matchWidth())
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_settings_long_press_delay_summary)
+                textSize = 14f
+                setTextColor(palette.onSurfaceMutedArgb)
+                setPadding(0, dp(5), 0, dp(14))
+            }, matchWidth())
+            addView(buildLongPressDelaySegment(current.longPressDelay), matchWidth())
+        }
+        root.addView(feedbackCard, matchWidth().apply { bottomMargin = dp(22) })
 
         root.addView(sectionLabel(getString(R.string.keyboard_settings_dictionary_section)), matchWidth())
         val dictionaryCard = card().apply {
@@ -415,6 +405,52 @@ class KeyboardSettingsActivity : Activity() {
         buttons.forEach { (option, item) ->
             item.setOnClickListener {
                 settingsStore.setToolbarStyle(option)
+                refresh(option)
+            }
+        }
+        refresh(selected)
+        return container
+    }
+
+    private fun buildLongPressDelaySegment(selected: KeyboardLongPressDelay): LinearLayout {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            background = roundedDrawable(palette.canvasArgb, palette.lineArgb, 16)
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+        }
+        val buttons = linkedMapOf<KeyboardLongPressDelay, TextView>()
+        KeyboardLongPressDelay.values().forEach { option ->
+            val label = when (option) {
+                KeyboardLongPressDelay.FAST -> getString(R.string.keyboard_settings_long_press_delay_fast)
+                KeyboardLongPressDelay.SYSTEM -> getString(R.string.keyboard_settings_long_press_delay_system)
+                KeyboardLongPressDelay.RELAXED -> getString(R.string.keyboard_settings_long_press_delay_relaxed)
+            }
+            val item = TextView(this).apply {
+                text = label
+                gravity = Gravity.CENTER
+                textSize = 14f
+                minHeight = dp(44)
+                isClickable = true
+                isFocusable = true
+                contentDescription = label
+            }
+            buttons[option] = item
+            container.addView(item, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                if (option != KeyboardLongPressDelay.RELAXED) marginEnd = dp(4)
+            })
+        }
+        fun refresh(value: KeyboardLongPressDelay) {
+            buttons.forEach { (option, item) ->
+                val selectedNow = option == value
+                item.setTextColor(if (selectedNow) Color.WHITE else palette.onSurfaceArgb)
+                item.typeface = Typeface.create("sans-serif-medium", if (selectedNow) Typeface.BOLD else Typeface.NORMAL)
+                item.background = if (selectedNow) roundedDrawable(accentColor, null, 12) else roundedDrawable(Color.TRANSPARENT, null, 12)
+                item.isSelected = selectedNow
+            }
+        }
+        buttons.forEach { (option, item) ->
+            item.setOnClickListener {
+                settingsStore.setLongPressDelay(option)
                 refresh(option)
             }
         }
