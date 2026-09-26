@@ -139,14 +139,14 @@ class KeyboardTypingErgonomicsRuntimeTest {
         val view = createRenderedKeyboard()
         renderIntoExistingSize(view)
         val backspace = view.accessibilityTargets().first { it.label == "Backspace" }.bounds
-        var deletions = 0
+        val deletions = AtomicInteger(0)
 
         view.listener = object : KeyboardView.Listener {
             override fun onText(value: String) = Unit
             override fun onSwipe(keyPath: List<String>) = Unit
             override fun onSpace() = Unit
             override fun onBackspace() {
-                deletions += 1
+                deletions.incrementAndGet()
             }
             override fun onEnter() = Unit
             override fun onShift() = Unit
