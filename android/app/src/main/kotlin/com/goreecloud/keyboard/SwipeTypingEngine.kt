@@ -710,8 +710,8 @@ internal class SwipeTypingEngine {
         const val MIN_TRACE_SAMPLE_SPACING = 0.10
 
         const val STATISTICAL_SAMPLE_POINTS = 72
-        const val START_KEY_CANDIDATES = 3
-        const val END_KEY_CANDIDATES = 3
+        const val START_KEY_CANDIDATES = 4
+        const val END_KEY_CANDIDATES = 4
         const val DUPLICATE_LETTER_LOOP_RADIUS = 0.18
 
         const val MAX_LOG_LENGTH_RATIO = 0.82
@@ -729,7 +729,7 @@ internal class SwipeTypingEngine {
         const val LENGTH_WEIGHT = 0.60
         const val START_ENDPOINT_WEIGHT = 1.15
         const val END_ENDPOINT_WEIGHT = 0.72
-        const val SEQUENCE_DISTANCE_WEIGHT = 0.28
+        const val SEQUENCE_DISTANCE_WEIGHT = 0.34
         const val FREQUENCY_LOG_WEIGHT = 0.008
         const val CORNER_TURN_STRENGTH = 0.035
 
