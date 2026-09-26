@@ -97,6 +97,25 @@ class SwipeTypingEngineTest {
     }
 
     @Test
+    fun physicalJumpGestureBeatsHillWhenBothAreAvailable() {
+        val centers = qwertyCenters()
+        val labels = listOf("j", "u", "m", "p")
+        val gesture = SwipeGesture(
+            keyPath = labels,
+            points = interpolate(labels.map { centers.getValue(it) }),
+            keyCenters = centers,
+        )
+
+        val result = engine.decode(
+            gesture = gesture,
+            dictionary = listOf("hill", "help", "jump", "junk", "jumps"),
+            limit = 3,
+        )
+
+        assertEquals("jump", result.first())
+    }
+
+    @Test
     fun remainsBoundedByRequestedLimit() {
         val result = engine.decode(
             keyPath = listOf("t", "h", "g", "e"),
