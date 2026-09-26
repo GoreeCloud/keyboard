@@ -31,13 +31,16 @@ import androidx.core.view.WindowInsetsCompat
 class KeyboardSettingsActivity : Activity() {
     private lateinit var settingsStore: KeyboardSettingsStore
     private lateinit var learningStore: KeyboardLearningStore
+    private lateinit var setupPreferences: KeyboardSetupPreferences
     private lateinit var palette: GlazeKeyboardTokens.Palette
+    private var setupStep: Int = 0
     private var accentColor: Int = 0xFF2563EB.toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settingsStore = KeyboardSettingsStore(this)
         learningStore = KeyboardLearningStore(this)
+        setupPreferences = KeyboardSetupPreferences(this)
         palette = currentPalette()
 
         window.statusBarColor = palette.canvasArgb
@@ -46,7 +49,11 @@ class KeyboardSettingsActivity : Activity() {
             if (isDarkAppearance()) 0
             else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 
-        setContentView(buildContent())
+        if (setupPreferences.isComplete()) {
+            setContentView(buildContent())
+        } else {
+            renderSetupWizard()
+        }
     }
 
     private fun buildContent(): ScrollView {
