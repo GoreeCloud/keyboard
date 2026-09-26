@@ -35,6 +35,17 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Draft PR #97 physical-device swipe and language-quality correction / 0.1.11-dev
+- Advanced the side-by-side Development package to `versionCode 12` / `0.1.11-dev` / `com.goreecloud.keyboard.dev.v12`.
+- Treats the 0.1.10 representative physical-device report as a failed acceptance gate: deliberate swiping could drop out, and the suggestion strip could drift into a malformed concatenated token.
+- Re-evaluates swipe activation on the final finger-up sample so sparse/coalesced Android motion delivery cannot lose a deliberate gesture merely because the last MOVE arrived before the activation duration.
+- Removes the minimum swipe-velocity gate while retaining movement-distance, duration, recent-fast-typing, and different-letter safeguards, and allows a qualifying two-key sampled trace to reach decoding.
+- Keeps physical statistical swipe candidates primary but falls back to the ordered key trace when strict physical filtering rejects all or too few candidates, preventing an otherwise valid gesture from silently producing no word.
+- Reconciles the locally tracked composing prefix against the bounded ordinary-editor token before suggestion ranking so stale internal state cannot accumulate across word boundaries.
+- Removes duplicate grammar injection from contextual prediction, prefers built-in vocabulary/context before optional learned candidates, lets real suggestions fill available strip slots before an unknown raw token, and broadens suggestion-only typo distance without weakening automatic-correction thresholds.
+- Expands the packaged local everyday vocabulary with additional ordinary conversational forms and adds common failure/status phrase continuations.
+- Strengthens suggestion-ranking unit coverage. The candidate remains Development/Weave work pending fresh exact-head CI and representative physical-device retest.
+
 ### September 25, 2026 — Draft PR #97 continuous Backspace repeat candidate / 0.1.10-dev
 - Advanced the side-by-side Development package to `versionCode 11` / `0.1.10-dev` / `com.goreecloud.keyboard.dev.v11`.
 - Changed Backspace press behavior so one deletion occurs immediately on press, then deletion repeats continuously after a bounded hold delay until the finger is released.
