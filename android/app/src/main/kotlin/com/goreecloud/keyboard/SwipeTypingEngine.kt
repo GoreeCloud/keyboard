@@ -86,7 +86,7 @@ internal class SwipeTypingEngine {
             count = END_KEY_CANDIDATES,
         )
 
-        return dictionary.asSequence()
+        val physicalCandidates = dictionary.asSequence()
             .filter { it.isNotBlank() }
             .distinctBy { it.lowercase() }
             .withIndex()
@@ -188,6 +188,16 @@ internal class SwipeTypingEngine {
             .take(limit)
             .map { it.word }
             .toList()
+
+        if (physicalCandidates.size >= limit) return physicalCandidates
+        val fallbackCandidates = decode(
+            keyPath = gesture.keyPath,
+            dictionary = dictionary,
+            limit = limit,
+        )
+        return (physicalCandidates + fallbackCandidates)
+            .distinctBy { it.lowercase() }
+            .take(limit)
     }
 
     fun decode(

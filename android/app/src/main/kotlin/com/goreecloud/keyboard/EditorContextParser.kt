@@ -18,6 +18,14 @@ internal object EditorContextParser {
             .takeLast(limit)
     }
 
+    fun currentWordBeforeCursor(text: CharSequence?): String? {
+        val value = text?.toString()
+            ?.replace('’', '\'')
+            ?: return null
+        if (value.isEmpty()) return null
+        return CURRENT_WORD.find(value)?.value
+    }
+
     fun isSentenceBoundary(text: CharSequence?): Boolean {
         val value = text?.toString()?.trimEnd().orEmpty()
         if (value.isEmpty()) return true
@@ -25,4 +33,5 @@ internal object EditorContextParser {
     }
 
     private val WORD = Regex("[\\p{L}]+(?:['-][\\p{L}]+)*")
+    private val CURRENT_WORD = Regex("[\\p{L}]+(?:['-][\\p{L}]*)*$")
 }

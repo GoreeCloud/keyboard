@@ -896,45 +896,9 @@ class KeyboardView @JvmOverloads constructor(
                     val expanded = RectF(repeatHit.bounds).apply { inset(-slop, -slop) }
                     if (!expanded.contains(event.x, event.y)) cancelBackspaceRepeat()
                 }
-                if (swipeKeyPath.isNotEmpty()) appendSwipeMotionSamples(event)
-                if (!swipeGestureActive && swipeKeyPath.isNotEmpty()) {
-                    val travel = hypot(event.x - swipeDownX, event.y - swipeDownY)
-                    val density = resources.displayMetrics.density
-                    val threshold = max(
-                        ViewConfiguration.get(context).scaledTouchSlop * SWIPE_START_SLOP_MULTIPLIER,
-                        SWIPE_MIN_TRAVEL_DP * density,
-                    )
-                    val elapsedMs = event.eventTime - swipeDownTimeMs
-                    val recentFastTyping =
-                        lastLetterTapUpTimeMs != Long.MIN_VALUE &&
-                            swipeDownTimeMs - lastLetterTapUpTimeMs <= FAST_TYPING_GUARD_WINDOW_MS
-                    val requiredTravel = if (recentFastTyping) {
-                        max(threshold, SWIPE_RECENT_TYPING_MIN_TRAVEL_DP * density)
-                    } else {
-                        threshold
-                    }
-                    val requiredDuration = if (recentFastTyping) {
-                        SWIPE_RECENT_TYPING_MIN_GESTURE_MS
-                    } else {
-                        SWIPE_MIN_GESTURE_MS
-                    }
-                    val velocityDpPerMs =
-                        if (elapsedMs > 0L) travel / density / elapsedMs.toFloat()
-                        else 0f
-                    val firstSwipeKey = swipeKeyPath.firstOrNull()
-                    val movedToDifferentLetter =
-                        firstSwipeKey != null && swipeKeyPath.any { it != firstSwipeKey }
-                    if (
-                        travel >= requiredTravel &&
-                        elapsedMs >= requiredDuration &&
-                        velocityDpPerMs >= SWIPE_MIN_VELOCITY_DP_PER_MS &&
-                        movedToDifferentLetter
-                    ) {
-                        swipeGestureActive = true
-                        removeCallbacks(showAlternatesRunnable)
-                        pendingAlternateHit = null
-                        alternatePopup = null
-                    }
+                if (swipeKeyPath.isNotEmpty()) {
+                    appendSwipeMotionSamples(event)
+                    maybeActivateSwipe(event)
                 }
 
                 if (swipeGestureActive) {
@@ -982,8 +946,12 @@ class KeyboardView @JvmOverloads constructor(
                     return true
                 }
 
-                if (swipeGestureActive) {
+                if (swipeKeyPath.isNotEmpty()) {
                     appendSwipeMotionSamples(event)
+                    maybeActivateSwipe(event)
+                }
+
+                if (swipeGestureActive) {
                     val path = swipeKeyPath.toList()
                     val gesture = SwipeGesture(
                         keyPath = path,
@@ -1057,6 +1025,45 @@ class KeyboardView @JvmOverloads constructor(
             layer == KeyboardLayer.LETTERS &&
             hit?.key?.action == Action.TEXT &&
             hit.key.label.codePoints().allMatch { Character.isLetter(it) }
+
+    private fun maybeActivateSwipe(event: MotionEvent) {
+        if (swipeGestureActive || swipeKeyPath.isEmpty()) return
+
+        val travel = hypot(event.x - swipeDownX, event.y - swipeDownY)
+        val density = resources.displayMetrics.density
+        val threshold = max(
+            ViewConfiguration.get(context).scaledTouchSlop * SWIPE_START_SLOP_MULTIPLIER,
+            SWIPE_MIN_TRAVEL_DP * density,
+        )
+        val elapsedMs = event.eventTime - swipeDownTimeMs
+        val recentFastTyping =
+            lastLetterTapUpTimeMs != Long.MIN_VALUE &&
+                swipeDownTimeMs - lastLetterTapUpTimeMs <= FAST_TYPING_GUARD_WINDOW_MS
+        val requiredTravel = if (recentFastTyping) {
+            max(threshold, SWIPE_RECENT_TYPING_MIN_TRAVEL_DP * density)
+        } else {
+            threshold
+        }
+        val requiredDuration = if (recentFastTyping) {
+            SWIPE_RECENT_TYPING_MIN_GESTURE_MS
+        } else {
+            SWIPE_MIN_GESTURE_MS
+        }
+        val firstSwipeKey = swipeKeyPath.firstOrNull()
+        val movedToDifferentLetter =
+            firstSwipeKey != null && swipeKeyPath.any { it != firstSwipeKey }
+
+        if (
+            travel >= requiredTravel &&
+            elapsedMs >= requiredDuration &&
+            movedToDifferentLetter
+        ) {
+            swipeGestureActive = true
+            removeCallbacks(showAlternatesRunnable)
+            pendingAlternateHit = null
+            alternatePopup = null
+        }
+    }
 
     private fun appendSwipeMotionSamples(event: MotionEvent) {
         for (historyIndex in 0 until event.historySize) {
@@ -1358,8 +1365,7 @@ class KeyboardView @JvmOverloads constructor(
         const val SWIPE_RECENT_TYPING_MIN_GESTURE_MS = 82L
         const val FAST_TYPING_GUARD_WINDOW_MS = 240L
         const val SWIPE_RECENT_TYPING_MIN_TRAVEL_DP = 32f
-        const val SWIPE_MIN_VELOCITY_DP_PER_MS = 0.22f
-        const val SWIPE_MIN_PATH_KEYS = 3
+        const val SWIPE_MIN_PATH_KEYS = 2
         const val SWIPE_TOUCH_SAMPLE_DP = 3.5f
         const val BACKSPACE_REPEAT_INITIAL_DELAY_MS = 360L
         const val BACKSPACE_REPEAT_INTERVAL_MS = 55L
