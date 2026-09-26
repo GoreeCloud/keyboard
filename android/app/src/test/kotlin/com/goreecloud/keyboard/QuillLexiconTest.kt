@@ -20,6 +20,12 @@ class QuillLexiconTest {
         assertTrue("everkeep" in words)
         assertTrue("don't" in words)
         assertTrue("doesn't" in words)
+        assertTrue("okay" in words)
+        assertTrue("tomorrow" in words)
+        assertTrue("weekend" in words)
+        assertTrue("clipboard" in words)
+        assertTrue("wifi" in words)
+        assertTrue("basic" in words)
     }
 
     @Test
@@ -27,6 +33,7 @@ class QuillLexiconTest {
         val words = QuillLexicon.expandedEnglish
         assertTrue(words.isNotEmpty())
         assertFalse(words.any { it.isBlank() })
-        assertTrue(words.size > QuillLexicon.english.size)
+        assertTrue(EverydayEnglishDictionary.terms.size >= 300)
+        assertTrue(words.size > QuillLexicon.english.size + 300)
     }
 }
