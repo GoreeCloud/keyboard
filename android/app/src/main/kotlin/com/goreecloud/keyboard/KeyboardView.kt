@@ -110,6 +110,12 @@ class KeyboardView @JvmOverloads constructor(
         strokeJoin = Paint.Join.ROUND
         strokeWidth = 4f * resources.displayMetrics.density
     }
+    private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+        strokeWidth = 2.2f * resources.displayMetrics.density
+    }
 
     private val hitKeys = mutableListOf<HitKey>()
     private val hitSuggestions = mutableListOf<HitSuggestion>()
@@ -131,6 +137,8 @@ class KeyboardView @JvmOverloads constructor(
     private var glazeV16PresentationContext = GlazeKeyboardV16PresentationContext()
     private var bottomNavigationInsetPx = 0
     private var keyHeightPreference = KeyboardKeyHeight.COMPACT
+    private var toolbarStyle = KeyboardToolbarStyle.ICONS_ONLY
+    private var keyPressHapticsEnabled = true
     private var swipeTypingEnabled = false
     private var swipeGestureActive = false
     private val swipeKeyPath = mutableListOf<String>()
@@ -206,6 +214,17 @@ class KeyboardView @JvmOverloads constructor(
         if (keyHeightPreference == value) return
         keyHeightPreference = value
         invalidateStructure()
+    }
+
+    internal fun setToolbarStyle(value: KeyboardToolbarStyle) {
+        if (toolbarStyle == value) return
+        toolbarStyle = value
+        invalidateStructure()
+    }
+
+    internal fun setKeyPressHapticsEnabled(enabled: Boolean) {
+        keyPressHapticsEnabled = enabled
+        isHapticFeedbackEnabled = enabled
     }
 
     internal fun setGlazeV16PresentationSignals(signals: GlazeKeyboardV16PresentationSignals) {
@@ -290,10 +309,7 @@ class KeyboardView @JvmOverloads constructor(
                 }
                 canvas.drawRoundRect(visualBounds, keyRadius, keyRadius, keyStrokePaint)
 
-                val label = renderedKeyLabel(key)
-                val labelPaint = keyLabelPaint(key)
-                val baseline = visualBounds.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2
-                canvas.drawText(label, visualBounds.centerX(), baseline, labelPaint)
+                drawKeyContent(canvas, key, visualBounds)
                 hitKeys += HitKey(bounds, key)
                 left += keyWidth + gap
             }
@@ -353,9 +369,8 @@ class KeyboardView @JvmOverloads constructor(
                 listOf(Key("⇧", 1.25f, Action.SHIFT)) + characterRows[2].map(::textKey) + listOf(Key("⌫", 1.25f, Action.BACKSPACE)),
                 listOf(
                     Key("?123", 1.2f, Action.SYMBOLS),
-                    Key("☺", 1.0f, Action.EMOJI),
                     textKey(",").copy(weight = 0.9f),
-                    Key("space", 3.6f, Action.SPACE),
+                    Key("space", 4.6f, Action.SPACE),
                     textKey(".").copy(weight = 0.9f),
                     Key("↵", 1.2f, Action.ENTER),
                 ),
@@ -364,13 +379,13 @@ class KeyboardView @JvmOverloads constructor(
                 characterRows[0].map(::textKey),
                 characterRows[1].map(::textKey),
                 characterRows[2].map(::textKey) + listOf(Key("⌫", 1.25f, Action.BACKSPACE)),
-                listOf(Key("ABC", 1.15f, Action.LETTERS), Key("=\\<", 1.15f, Action.SYMBOLS_MORE), Key("☺", 1.05f, Action.EMOJI), Key("space", 3.9f, Action.SPACE), Key("↵", 1.25f, Action.ENTER)),
+                listOf(Key("ABC", 1.15f, Action.LETTERS), Key("=\\<", 1.15f, Action.SYMBOLS_MORE), Key("space", 5.0f, Action.SPACE), Key("↵", 1.25f, Action.ENTER)),
             )
             KeyboardLayer.SYMBOLS_MORE -> listOf(
                 characterRows[0].map(::textKey),
                 characterRows[1].map(::textKey),
                 characterRows[2].map(::textKey) + listOf(Key("⌫", 1.25f, Action.BACKSPACE)),
-                listOf(Key("ABC", 1.15f, Action.LETTERS), Key("?123", 1.15f, Action.SYMBOLS), Key("☺", 1.05f, Action.EMOJI), Key("space", 3.9f, Action.SPACE), Key("↵", 1.25f, Action.ENTER)),
+                listOf(Key("ABC", 1.15f, Action.LETTERS), Key("?123", 1.15f, Action.SYMBOLS), Key("space", 5.0f, Action.SPACE), Key("↵", 1.25f, Action.ENTER)),
             )
             KeyboardLayer.EMOJI -> listOf(
                 characterRows[0].map(::textKey),
@@ -382,6 +397,73 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private fun textKey(value: String): Key = Key(value, action = Action.TEXT)
+
+    private fun drawKeyContent(canvas: Canvas, key: Key, bounds: RectF) {
+        when (key.action) {
+            Action.BACKSPACE -> drawBackspaceIcon(canvas, bounds)
+            Action.ENTER -> drawEnterIcon(canvas, bounds)
+            else -> {
+                val label = renderedKeyLabel(key)
+                val paint = keyLabelPaint(key)
+                val baseline = bounds.centerY() - (paint.descent() + paint.ascent()) / 2
+                canvas.drawText(label, bounds.centerX(), baseline, paint)
+            }
+        }
+    }
+
+    private fun drawBackspaceIcon(canvas: Canvas, bounds: RectF) {
+        val unit = minOf(bounds.width(), bounds.height())
+        val left = bounds.centerX() - unit * 0.22f
+        val right = bounds.centerX() + unit * 0.24f
+        val top = bounds.centerY() - unit * 0.16f
+        val bottom = bounds.centerY() + unit * 0.16f
+        val notch = bounds.centerX() - unit * 0.34f
+
+        val shell = Path().apply {
+            moveTo(notch, bounds.centerY())
+            lineTo(left, top)
+            lineTo(right, top)
+            lineTo(right, bottom)
+            lineTo(left, bottom)
+            close()
+        }
+        canvas.drawPath(shell, iconPaint)
+
+        val xInset = unit * 0.07f
+        canvas.drawLine(
+            bounds.centerX() - xInset,
+            bounds.centerY() - xInset,
+            bounds.centerX() + xInset,
+            bounds.centerY() + xInset,
+            iconPaint,
+        )
+        canvas.drawLine(
+            bounds.centerX() + xInset,
+            bounds.centerY() - xInset,
+            bounds.centerX() - xInset,
+            bounds.centerY() + xInset,
+            iconPaint,
+        )
+    }
+
+    private fun drawEnterIcon(canvas: Canvas, bounds: RectF) {
+        val unit = minOf(bounds.width(), bounds.height())
+        val right = bounds.centerX() + unit * 0.24f
+        val middleY = bounds.centerY()
+        val left = bounds.centerX() - unit * 0.24f
+        val top = bounds.centerY() - unit * 0.18f
+
+        val path = Path().apply {
+            moveTo(right, top)
+            lineTo(right, middleY)
+            lineTo(left, middleY)
+            moveTo(left, middleY)
+            lineTo(left + unit * 0.13f, middleY - unit * 0.12f)
+            moveTo(left, middleY)
+            lineTo(left + unit * 0.13f, middleY + unit * 0.12f)
+        }
+        canvas.drawPath(path, iconPaint)
+    }
 
     private fun renderedKeyLabel(key: Key): String = when {
         key.action == Action.SPACE && layer == KeyboardLayer.LETTERS -> "English (US)"
@@ -452,6 +534,7 @@ class KeyboardView @JvmOverloads constructor(
         suggestionDividerPaint.color = palette.lineArgb
         swipeTrailPaint.color = palette.onSurfaceArgb
         swipeTrailPaint.alpha = 86
+        iconPaint.color = palette.onSurfaceArgb
     }
 
     private fun drawSuggestionStrip(canvas: Canvas, horizontalPadding: Float, topArea: Float) {
