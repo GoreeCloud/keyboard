@@ -42,6 +42,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             view.setKeyHeightPreference(typingSettings.keyHeight)
             view.setToolbarStyle(typingSettings.toolbarStyle)
             view.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
+            view.setKeyPressSoundEnabled(typingSettings.keyPressSoundEnabled)
+            view.setEmojiToolbarEnabled(typingSettings.emojiToolbarEnabled)
+            view.setLongPressHintsEnabled(typingSettings.longPressHintsEnabled)
+            view.setLongPressDelay(typingSettings.longPressDelay)
+            view.setSwipeTrailEnabled(typingSettings.swipeTrailEnabled)
+            view.setNumberRowVisible(KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput))
             view.setSwipeTypingEnabled(!sensitiveInput && typingSettings.swipeTypingEnabled)
             view.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
             updateSuggestions()
@@ -60,6 +66,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
         keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
         keyboardView?.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
+        keyboardView?.setKeyPressSoundEnabled(typingSettings.keyPressSoundEnabled)
+        keyboardView?.setEmojiToolbarEnabled(typingSettings.emojiToolbarEnabled)
+        keyboardView?.setLongPressHintsEnabled(typingSettings.longPressHintsEnabled)
+        keyboardView?.setLongPressDelay(typingSettings.longPressDelay)
+        keyboardView?.setSwipeTrailEnabled(typingSettings.swipeTrailEnabled)
+        keyboardView?.setNumberRowVisible(KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput))
         keyboardView?.setGlazeV16PresentationSignals(currentGlazeV16PresentationSignals())
         refreshAutomaticShift()
         updateSuggestions()
@@ -129,6 +141,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onSpace() {
         pendingSwipeCorrection = null
+        if (tryCommitDoubleSpacePeriod()) return
         commitBoundary(" ")
     }
 
@@ -329,6 +342,13 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         pendingSwipeCorrection = null
         keyboardView?.setSuggestions(emptyList())
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
+        keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
+        keyboardView?.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
+        keyboardView?.setKeyPressSoundEnabled(typingSettings.keyPressSoundEnabled)
+        keyboardView?.setEmojiToolbarEnabled(typingSettings.emojiToolbarEnabled)
+        keyboardView?.setLongPressHintsEnabled(typingSettings.longPressHintsEnabled)
+        keyboardView?.setLongPressDelay(typingSettings.longPressDelay)
+        keyboardView?.setSwipeTrailEnabled(typingSettings.swipeTrailEnabled)
         keyboardView?.setSwipeTypingEnabled(false)
 
         if (info == null) {
@@ -339,6 +359,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             editorSuppressesLanguageAssistance = true
             editorProhibitsPersonalizedLearning = true
             suggestionsSuppressed = true
+            keyboardView?.setNumberRowVisible(
+                KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput),
+            )
             return
         }
 
@@ -350,8 +373,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             EditorSuggestionPolicy.prohibitsPersonalizedLearning(info.imeOptions)
         suggestionsSuppressed =
             editorSuppressesLanguageAssistance || !typingSettings.suggestionsEnabled
-        keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
-        keyboardView?.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
+        keyboardView?.setNumberRowVisible(
+            KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput),
+        )
         keyboardView?.setSwipeTypingEnabled(
             !sensitiveInput &&
                 !editorSuppressesLanguageAssistance &&
@@ -382,6 +406,28 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         composingWord.clear()
         composingStartsCapitalized = false
         composingCaptureExhausted = false
+    }
+
+    private fun tryCommitDoubleSpacePeriod(): Boolean {
+        if (
+            !typingSettings.doubleSpacePeriodEnabled ||
+            sensitiveInput ||
+            editorSuppressesLanguageAssistance
+        ) return false
+
+        val connection = currentInputConnection ?: return false
+        val beforeCursor = connection.getTextBeforeCursor(DOUBLE_SPACE_LOOKBEHIND_UTF16, 0)
+            ?: return false
+        if (!DoubleSpacePeriodPolicy.shouldReplacePreviousSpace(beforeCursor)) return false
+        if (!connection.deleteSurroundingTextInCodePoints(1, 0)) return false
+
+        connection.commitText(". ", 1)
+        clearComposingBoundary()
+        committedHistory.clear()
+        sentenceStartPending = true
+        applyAutomaticShiftIfNeeded()
+        updateSuggestions()
+        return true
     }
 
     private fun commitBoundary(separator: String) {
@@ -718,6 +764,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         const val BACKSPACE_LOOKBEHIND_UTF16 = 64
         const val EDITOR_CONTEXT_LOOKBEHIND_UTF16 = 160
         const val CURRENT_WORD_LOOKBEHIND_UTF16 = 64
+        const val DOUBLE_SPACE_LOOKBEHIND_UTF16 = 8
         const val MAX_CONTEXT_WORDS = 4
         const val MAX_PREDICTION_HISTORY_WORDS = 2
         const val SWIPE_DECODE_CANDIDATE_POOL = 12
