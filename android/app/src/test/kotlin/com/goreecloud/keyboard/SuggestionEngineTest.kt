@@ -143,6 +143,29 @@ class SuggestionEngineTest {
     }
 
     @Test
+    fun commonIconPrefixProducesBuiltInIconSuggestion() {
+        val result = engine.suggest(
+            prefix = "ico",
+            dictionary = QuillLexicon.expandedEnglish,
+            limit = 3,
+        )
+
+        assertEquals("icon", result.first())
+    }
+
+    @Test
+    fun transientContextCanPromoteARelevantCompletion() {
+        val result = engine.suggest(
+            prefix = "se",
+            dictionary = listOf("second", "send", "settings", "see"),
+            contextualPredictions = listOf("settings"),
+            limit = 3,
+        )
+
+        assertEquals("settings", result.first())
+    }
+
+    @Test
     fun returnsNothingForNonPositiveLimit() {
         assertEquals(emptyList<String>(), engine.suggest("go", listOf("good"), limit = 0))
     }
