@@ -3,7 +3,7 @@
 ## Implemented in Development source
 
 - Native Android input method using `InputMethodService`.
-- Original first-party keyboard rendering, hit-testing, and pointer-input surface.
+- Original first-party keyboard rendering, hit-testing, and pointer-input surface, including bounded nearest-key recovery for small touches landing in visual key gaps instead of silently dropping the tap.
 - Runtime input-method registration checks through Android `InputMethodManager`.
 - QWERTY letter entry.
 - Shift, backspace, space, and enter controls.
@@ -18,6 +18,8 @@
 - Fail-closed handling when bounded ordinary-field look-behind may begin inside a larger text unit; sensitive fields retain the stricter no-look-behind path.
 - Local-only GoreeCloud Quill suggestion boundary with an ordinary-text one-to-three candidate contract.
 - Frequency-ordered prefix suggestions, expanded packaged English inflections, Unicode-aware typo-correction candidates, conservative automatic correction when a completed token is a confident one-edit misspelling, and typed-token fallback so a non-empty ordinary prefix always has at least one visible candidate.
+- A static device-local 46,855-word lowercase English fallback derived from the public-domain Moby Words II common-word list, appended after the first-party Quill frequency lexicon and used by suggestions, correction, and swipe decoding without network access or typed-text collection.
+- Cached suggestion indexes and start/end-bucketed swipe indexes so the expanded dictionary does not require an unrestricted whole-dictionary spelling/geometry pass on every ordinary keypress or swipe.
 - Bounded transient suggestion capture that suppresses misleading mid-word recapture when complete context is no longer known.
 - Suggestion commit authority bound to the exact candidates currently presented for the active editor session rather than accepting arbitrary callback values.
 - Sensitive-editor privacy gating for suggestion capture/display/acceptance and text look-behind deletion logic.
@@ -28,6 +30,7 @@
 - Android virtual accessibility-node foundations and bounded alternate-character accessibility actions for the custom-drawn input surface.
 - A privacy-minimized `goreecloud-keyboard-preferences/1` format containing exactly the last explicitly selected emoji category.
 - Strict portable-preference validation/checksum integrity, category-only reader/writer seams, explicit user-controlled Android Storage Access Framework transfer, import preview before mutation, and export review/freeze before destination selection.
+- Privacy-bounded horizontal spacebar cursor control in the active Development candidate, with ordinary Space taps preserved, ambiguous/vertical/multi-pointer gestures failing closed, no surrounding-text reconstruction, and a device-local user setting.
 - Historical GLAZE UI V1.2 (`1.2.0`) Development optical/material mapping pinned to reviewed source `f285b9145e27e6e7027b075c37299d101945c272`.
 - V1.2 neutral Frosted Neutral key surfaces consumed by the actual native `KeyboardView`, with Light/Dark runtime selection, explicit Deep Dark source values, 48/56 dp interaction floors, control geometry, and state calibration.
 - A V1.2 non-semantic material/atmosphere boundary that prohibits chromatic, brand, or semantic color from becoming the keyboard substrate and authorizes no editor/content sampling, remote derivation, persistence, semantic inference, telemetry, network lookup, or animated atmosphere.
@@ -53,8 +56,8 @@
 
 ## Planned product capabilities — not current implementation claims
 
-- Privacy-bounded spacebar cursor control after accepted integration and representative ergonomics/RTL/accessibility validation; open Draft candidates are not current implementation authority.
 - Higher-order swipe recognition quality, multilingual gesture models, and representative physical-device acceptance beyond the current QWERTY shape-aware Development decoder.
+- Representative physical-device acceptance for the current spacebar cursor-control source, including ergonomics, RTL/BiDi, accessibility, and host-editor/OEM behavior.
 - Stronger local prediction/correction and user/language dictionaries.
 - Multilingual input and language switching.
 - User-controlled personalization and learned-language features where separately approved.
