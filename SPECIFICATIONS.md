@@ -46,7 +46,7 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 
 **Learn from what you type** is disabled by default. When explicitly enabled, Keyboard may persist only normalized word-frequency and adjacent-word-frequency counters in app-private device storage. It must not persist full sentences, arbitrary surrounding editor text, clipboard contents, account/contact data, field identity, or network-derived data.
 
-Learning is prohibited in sensitive editors and host no-suggestions editors. Storage is bounded, local-only, unsynchronized, and user-clearable from Keyboard Settings. Disabling learning stops new collection but does not silently delete existing learned counters; the user retains an explicit clear action.
+Learning and use of learned personalization are prohibited in sensitive editors, host no-suggestions editors, and editors requesting `IME_FLAG_NO_PERSONALIZED_LEARNING`. Storage is bounded, local-only, unsynchronized, and user-clearable from Keyboard Settings. Disabling learning stops new collection but does not silently delete existing learned counters; the user retains an explicit clear action.
 
 ## Native input behavior
 
