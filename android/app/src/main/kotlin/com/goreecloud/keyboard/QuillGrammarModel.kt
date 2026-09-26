@@ -88,7 +88,7 @@ internal object QuillGrammarModel {
     )
 
     private val modalVerbs = setOf("can", "could", "may", "might", "must", "shall", "should", "will", "would")
-    private val pluralSubjects = setOf("we", "you", "they")
+    private val pluralSubjects = setOf("we", "you", "they", "these", "those")
     private val singularSubjects = setOf("he", "she", "it", "this", "that")
     private val determiners = setOf("a", "an", "the", "my", "your", "our", "his", "her", "their", "this", "that")
     private val prepositions = setOf("at", "by", "for", "from", "in", "into", "of", "on", "over", "to", "under", "with", "without")
@@ -143,6 +143,14 @@ internal object QuillGrammarModel {
         ) {
             return "have"
         }
+
+        // High-confidence standard-English agreement repairs. Keep this intentionally narrow:
+        // only direct pronoun/demonstrative + auxiliary mismatches are changed automatically.
+        if (previous == "i" && normalized in setOf("is", "are")) return "am"
+        if (previous in pluralSubjects && normalized == "is") return "are"
+        if (previous in singularSubjects && normalized == "are") return "is"
+        if ((previous == "i" || previous in pluralSubjects) && normalized == "has") return "have"
+        if (previous in singularSubjects && normalized == "have") return "has"
 
         return when (normalized) {
             "alot" -> "a lot"
