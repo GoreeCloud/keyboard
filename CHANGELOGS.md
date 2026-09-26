@@ -35,6 +35,20 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 25, 2026 — Draft PR #97 FOSS-informed typing-quality candidate / 0.1.9-dev
+- Advanced the side-by-side Development package to `versionCode 10` / `0.1.9-dev` / `com.goreecloud.keyboard.dev.v10`.
+- Researched current free/open-source keyboard implementations including FlorisBoard/SwiftFloris, AnySoftKeyboard, AOSP LatinIME, and HeliBoard, and recorded source-reuse/license boundaries in `THIRD-PARTY-NOTICES.md`.
+- Reworked the physical swipe decoder into a GoreeCloud-native statistical classifier informed by Apache-2.0 FlorisBoard/SwiftFloris and AnySoftKeyboard ideas: endpoint pruning, sampled-path resampling, normalized shape comparison, physical-location comparison, path-length filtering, duplicate-letter ideal-gesture variants, frequency ranking, and bounded contextual re-ranking.
+- Kept HeliBoard GPL-3.0 work at behavior/reference level for this pass rather than copying its source; the repository remains AGPL-3.0 and preserves the Apache-2.0 reference license text under `LICENSES/Apache-2.0.txt`.
+- Added a curated swipe vocabulary separate from mechanically generated inflections so synthetic low-value forms do not dominate gesture ambiguity.
+- Expanded the packaged everyday-English dictionary with modern keyboard/input vocabulary including `icon`, `icons`, `toolbar`, `emoji`, `grammar`, `prediction`, `autocorrect`, `haptics`, `gesture`, `editor`, and related common terms.
+- Strengthened deterministic local grammar/context assistance with bounded ordinary-editor context, phrase continuations, common spelling repairs such as `grammer → grammar`, `recieve → receive`, and `tommorow → tomorrow`, plus context-dependent `should of → should have`-style modal repair.
+- Redesigned the utility toolbar into one rounded Glaze surface with first-party drawn emoji-face and settings-slider glyphs; removed the redundant Hide Keyboard action while keeping Emoji and Settings.
+- Added Android system-bar inset handling to Keyboard Settings and portable-preference screens so content no longer intentionally occupies status/navigation bar space.
+- Added/updated tests for modern vocabulary, contextual suggestion ranking, grammar repairs, statistical physical swipe recognition, toolbar action boundaries, and system behavior.
+- Preserved the existing privacy model: no Android network permission, gesture traces are transient, optional learning remains off by default, and sensitive/no-suggestions/no-personalized-learning editor boundaries remain fail-closed.
+- This entry describes the open Draft PR #97 candidate and is not accepted authoritative-main implementation until governed merge/readback and fresh exact-main validation occur.
+
 ### September 25, 2026 — Draft PR #97 physical-device feedback candidate / 0.1.8-dev
 - Advanced the side-by-side Development package to `versionCode 9` / `0.1.8-dev` / `com.goreecloud.keyboard.dev.v9`.
 - Added **Learn from what you type** as an explicit privacy-sensitive control that is OFF by default. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in app-private local storage, excludes sensitive editors, host no-suggestions editors, and Android no-personalized-learning editors from collection and learned-data use, exposes local deletion, and adds no network/sync/telemetry authority.
