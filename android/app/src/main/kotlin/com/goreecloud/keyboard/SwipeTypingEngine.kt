@@ -644,17 +644,22 @@ internal class SwipeTypingEngine {
         candidate: List<String>,
     ): Double {
         if (observed.isEmpty() || candidate.isEmpty()) return 1.0
-        var observedIndex = 0
-        var matched = 0
-        candidate.forEach { target ->
-            while (observedIndex < observed.size && observed[observedIndex] != target) {
-                observedIndex += 1
-            }
-            if (observedIndex < observed.size) {
-                matched += 1
-                observedIndex += 1
+
+        // Longest-common-subsequence coverage tolerates a missed neighboring endpoint without
+        // discarding all later ordered evidence. A greedy scan cannot recover after the first
+        // unmatched candidate key (for example g-e-l-p observed for h-e-l-p).
+        val rows = Array(observed.size + 1) { IntArray(candidate.size + 1) }
+        for (i in observed.indices) {
+            for (j in candidate.indices) {
+                rows[i + 1][j + 1] = if (observed[i] == candidate[j]) {
+                    rows[i][j] + 1
+                } else {
+                    maxOf(rows[i][j + 1], rows[i + 1][j])
+                }
             }
         }
+
+        val matched = rows[observed.size][candidate.size]
         return 1.0 - matched.toDouble() / candidate.size.toDouble()
     }
 
