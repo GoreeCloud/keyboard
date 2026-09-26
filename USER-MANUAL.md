@@ -121,9 +121,25 @@ The packaged local dictionary includes common English vocabulary, common derived
 
 The built-in dictionary itself is read-only. Optional **Learn from what you type** data is stored separately and is **off by default**. When enabled, Keyboard stores only bounded normalized word-frequency and adjacent-word-frequency counters in private app storage; it excludes sensitive editors, host no-suggestions editors, and editors requesting Android no-personalized-learning; it never stores full sentences or clipboard contents, does not synchronize or upload the data, and provides **Clear learned language data** in Settings. Disabling learning stops new collection; clearing removes the stored learned counters.
 
+## First-run setup
+
+Opening the GoreeCloud Keyboard app for the first time starts a guided setup flow instead of dropping directly into the full settings list.
+
+The setup flow:
+
+1. Shows whether the exact installed Development IME is enabled in Android and whether it is the currently selected keyboard.
+2. Provides direct actions to open Android keyboard settings and the input-method picker.
+3. Lets you choose initial typing, correction, prediction, swipe/trail, cursor-control, number-row, key-height, toolbar, Emoji, long-press, haptic/sound, and optional local-learning preferences.
+4. Lets you decide whether to enable encrypted local Clipboard history and choose the temporary-clip expiration window.
+5. Saves setup completion only when you finish the wizard.
+
+Development candidates use version-scoped Android IME package names for side-by-side installation. Installing a new candidate therefore does not by itself guarantee that Android has enabled or selected that new IME. Use the first setup step to verify the exact candidate before testing.
+
+The wizard can be run again later from Settings.
+
 ## Utility toolbar
 
-A dedicated Glaze toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. The 0.1.20 Draft candidate toolbar exposes three implemented actions:
+A dedicated Glaze toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. The 0.1.21 Draft recovery candidate toolbar exposes three implemented actions:
 
 - **Emoji** — the local emoji browser/search surface.
 - **Clipboard** — a first-party clipboard glyph that opens the Keyboard-side clipboard panel.
@@ -135,7 +151,7 @@ GIF controls are not shown as placeholders. They remain separate capability work
 
 ## Clipboard
 
-The 0.1.20 Draft candidate includes a real Keyboard-side Clipboard surface.
+The 0.1.21 Draft recovery candidate includes a real Keyboard-side Clipboard surface.
 
 Open it with the **Clipboard** icon in the toolbar. The default per-app policy is **Ask**, so Keyboard presents an **Allow once** control before it reads the current clipboard for a new app session. You can change the current app's local policy to:
 
@@ -144,7 +160,11 @@ Open it with the **Clipboard** icon in the toolbar. The default per-app policy i
 - **Paste only** — allow the deliberately opened current clipboard item without exposing saved history for that app.
 - **Block** — do not read or present clipboard content to the Keyboard panel for that app.
 
-**Clipboard history is off by default.** When you explicitly enable it, Keyboard stores recent non-sensitive text clips locally in encrypted form. Unpinned entries expire after the selected **10 min**, **1 hour**, or **24 hours** window. You can pin/unpin an item, delete one item, or clear all unpinned history.
+**Clipboard history is off by default.** When you explicitly enable it, Keyboard stores recent non-sensitive text clips locally in encrypted form. Unpinned entries expire after the selected **10 min**, **1 hour**, or **24 hours** window.
+
+The manager separates saved clips into **Pinned** and **Recent** collections. Tap a clip card to paste it. Long-press a clip to access management actions such as Pin/Unpin and Delete; saved history entries also expose **Edit**, which opens an IME-local editor and saves the revised text back to encrypted history. Pinned clips do not expire until you unpin or delete them.
+
+For ordinary non-sensitive clips, local **smart content detection** can identify reusable fragments such as phone numbers, email addresses, web links, street addresses, dates, and times. Tapping a detected fragment pastes only that fragment. These detected values are computed locally from the displayed clip and are not separately persisted or added to prediction/learning.
 
 **Paste** inserts the selected non-sensitive text and leaves its normal clipboard/history state intact. **Paste once** inserts the selected item, removes its Keyboard history copy, and clears the Android system clipboard only if it still contains the same selected value. Android-marked sensitive clips are never added to history and are available only through **Paste once**.
 
