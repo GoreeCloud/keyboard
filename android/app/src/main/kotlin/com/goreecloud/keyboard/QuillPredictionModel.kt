@@ -11,6 +11,9 @@ internal object QuillPredictionModel {
     private val starterPredictions = listOf("I", "The", "How")
 
     private val phrasePredictions = mapOf(
+        "does it" to listOf("feel", "work", "look"),
+        "it feel" to listOf("better", "good", "right"),
+        "feel better" to listOf("now", "today", "already"),
         "how can" to listOf("I", "you", "we"),
         "how are" to listOf("you", "they", "we"),
         "how do" to listOf("I", "you", "we"),
