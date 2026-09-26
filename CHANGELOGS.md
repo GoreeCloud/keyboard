@@ -35,6 +35,17 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 26, 2026 — Draft PR #97 frequency ranking and rapid-typing responsiveness / 0.1.15-dev
+- Advanced the side-by-side Development package to `versionCode 16` / `0.1.15-dev` / `com.goreecloud.keyboard.dev.v16`.
+- Replaced the interim 0.1.14 alphabetical Moby fallback with a 46,691-word supplement derived from FrequencyWords `content/2018/en/en_50k.txt` at exact revision `525f9b560de45753a5ea01069454e72e9aa541c6` / blob `bbf5fa991058ff642732784b31af023f66462e1d`.
+- The FrequencyWords content is documented upstream as CC BY-SA 4.0; GoreeCloud preserves attribution/provenance in `THIRD-PARTY-NOTICES.md`, keeps the first-party Quill lexicon first, and preserves the supplement's corpus-frequency order instead of accidentally treating alphabetic position as usage frequency.
+- The packaged supplement contains `jump`, `lag`, `lagging`, `typing`, `suggestion`, and `suggestions`; the source ranks `jump` at 1,094 and `hill` at 1,837 before GoreeCloud's first-party lexical overrides and geometry/context scoring.
+- Ordinary letter input now coalesces suggestion refresh work to a bounded 24 ms cadence. Text commit remains immediate, while repeated rapid taps do not synchronously invoke editor-context reads and suggestion scoring after every single letter.
+- Normal Backspace-driven suggestion refreshes use the same coalescing path; sensitive/suppressed editors continue to clear language assistance immediately.
+- Small touch-up drift within Android tap slop now preserves the key that received ACTION_DOWN rather than switching to an adjacent key solely because the release coordinate crossed a visual gap.
+- Existing bounded key-gap near-miss recovery, frequency/suggestion indexes, swipe endpoint indexes, 0.1.11 swipe safeguards, 0.1.12 settings, and 0.1.13 cursor control remain in place.
+- Added/updated runtime coverage for frequency-asset order/source identity and small release-drift key preservation. Fresh exact-head source/build/emulator validation and representative physical-device retesting remain required.
+
 ### September 25, 2026 — Draft PR #97 physical-device dictionary, swipe, and tap-reliability correction / 0.1.14-dev
 - Treats representative physical-device 0.1.13 feedback as a failed typing-quality gate: swiping `jump` repeatedly decoded as `hill`, the local dictionary did not recognize common words such as `lagging`, and some ordinary taps appeared to produce no key input.
 - Root-cause readback confirmed that `jump`, `lag`, and `lagging` were absent from the packaged 0.1.13 vocabulary while `hill` was present, so the decoder could not select the intended missing word regardless of geometry quality.
