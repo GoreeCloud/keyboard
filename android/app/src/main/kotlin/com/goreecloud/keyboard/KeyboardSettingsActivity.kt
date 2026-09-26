@@ -27,12 +27,14 @@ import android.widget.TextView
  */
 class KeyboardSettingsActivity : Activity() {
     private lateinit var settingsStore: KeyboardSettingsStore
+    private lateinit var learningStore: KeyboardLearningStore
     private lateinit var palette: GlazeKeyboardTokens.Palette
     private var accentColor: Int = 0xFF2563EB.toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settingsStore = KeyboardSettingsStore(this)
+        learningStore = KeyboardLearningStore(this)
         palette = currentPalette()
 
         window.statusBarColor = palette.canvasArgb
@@ -105,6 +107,16 @@ class KeyboardSettingsActivity : Activity() {
                 ),
                 matchWidth(),
             )
+            addDivider()
+            addView(
+                settingRow(
+                    title = getString(R.string.keyboard_settings_haptics),
+                    summary = getString(R.string.keyboard_settings_haptics_summary),
+                    checked = current.hapticFeedbackEnabled,
+                    onChecked = settingsStore::setHapticFeedbackEnabled,
+                ),
+                matchWidth(),
+            )
         }
         root.addView(typingCard, matchWidth().apply { bottomMargin = dp(22) })
 
@@ -125,6 +137,20 @@ class KeyboardSettingsActivity : Activity() {
             }, matchWidth())
 
             addView(buildHeightSegment(current.keyHeight), matchWidth())
+            addDivider()
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_settings_toolbar_style)
+                textSize = 17f
+                setTextColor(palette.onSurfaceArgb)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            }, matchWidth())
+            addView(TextView(this@KeyboardSettingsActivity).apply {
+                text = getString(R.string.keyboard_settings_toolbar_style_summary)
+                textSize = 14f
+                setTextColor(palette.onSurfaceMutedArgb)
+                setPadding(0, dp(5), 0, dp(14))
+            }, matchWidth())
+            addView(buildToolbarStyleSegment(current.toolbarStyle), matchWidth())
         }
         root.addView(appearanceCard, matchWidth().apply { bottomMargin = dp(22) })
 
@@ -170,6 +196,40 @@ class KeyboardSettingsActivity : Activity() {
                 setTextColor(palette.onSurfaceMutedArgb)
                 setPadding(0, dp(14), 0, 0)
             }, matchWidth())
+
+            addDivider()
+
+            addView(
+                settingRow(
+                    title = getString(R.string.keyboard_settings_learn_from_typing),
+                    summary = getString(R.string.keyboard_settings_learn_from_typing_summary),
+                    checked = current.learnFromTypingEnabled,
+                    onChecked = settingsStore::setLearnFromTypingEnabled,
+                ),
+                matchWidth(),
+            )
+
+            val learnedCount = TextView(this@KeyboardSettingsActivity).apply {
+                textSize = 13.5f
+                setTextColor(palette.onSurfaceMutedArgb)
+                setPadding(0, dp(8), 0, dp(10))
+            }
+            fun refreshLearnedCount() {
+                learnedCount.text = getString(
+                    R.string.keyboard_settings_learned_count,
+                    learningStore.learnedWordCount(),
+                )
+            }
+            refreshLearnedCount()
+            addView(learnedCount, matchWidth())
+
+            addView(actionButton(
+                label = getString(R.string.keyboard_settings_clear_learned),
+                onClick = {
+                    learningStore.clear()
+                    refreshLearnedCount()
+                },
+            ), matchWidth())
         }
         root.addView(dictionaryCard, matchWidth().apply { bottomMargin = dp(22) })
 
@@ -286,6 +346,66 @@ class KeyboardSettingsActivity : Activity() {
         buttons.forEach { (option, item) ->
             item.setOnClickListener {
                 settingsStore.setKeyHeight(option)
+                refresh(option)
+            }
+        }
+        refresh(selected)
+        return container
+    }
+
+    private fun buildToolbarStyleSegment(selected: KeyboardToolbarStyle): LinearLayout {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            background = roundedDrawable(palette.canvasArgb, palette.lineArgb, 16)
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+        }
+
+        val buttons = linkedMapOf<KeyboardToolbarStyle, TextView>()
+        KeyboardToolbarStyle.values().forEach { option ->
+            val label = when (option) {
+                KeyboardToolbarStyle.ICONS_ONLY ->
+                    getString(R.string.keyboard_settings_toolbar_icons_only)
+                KeyboardToolbarStyle.ICONS_WITH_LABELS ->
+                    getString(R.string.keyboard_settings_toolbar_icons_labels)
+            }
+            val item = TextView(this).apply {
+                text = label
+                gravity = Gravity.CENTER
+                textSize = 14f
+                minHeight = dp(44)
+                isClickable = true
+                isFocusable = true
+                contentDescription = label
+            }
+            buttons[option] = item
+            container.addView(
+                item,
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    if (option != KeyboardToolbarStyle.ICONS_WITH_LABELS) marginEnd = dp(4)
+                },
+            )
+        }
+
+        fun refresh(value: KeyboardToolbarStyle) {
+            buttons.forEach { (option, item) ->
+                val isSelected = option == value
+                item.setTextColor(if (isSelected) Color.WHITE else palette.onSurfaceArgb)
+                item.typeface = Typeface.create(
+                    "sans-serif-medium",
+                    if (isSelected) Typeface.BOLD else Typeface.NORMAL,
+                )
+                item.background = if (isSelected) {
+                    roundedDrawable(accentColor, null, 12)
+                } else {
+                    roundedDrawable(Color.TRANSPARENT, null, 12)
+                }
+                item.isSelected = isSelected
+            }
+        }
+
+        buttons.forEach { (option, item) ->
+            item.setOnClickListener {
+                settingsStore.setToolbarStyle(option)
                 refresh(option)
             }
         }
