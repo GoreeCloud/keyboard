@@ -30,6 +30,7 @@ internal class KeyboardClipboardPanelView(
         val onPasteText: (text: String) -> Unit,
         val onTogglePin: (id: String) -> Unit,
         val onDelete: (id: String) -> Unit,
+        val onEditSaved: (id: String, text: String) -> Unit,
         val onClearUnpinned: () -> Unit,
         val onHistoryEnabledChanged: (Boolean) -> Unit,
         val onPolicyChanged: (ClipboardAppPolicy) -> Unit,
