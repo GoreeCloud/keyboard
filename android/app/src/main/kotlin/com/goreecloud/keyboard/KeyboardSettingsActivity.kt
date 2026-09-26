@@ -422,18 +422,24 @@ class KeyboardSettingsActivity : Activity() {
 
     private fun isGoreeCloudKeyboardEnabled(): Boolean =
         runCatching {
-            Settings.Secure.getString(
-                contentResolver,
-                Settings.Secure.ENABLED_INPUT_METHODS,
-            ).orEmpty().contains(packageName)
+            KeyboardImeComponentPolicy.enabledListContainsPackage(
+                enabledInputMethods = Settings.Secure.getString(
+                    contentResolver,
+                    Settings.Secure.ENABLED_INPUT_METHODS,
+                ),
+                packageName = packageName,
+            )
         }.getOrDefault(false)
 
     private fun isGoreeCloudKeyboardSelected(): Boolean =
         runCatching {
-            Settings.Secure.getString(
-                contentResolver,
-                Settings.Secure.DEFAULT_INPUT_METHOD,
-            ).orEmpty().startsWith(packageName + "/")
+            KeyboardImeComponentPolicy.defaultMethodMatchesPackage(
+                defaultInputMethod = Settings.Secure.getString(
+                    contentResolver,
+                    Settings.Secure.DEFAULT_INPUT_METHOD,
+                ),
+                packageName = packageName,
+            )
         }.getOrDefault(false)
 
     private fun buildContent(): ScrollView {
