@@ -45,6 +45,14 @@ GoreeCloud Keyboard must be beautiful, polished, cohesive, responsive, feature-r
 - Swipe decoding uses a curated packaged local vocabulary, minimum travel/time/path activation gating, sampled physical gesture geometry, statistical shape/location scoring, endpoint/length pruning, repeated-letter variants, frequency/context ranking, and bounded post-swipe alternatives; it remains Development quality pending representative physical-device acceptance.
 - The Development build uses the canonical GoreeCloud Keyboard app icon from the first-party branding catalog mapping.
 
+## Keyboard-side clipboard candidate
+
+Draft PR #97 / 0.1.20-dev implements a bounded Keyboard-side clipboard product surface without adding Android network permission. A first-party Clipboard toolbar action opens an IME-local panel. The panel can deliberately read the current direct-text clipboard item while the IME is active; it refuses URI coercion and intent execution. Per-current-app local policy supports **Allow**, **Ask**, **Paste only**, and **Block**. Ask requires an explicit **Allow once** action before Keyboard reads the current clipboard for that app session.
+
+Clipboard history is a separate opt-in capability. When enabled, Keyboard stores at most 24 non-sensitive text entries in app-private preferences after AES-GCM encryption with a non-exportable Android Keystore key. Unpinned entries expire after the selected 10-minute, 1-hour, or 24-hour window; pinned entries remain until explicitly unpinned or deleted. Android-marked sensitive clips are never persisted and can only be consumed through Paste Once. Clipboard payloads do not enter suggestion, correction, prediction, personalization, learning, portable preference export, backup, synchronization, Identity, Mesh, telemetry, or network paths.
+
+Paste Once removes the selected local-history entry and clears Android's current system clipboard only when the clipboard still contains the exact value the user deliberately selected. The Keyboard cannot revoke another application's Android clipboard API authority and therefore does not claim system-wide Secure Paste enforcement.
+
 ## Optional local learning
 
 **Learn from what you type** is disabled by default. When explicitly enabled, Keyboard may persist only normalized word-frequency and adjacent-word-frequency counters in app-private device storage. It must not persist full sentences, arbitrary surrounding editor text, clipboard contents, account/contact data, field identity, or network-derived data.
@@ -97,7 +105,7 @@ Keyboard input is highly sensitive. Current source minimizes observation, keeps 
 
 GLAZE UI presentation adds no observation authority. No production claim is made for future cloud-assisted input, clipboard history, voice input, synchronization, or account-backed personalization until explicit Privacy Shield policy, consent, retention, user-control, implementation, and runtime acceptance exist.
 
-### GoreeCloud Secure Paste — planned
+### GoreeCloud Secure Paste — privileged enforcement still planned
 
 GoreeCloud Keyboard is the planned primary user-facing IME surface for GoreeCloud Secure Paste. The intended architecture replaces passive cross-application clipboard reads with explicit user-mediated paste through a privileged Android/framework Secure Paste Broker governed by Privacy Shield. A normal Android IME cannot globally revoke another application's clipboard API authority and must not be represented as doing so.
 

@@ -123,14 +123,32 @@ The built-in dictionary itself is read-only. Optional **Learn from what you type
 
 ## Utility toolbar
 
-A dedicated Glaze toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. The toolbar now exposes only two implemented actions:
+A dedicated Glaze toolbar sits between the prediction bar and the number row. The default presentation is **icons only**; Settings can switch it to **Icons + labels**. The 0.1.20 Draft candidate toolbar exposes three implemented actions:
 
-- **Emoji** — a first-party drawn smile/emoji-face glyph rather than a literal emoji character.
-- **Settings** — a first-party slider/tuning glyph rather than the generic gear character.
+- **Emoji** — the local emoji browser/search surface.
+- **Clipboard** — a first-party clipboard glyph that opens the Keyboard-side clipboard panel.
+- **Settings** — the first-party Settings action.
 
 The redundant Hide Keyboard action has been removed. The **?123 / ABC** mode control remains on the bottom row instead of being duplicated in the toolbar. Emoji is toolbar-only on letter/symbol layers and is no longer duplicated on the bottom row. The actions share a single rounded Glaze toolbar surface instead of appearing as a row of unrelated utility keycaps.
 
-Clipboard and GIF controls are not shown as placeholders. They remain separate capability work because clipboard access and GIF/provider behavior require real implementation, privacy/security authority, and user-control boundaries rather than decorative buttons.
+GIF controls are not shown as placeholders. They remain separate capability work because GIF/provider behavior requires a real provider, network/retention policy, content-safety boundary, user controls, and privacy/security acceptance.
+
+## Clipboard
+
+The 0.1.20 Draft candidate includes a real Keyboard-side Clipboard surface.
+
+Open it with the **Clipboard** icon in the toolbar. The default per-app policy is **Ask**, so Keyboard presents an **Allow once** control before it reads the current clipboard for a new app session. You can change the current app's local policy to:
+
+- **Allow** — current clipboard plus enabled local history are available through the panel.
+- **Ask** — require **Allow once** before the current clipboard is read for that app session.
+- **Paste only** — allow the deliberately opened current clipboard item without exposing saved history for that app.
+- **Block** — do not read or present clipboard content to the Keyboard panel for that app.
+
+**Clipboard history is off by default.** When you explicitly enable it, Keyboard stores recent non-sensitive text clips locally in encrypted form. Unpinned entries expire after the selected **10 min**, **1 hour**, or **24 hours** window. You can pin/unpin an item, delete one item, or clear all unpinned history.
+
+**Paste** inserts the selected non-sensitive text and leaves its normal clipboard/history state intact. **Paste once** inserts the selected item, removes its Keyboard history copy, and clears the Android system clipboard only if it still contains the same selected value. Android-marked sensitive clips are never added to history and are available only through **Paste once**.
+
+Clipboard payloads are not used for suggestions, autocorrect, prediction, learning, portable preference export, backup, synchronization, or telemetry. The current Keyboard-side controls are not the future privileged GoreeCloud Secure Paste Broker and cannot globally stop another Android app from using the platform clipboard APIs.
 
 ## Appearance
 
@@ -142,7 +160,7 @@ Complete V1.6 optical/component migration, Reduced Transparency/Motion acceptanc
 
 ## Current limitations
 
-The Weave-stage implementation does not yet claim production-grade gesture recognition, multilingual input, clipboard tools, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, Seal qualification, production acceptance, or Anchor acceptance.
+The Weave-stage implementation does not yet claim production-grade gesture recognition, multilingual input, privileged system-wide Secure Paste enforcement, voice input, one-handed/split layouts, full tablet/foldable adaptation, complete accessibility acceptance, user dictionary synchronization, complete Unicode grapheme segmentation for every script, signed production packaging, Seal qualification, production acceptance, or Anchor acceptance.
 
 ## Privacy and security expectations
 
