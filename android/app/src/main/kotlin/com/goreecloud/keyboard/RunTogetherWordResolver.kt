@@ -89,6 +89,64 @@ internal class RunTogetherWordResolver {
         return best.phrase
     }
 
+    /**
+     * Recovers a missed-space token that also contains one ordinary typing error.
+     *
+     * The exact resolver remains authoritative. This fallback explores only one deletion,
+     * adjacent transposition, or QWERTY-neighbor substitution, and then requires the resulting
+     * token to satisfy the same exact-dictionary segmentation confidence rules. Ambiguous phrases
+     * are rejected.
+     */
+    fun resolveWithSingleEdit(
+        token: String,
+        dictionary: Collection<String>,
+    ): String? {
+        resolve(token, dictionary)?.let { return it }
+
+        val normalized = token.lowercase()
+        if (normalized.length !in MIN_TOKEN_LENGTH..MAX_TOKEN_LENGTH) return null
+        if (normalized.any { it !in 'a'..'z' }) return null
+        if (indexFor(dictionary).containsKey(normalized)) return null
+
+        val phrases = LinkedHashMap<String, Double>()
+
+        fun consider(candidate: String, editCost: Double) {
+            if (candidate.length !in MIN_TOKEN_LENGTH..MAX_TOKEN_LENGTH) return
+            val phrase = resolve(candidate, dictionary) ?: return
+            val current = phrases[phrase]
+            if (current == null || editCost < current) phrases[phrase] = editCost
+        }
+
+        normalized.indices.forEach { index ->
+            consider(normalized.removeRange(index, index + 1), 1.0)
+
+            if (index + 1 < normalized.length && normalized[index] != normalized[index + 1]) {
+                val swapped = normalized.toCharArray().also { chars ->
+                    val value = chars[index]
+                    chars[index] = chars[index + 1]
+                    chars[index + 1] = value
+                }.concatToString()
+                consider(swapped, 0.90)
+            }
+
+            qwertyNeighbors[normalized[index]].orEmpty().forEach { replacement ->
+                val replaced = normalized.toCharArray().also { chars ->
+                    chars[index] = replacement
+                }.concatToString()
+                consider(replaced, 0.85)
+            }
+        }
+
+        val ranked = phrases.entries.sortedWith(
+            compareBy<Map.Entry<String, Double>> { it.value }
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.key },
+        )
+        val best = ranked.firstOrNull() ?: return null
+        val runnerUp = ranked.getOrNull(1)
+        if (runnerUp != null && runnerUp.value - best.value < SINGLE_EDIT_WIN_MARGIN) return null
+        return best.key
+    }
+
     private fun indexFor(dictionary: Collection<String>): Map<String, Entry> {
         if (cachedDictionary === dictionary) {
             cachedIndex?.let { return it }
@@ -150,7 +208,17 @@ internal class RunTogetherWordResolver {
 
         const val SPLIT_PENALTY = 0.85
         const val MIN_WIN_MARGIN = 0.60
+        const val SINGLE_EDIT_WIN_MARGIN = 0.10
 
         val SINGLE_LETTER_WORDS = setOf("a", "i")
+
+        val qwertyNeighbors = mapOf(
+            'q' to "wa", 'w' to "qeas", 'e' to "wrsd", 'r' to "etdf", 't' to "ryfg",
+            'y' to "tugh", 'u' to "yihj", 'i' to "uojk", 'o' to "ipkl", 'p' to "ol",
+            'a' to "qwsz", 's' to "wedxza", 'd' to "erfcxs", 'f' to "rtgcvd",
+            'g' to "tyhbvf", 'h' to "yujnbg", 'j' to "uikmnh", 'k' to "iolmj",
+            'l' to "opk", 'z' to "asx", 'x' to "sdc z".replace(" ", ""),
+            'c' to "dfvx", 'v' to "fgbc", 'b' to "ghnv", 'n' to "hjmb", 'm' to "jkn",
+        )
     }
 }

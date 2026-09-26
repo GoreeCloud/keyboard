@@ -63,6 +63,27 @@ class RunTogetherWordResolverTest {
     }
 
     @Test
+    fun repairsBunchedWordsWithOneNeighborTypingError() {
+        assertEquals(
+            "help me",
+            resolver.resolveWithSingleEdit(
+                token = "helpcme",
+                dictionary = listOf("the", "you", "me", "help", "understand"),
+            ),
+        )
+    }
+
+    @Test
+    fun oneEditRecoveryStillRejectsArbitraryUnknownText() {
+        assertNull(
+            resolver.resolveWithSingleEdit(
+                token = "zxqvplmokn",
+                dictionary = listOf("the", "you", "me", "help", "keyboard"),
+            ),
+        )
+    }
+
+    @Test
     fun arbitraryUnknownTextIsNotInventedIntoWords() {
         assertNull(
             resolver.resolve(

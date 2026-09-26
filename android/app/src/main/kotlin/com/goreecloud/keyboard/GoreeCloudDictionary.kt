@@ -74,24 +74,48 @@ internal object GoreeCloudDictionary {
     )
 
     val commonContractions = listOf(
-        "I'm",
-        "I've",
-        "I'll",
-        "don't",
-        "doesn't",
-        "can't",
-        "won't",
-        "isn't",
-        "aren't",
-        "wasn't",
-        "weren't",
-        "shouldn't",
-        "wouldn't",
-        "couldn't",
-        "you're",
-        "they're",
-        "we're",
-        "it's",
-        "that's",
+        "I'm", "I've", "I'll", "I'd",
+        "don't", "doesn't", "didn't",
+        "can't", "won't", "isn't", "aren't", "wasn't", "weren't",
+        "haven't", "hasn't", "hadn't",
+        "shouldn't", "wouldn't", "couldn't", "mustn't", "mightn't", "needn't",
+        "you're", "you've", "you'll", "you'd",
+        "they're", "they've", "they'll", "they'd",
+        "we're", "we've", "we'll", "we'd",
+        "he's", "he'll", "he'd",
+        "she's", "she'll", "she'd",
+        "it's", "it'll",
+        "that's", "that'll", "there's", "there'll",
+        "what's", "what'll", "where's", "when's", "why's", "who's",
+        "could've", "would've", "should've", "might've", "must've",
+        "let's",
+    )
+
+    /**
+     * Common English compound spellings that Keyboard may surface as phrase-level suggestions.
+     * They are suggestions rather than unconditional rewrites because many compounds are
+     * hyphenated attributively but remain open when used predicatively.
+     */
+    val hyphenatedCompounds = listOf(
+        "up-to-date",
+        "built-in",
+        "well-known",
+        "high-quality",
+        "long-term",
+        "short-term",
+        "real-time",
+        "full-time",
+        "part-time",
+        "user-friendly",
+        "privacy-focused",
+        "open-source",
+        "first-party",
+        "third-party",
+        "cross-platform",
+        "on-device",
+        "local-first",
+        "self-hosted",
+        "side-by-side",
+        "end-to-end",
     )
 }

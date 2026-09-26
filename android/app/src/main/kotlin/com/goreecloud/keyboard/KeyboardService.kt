@@ -23,6 +23,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private var keyboardView: KeyboardView? = null
     private val suggestionEngine = SuggestionEngine()
     private val runTogetherWordResolver = RunTogetherWordResolver()
+    private var pendingPhraseRewrite: HyphenatedCompoundModel.Rewrite? = null
     private val swipeTypingEngine = SwipeTypingEngine()
     private val packagedEnglishDictionary by lazy { PackagedEnglishDictionary(this) }
     private val settingsStore by lazy { KeyboardSettingsStore(this) }
@@ -127,6 +128,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     override fun onText(value: String) {
         if (value.isEmpty()) return
         pendingSwipeCorrection = null
+        pendingPhraseRewrite = null
 
         val isLetterText = value.codePoints().allMatch { Character.isLetter(it) }
         val output = if (shifted && isLetterText) value.uppercase() else value
@@ -167,6 +169,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onSpace() {
         pendingSwipeCorrection = null
+        pendingPhraseRewrite = null
         if (tryCommitDoubleSpacePeriod()) return
         commitBoundary(" ")
     }
@@ -309,6 +312,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
     override fun onSuggestion(value: String) {
         if (tryCommitSwipeCorrection(value)) return
+        if (tryCommitPhraseRewrite(value)) return
 
         if (
             editorSuppressesLanguageAssistance ||
@@ -402,6 +406,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         composingCaptureExhausted = false
         presentedSuggestions = emptyList()
         pendingSwipeCorrection = null
+        pendingPhraseRewrite = null
         keyboardView?.setSuggestions(emptyList())
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
         keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
@@ -511,7 +516,9 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             val dictionary = activeDictionary()
             val correction =
                 QuillGrammarModel.boundaryCorrection(prefix, contextHistory)
+                    ?: ContractionModel.correction(prefix)
                     ?: runTogetherWordResolver.resolve(prefix, dictionary)
+                    ?: runTogetherWordResolver.resolveWithSingleEdit(prefix, dictionary)
                     ?: suggestionEngine.bestAutocorrection(
                         word = prefix,
                         dictionary = dictionary,
@@ -641,6 +648,33 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         return true
     }
 
+    private fun tryCommitPhraseRewrite(value: String): Boolean {
+        val rewrite = pendingPhraseRewrite ?: return false
+        if (!rewrite.replacement.equals(value, ignoreCase = true)) return false
+
+        val connection = currentInputConnection ?: return false
+        val source = rewrite.sourceWords.joinToString(" ")
+        val expectedLength = source.length + 1
+        val beforeCursor = connection.getTextBeforeCursor(expectedLength, 0)?.toString() ?: return false
+        if (!beforeCursor.equals("$source ", ignoreCase = true)) return false
+
+        val replacement = if (beforeCursor.firstOrNull()?.isUpperCase() == true) {
+            rewrite.replacement.replaceFirstChar { it.titlecase() }
+        } else {
+            rewrite.replacement
+        }
+        val codePoints = beforeCursor.codePointCount(0, beforeCursor.length)
+        if (!connection.deleteSurroundingTextInCodePoints(codePoints, 0)) return false
+        connection.commitText("$replacement ", 1)
+
+        committedHistory.clear()
+        recordCommittedWord(replacement, learn = false)
+        pendingPhraseRewrite = null
+        clearComposingBoundary()
+        updateSuggestions()
+        return true
+    }
+
     private fun formatPredictionCase(candidate: String): String =
         if (sentenceStartPending) {
             candidate.replaceFirstChar { first ->
@@ -721,12 +755,19 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         presentedSuggestions = when {
             synchronizedPrefix.isNotEmpty() && typingSettings.suggestionsEnabled -> {
+                pendingPhraseRewrite = null
                 val dictionary = activeDictionary()
-                val segmented = runTogetherWordResolver.resolve(
-                    token = synchronizedPrefix,
-                    dictionary = dictionary,
-                )
+                val segmented =
+                    runTogetherWordResolver.resolve(
+                        token = synchronizedPrefix,
+                        dictionary = dictionary,
+                    ) ?: runTogetherWordResolver.resolveWithSingleEdit(
+                        token = synchronizedPrefix,
+                        dictionary = dictionary,
+                    )
+                val contraction = ContractionModel.suggestion(synchronizedPrefix)
                 buildList<String> {
+                    contraction?.let(::add)
                     segmented?.let(::add)
                     addAll(
                         suggestionEngine.suggest(
@@ -740,10 +781,21 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
                     .map(::formatCandidateCase)
             }
 
-            composingWord.isEmpty() && typingSettings.predictionsEnabled ->
-                predictionCandidates(contextHistory = contextHistory).map(::formatPredictionCase)
+            composingWord.isEmpty() && typingSettings.predictionsEnabled -> {
+                val rewrite = HyphenatedCompoundModel.rewriteForTail(contextHistory)
+                pendingPhraseRewrite = rewrite
+                buildList<String> {
+                    rewrite?.replacement?.let(::add)
+                    addAll(predictionCandidates(contextHistory = contextHistory))
+                }
+                    .distinctBy { it.lowercase() }
+                    .map(::formatPredictionCase)
+            }
 
-            else -> emptyList()
+            else -> {
+                pendingPhraseRewrite = null
+                emptyList()
+            }
         }.take(3)
 
         keyboardView?.setSuggestions(presentedSuggestions)

@@ -27,6 +27,12 @@ internal class PackagedEnglishDictionary(
             ordered.putIfAbsent(normalized, trimmed)
         }
 
+        // Canonical GoreeCloud spellings and contraction punctuation are first-class built-in
+        // vocabulary. Add them before the generic frequency corpus so lowercase duplicates cannot
+        // erase canonical display forms such as "GoreeCloud".
+        GoreeCloudDictionary.canonicalTerms.forEach(::add)
+        GoreeCloudDictionary.commonContractions.forEach(::add)
+        GoreeCloudDictionary.hyphenatedCompounds.forEach(::add)
         QuillLexicon.expandedEnglish.forEach(::add)
 
         applicationContext.assets
