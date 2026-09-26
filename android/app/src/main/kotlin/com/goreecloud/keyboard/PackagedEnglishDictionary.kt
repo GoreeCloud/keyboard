@@ -37,6 +37,10 @@ internal class PackagedEnglishDictionary(
         ordered.values.toList()
     }
 
+    fun preload() {
+        words.size
+    }
+
     companion object {
         const val ASSET_PATH = "dictionaries/en_us_moby_common.txt"
         const val SOURCE_PROJECT = "Moby Words II"
