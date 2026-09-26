@@ -114,6 +114,24 @@ internal object QuillLexicon {
         words.toList()
     }
 
+    /**
+     * Curated swipe vocabulary.
+     *
+     * Swipe decoding intentionally avoids mechanically generated inflections because a large tail
+     * of synthetic low-value candidates makes geometric ambiguity much harder to resolve. Common
+     * inflections remain present through the packaged everyday list and explicit irregular forms.
+     */
+    val swipeEnglish: List<String> by lazy {
+        val words = LinkedHashSet<String>()
+        words += english
+        words += EverydayEnglishDictionary.terms
+        words += GoreeCloudDictionary.canonicalTerms
+        words += GoreeCloudDictionary.commonContractions
+        words += goreeCloudVocabulary
+        words += irregularForms
+        words.toList()
+    }
+
     private val goreeCloudVocabulary = listOf(
         "goreecloud", "quill", "glaze", "wardveil", "privacy", "keyboard", "browser",
         "launcher", "gallery", "camera", "gateway", "notify", "monitor", "memos", "notes",
