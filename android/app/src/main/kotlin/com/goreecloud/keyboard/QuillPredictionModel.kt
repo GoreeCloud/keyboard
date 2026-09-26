@@ -198,16 +198,21 @@ internal object QuillPredictionModel {
             .filter { it.isNotEmpty() }
 
         if (normalized.isEmpty()) {
-            return starterPredictions.take(limit)
+            return (starterPredictions + QuillGrammarModel.predict(emptyList(), limit = 6))
+                .distinctBy { it.lowercase() }
+                .take(limit)
         }
 
         val phrase = if (normalized.size == 2) normalized.joinToString(" ") else null
         val last = normalized.last()
-        val source = phrase?.let(phrasePredictions::get)
-            ?: wordPredictions[last]
-            ?: contextualFallback(last)
+        val result = buildList {
+            phrase?.let(phrasePredictions::get)?.let(::addAll)
+            wordPredictions[last]?.let(::addAll)
+            addAll(QuillGrammarModel.predict(normalized, limit = 8))
+            addAll(contextualFallback(last))
+        }
 
-        return source.distinctBy { it.lowercase() }.take(limit)
+        return result.distinctBy { it.lowercase() }.take(limit)
     }
 
     private fun contextualFallback(last: String): List<String> = when {
