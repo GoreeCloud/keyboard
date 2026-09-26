@@ -684,9 +684,9 @@ class KeyboardView @JvmOverloads constructor(
         actions.forEach { key ->
             val hitBounds = RectF(
                 left,
-                surfaceBounds.top,
+                top,
                 minOf(left + buttonWidth, surfaceBounds.right),
-                surfaceBounds.bottom,
+                top + height,
             )
             val visualBounds = when (toolbarStyle) {
                 KeyboardToolbarStyle.ICONS_ONLY ->
