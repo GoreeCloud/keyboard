@@ -46,7 +46,6 @@ def main() -> None:
             '"Space, English (US)"',
             'Action.ENTER -> "Enter"',
             'Action.SETTINGS -> "Keyboard settings"',
-            'Action.HIDE -> "Hide keyboard"',
             "label = hit.entry.accessibilityLabel",
             'label = "Suggestion ${hit.value}"',
             "accessibilityDelegate.invalidateVirtualRoot()",
@@ -100,6 +99,8 @@ def main() -> None:
             'it.label == "Close emoji search"',
             'it.label == "Shift"',
             "utilityToolbarExposesOnlyImplementedActions",
+            '"Toolbar must not expose a redundant close/hide Keyboard action"',
+            "emojiExistsOnlyInTheToolbarOnLettersLayer",
         ),
     )
 
