@@ -111,6 +111,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         super.onStartInputView(info, restarting)
         beginEditorSession(info)
         clipboardController.onInputViewVisible()
+        showKeyboardSurface()
         currentLayer = KeyboardLayer.LETTERS
         keyboardView?.setLayer(currentLayer)
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
@@ -151,6 +152,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         presentedSuggestions = emptyList()
         clipboardController.onInputViewHidden()
         closeClipboardPanel(restoreKeyboard = false)
+        inputSurfaceHost = null
         keyboardView = null
         super.onDestroy()
     }
@@ -427,7 +429,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         )
         clipboardPanelView = panel
         panel.render(clipboardController.openSnapshot())
-        setInputView(panel)
+        inputSurfaceHost?.showSurface(panel)
     }
 
     private fun pasteClipboardEntry(id: String, pasteOnce: Boolean) {
