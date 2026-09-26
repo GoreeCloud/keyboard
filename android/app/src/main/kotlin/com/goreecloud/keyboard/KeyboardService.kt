@@ -456,12 +456,17 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
 
         if (!restoreKeyboard) return
         keyboardView?.let { keyboard ->
-            setInputView(keyboard)
+            inputSurfaceHost?.showSurface(keyboard)
             currentLayer = KeyboardLayer.LETTERS
             keyboard.setLayer(currentLayer)
             refreshAutomaticShift()
             updateSuggestions()
         }
+    }
+
+    private fun showKeyboardSurface() {
+        val keyboard = keyboardView ?: return
+        inputSurfaceHost?.showSurface(keyboard)
     }
 
     override fun onOpenSettings() {
