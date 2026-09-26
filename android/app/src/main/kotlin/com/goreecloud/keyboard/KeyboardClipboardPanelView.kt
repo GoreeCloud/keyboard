@@ -293,6 +293,14 @@ internal class KeyboardClipboardPanelView(
                                 marginEnd = dp(5)
                             },
                         )
+                        if (entry.id != "__system_clipboard__") {
+                            addView(
+                                chip("Edit", { callbacks.onEditSaved(entry.id, entry.text) }),
+                                LinearLayout.LayoutParams(0, dp(40), 1f).apply {
+                                    marginEnd = dp(5)
+                                },
+                            )
+                        }
                         addView(
                             chip("Delete", { callbacks.onDelete(entry.id) }),
                             LinearLayout.LayoutParams(0, dp(40), 1f),
