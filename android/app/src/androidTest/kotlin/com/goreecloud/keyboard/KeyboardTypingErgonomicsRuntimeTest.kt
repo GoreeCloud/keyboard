@@ -191,6 +191,58 @@ class KeyboardTypingErgonomicsRuntimeTest {
     }
 
     @Test
+    fun rapidLetterTapsAllCommitExactlyOnce() {
+        val view = createRenderedKeyboard()
+        renderIntoExistingSize(view)
+        val targets = view.accessibilityTargets()
+        val l = targets.first { it.label == "l" }.bounds
+        val a = targets.first { it.label == "a" }.bounds
+        val g = targets.first { it.label == "g" }.bounds
+        val taps = mutableListOf<String>()
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) {
+                taps += value
+            }
+            override fun onSwipe(keyPath: List<String>) = Unit
+            override fun onSpace() = Unit
+            override fun onBackspace() = Unit
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        val sequence = listOf(
+            "l" to l,
+            "a" to a,
+            "g" to g,
+            "g" to g,
+            "i" to targets.first { it.label == "i" }.bounds,
+            "n" to targets.first { it.label == "n" }.bounds,
+            "g" to g,
+        )
+        var eventTime = 0L
+        repeat(4) {
+            sequence.forEach { (_, bounds) ->
+                dispatch(view, MotionEvent.ACTION_DOWN, bounds.centerX(), bounds.centerY(), eventTime)
+                dispatch(view, MotionEvent.ACTION_UP, bounds.centerX(), bounds.centerY(), eventTime + 12L)
+                eventTime += 24L
+            }
+        }
+
+        assertEquals(
+            "Rapid ordinary taps must never be dropped or duplicated by the KeyboardView touch path",
+            sequence.flatMap { pair -> List(4) { pair.first } }.size,
+            taps.size,
+        )
+        assertEquals(
+            "lagging".repeat(4).toList().map { it.toString() },
+            taps,
+        )
+    }
+
+    @Test
     fun swipeGestureEmitsOrderedLetterTraceInsteadOfSingleTap() {
         val view = createRenderedKeyboard()
         view.setSwipeTypingEnabled(true)
