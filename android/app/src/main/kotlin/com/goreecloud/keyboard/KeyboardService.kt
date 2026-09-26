@@ -140,9 +140,14 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         ) return
         val connection = currentInputConnection ?: return
 
-        val candidates = swipeTypingEngine.decode(
+        val decodedCandidates = swipeTypingEngine.decode(
             keyPath = keyPath,
             dictionary = activeDictionary(),
+            limit = SWIPE_DECODE_CANDIDATE_POOL,
+        )
+        val candidates = SwipeCandidateRanker.rank(
+            decoded = decodedCandidates,
+            contextualPredictions = predictionCandidates(),
             limit = 3,
         )
         val candidate = candidates.firstOrNull() ?: return
@@ -610,6 +615,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
     private companion object {
         const val BACKSPACE_LOOKBEHIND_UTF16 = 64
         const val MAX_PREDICTION_HISTORY_WORDS = 2
+        const val SWIPE_DECODE_CANDIDATE_POOL = 8
         val AUTOCORRECT_BOUNDARIES = setOf(".", ",", "!", "?", ";", ":")
         val SENTENCE_ENDINGS = setOf(".", "!", "?")
     }
