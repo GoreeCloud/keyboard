@@ -130,6 +130,10 @@ class KeyboardAccessibilityRuntimeTest {
         val labels = view.accessibilityTargets().map { it.label }.toSet()
 
         assertTrue("Toolbar must expose Emoji", "Emoji" in labels)
+        assertTrue(
+            "Toolbar must expose the implemented Clipboard and Secure Paste surface",
+            "Clipboard and Secure Paste" in labels,
+        )
         assertTrue("Toolbar must expose Keyboard settings", "Keyboard settings" in labels)
         assertFalse(
             "Toolbar must not expose a redundant close/hide Keyboard action",
@@ -141,12 +145,20 @@ class KeyboardAccessibilityRuntimeTest {
             labels.count { it == "Symbols" },
         )
         assertFalse(
-            "Clipboard must not be exposed until the governed clipboard capability exists",
-            labels.any { it.contains("clipboard", ignoreCase = true) },
-        )
-        assertFalse(
             "GIF must not be exposed as a fake action without an implemented provider",
             labels.any { it.contains("gif", ignoreCase = true) },
+        )
+        assertFalse(
+            "Voice must not be exposed as a fake action without a privacy-approved provider",
+            labels.any { it.contains("voice", ignoreCase = true) },
+        )
+        assertFalse(
+            "Translation must not be exposed as a fake action without an implemented provider",
+            labels.any { it.contains("translat", ignoreCase = true) },
+        )
+        assertFalse(
+            "Handwriting must not be exposed as a fake action without an implemented surface",
+            labels.any { it.contains("handwriting", ignoreCase = true) },
         )
     }
 
