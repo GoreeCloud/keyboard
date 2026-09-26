@@ -47,8 +47,10 @@ class SuggestionEngine {
         val result = mutableListOf<String>()
         if (exact != null) result += exact.word
 
+        val scoredSlotLimit =
+            if (exact == null && effectiveLimit > 1) effectiveLimit - 1 else effectiveLimit
         scored.forEach { scoredCandidate ->
-            if (result.size >= effectiveLimit) return@forEach
+            if (result.size >= scoredSlotLimit) return@forEach
             val word = scoredCandidate.candidate.word
             if (result.none { it.equals(word, ignoreCase = true) }) result += word
         }
