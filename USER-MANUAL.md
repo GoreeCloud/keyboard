@@ -6,13 +6,13 @@ GoreeCloud Keyboard is currently a **Weave-stage** Android input-method implemen
 
 ## Install and enable the Development keyboard on Android
 
-Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.9** with package ID `com.goreecloud.keyboard.dev.v10`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
+Current CI/debug physical-test builds install as **GoreeCloud Keyboard Dev 0.1.10** with package ID `com.goreecloud.keyboard.dev.v11`. This package is intentionally separate from the preinstalled/system package `com.goreecloud.keyboard`.
 
 When installing the current Development APK, Android should offer to **install** GoreeCloud Keyboard Dev rather than **update** GoreeCloud Keyboard. If Android instead asks to update the preinstalled GoreeCloud Keyboard, that APK is an older Development artifact using the production package ID and should not be used for this test path.
 
-After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.9**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
+After installation, use Android's system keyboard/input-method settings to enable **GoreeCloud Keyboard Dev 0.1.10**. Android may show a standard warning when enabling any third-party input method; review the system prompt and enable the keyboard only if you intend to use it.
 
-Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.9 when a text field is active.
+Use Android's keyboard switcher or input-method selector to choose GoreeCloud Keyboard Dev 0.1.10 when a text field is active.
 
 Exact settings labels vary by Android device and version.
 
@@ -28,7 +28,7 @@ The keyboard opens in its **letters** layer.
 - Tap the **English (US)** spacebar to insert a space.
 - Tap **↵** to send the Android Enter key action to the active editor.
 
-Backspace and Enter use first-party vector-style icons rather than generic text glyphs in the current Development candidate.
+Backspace and Enter use first-party vector-style icons rather than generic text glyphs in the current Development candidate. Tap Backspace for one immediate deletion, or hold it to continue deleting at a controlled repeat rate until you lift your finger; dragging off the key cancels the repeat.
 
 The temporary shift state resets after a shifted alphabetic character is entered. In ordinary text fields, the current Development candidate can also automatically shift at sentence starts when **Automatic capitalization** is enabled.
 
@@ -67,7 +67,7 @@ The current picker is not a complete emoji catalog. Offline search over the pack
 
 For ordinary text fields, the prediction bar can show up to three local starter predictions **before you type**. As you type, it switches to local completions and spelling candidates; after a committed word, it can show transient next-word predictions from the current editor session.
 
-Candidates are ranked from the packaged local lexicon, broader everyday-English vocabulary, bounded spelling distance, QWERTY proximity, and current local context. The 0.1.9 candidate explicitly includes modern keyboard vocabulary such as **icon**, **icons**, **toolbar**, **emoji**, **grammar**, **prediction**, and **haptics**. Likely spelling corrections are presented ahead of a misspelled token when the local engine has a bounded correction; the word you are actively typing remains available as a fallback. Built-in context uses only a bounded ordinary-editor window and Keyboard's transient session history. If you explicitly enable **Learn from what you type**, bounded word and adjacent-word counters can also improve ranking locally across sessions.
+Candidates are ranked from the packaged local lexicon, broader everyday-English vocabulary, bounded spelling distance, QWERTY proximity, and current local context. The 0.1.10 candidate explicitly includes modern keyboard vocabulary such as **icon**, **icons**, **toolbar**, **emoji**, **grammar**, **prediction**, and **haptics**. Likely spelling corrections are presented ahead of a misspelled token when the local engine has a bounded correction; the word you are actively typing remains available as a fallback. Built-in context uses only a bounded ordinary-editor window and Keyboard's transient session history. If you explicitly enable **Learn from what you type**, bounded word and adjacent-word counters can also improve ranking locally across sessions.
 
 Tap a suggestion to replace the current composing prefix with that suggestion followed by a space.
 
@@ -75,7 +75,7 @@ The current engine also performs conservative automatic correction at spaces and
 
 ## Swipe typing
 
-In ordinary non-sensitive text fields, you can slide across letter keys and release to submit a locally decoded word. The 0.1.9 candidate uses the actual transient pointer samples and rendered key centers rather than treating the crossed-key sequence as the whole gesture. Its local statistical classifier prunes by likely endpoints and path length, resamples the gesture, compares normalized shape and physical location against ideal word gestures, accounts for repeated-letter gesture variants and dictionary frequency, and then lets bounded local sentence context re-rank only candidates already accepted by the gesture classifier. When learning is explicitly enabled, learned local vocabulary may also participate. After a swipe, the prediction strip can show up to three local swipe candidates so you can replace the committed word with a better alternative when needed.
+In ordinary non-sensitive text fields, you can slide across letter keys and release to submit a locally decoded word. The 0.1.10 candidate uses the actual transient pointer samples and rendered key centers rather than treating the crossed-key sequence as the whole gesture. Its local statistical classifier prunes by likely endpoints and path length, resamples the gesture, compares normalized shape and physical location against ideal word gestures, accounts for repeated-letter gesture variants and dictionary frequency, and then lets bounded local sentence context re-rank only candidates already accepted by the gesture classifier. When learning is explicitly enabled, learned local vocabulary may also participate. After a swipe, the prediction strip can show up to three local swipe candidates so you can replace the committed word with a better alternative when needed.
 
 Swipe typing is disabled in sensitive editors and while touch-exploration/screen-reader optimized presentation is active. The gesture path is not persisted, learned from, transmitted, or combined with surrounding editor text.
 
@@ -95,7 +95,7 @@ Future network-backed capabilities, if implemented, require separate user-contro
 
 ## Keyboard settings and app shortcut
 
-The Development package exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.9**. Opening it launches the first-party Keyboard settings screen. The same settings screen is reachable from the Settings glyph in the utility toolbar and from Android's input-method settings entry for GoreeCloud Keyboard. The settings UI uses Glaze-style cards, grouped controls, and segmented appearance controls, and its content root now applies Android system-bar insets so the status and navigation bars do not overlap the settings content.
+The Development package exposes a launcher shortcut named **GoreeCloud Keyboard Dev 0.1.10**. Opening it launches the first-party Keyboard settings screen. The same settings screen is reachable from the Settings glyph in the utility toolbar and from Android's input-method settings entry for GoreeCloud Keyboard. The settings UI uses Glaze-style cards, grouped controls, and segmented appearance controls, and its content root now applies Android system-bar insets so the status and navigation bars do not overlap the settings content.
 
 Current device-local settings include:
 
