@@ -2,6 +2,7 @@ package com.goreecloud.keyboard
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.graphics.Insets
@@ -128,6 +129,62 @@ class KeyboardTypingErgonomicsRuntimeTest {
         assertEquals(
             "A small release drift outside Backspace must still perform the deliberate key tap",
             1,
+            deletions,
+        )
+    }
+
+    @Test
+    fun holdingBackspaceRepeatsUntilRelease() {
+        val view = createRenderedKeyboard()
+        renderIntoExistingSize(view)
+        val backspace = view.accessibilityTargets().first { it.label == "Backspace" }.bounds
+        var deletions = 0
+
+        view.listener = object : KeyboardView.Listener {
+            override fun onText(value: String) = Unit
+            override fun onSwipe(keyPath: List<String>) = Unit
+            override fun onSpace() = Unit
+            override fun onBackspace() {
+                deletions += 1
+            }
+            override fun onEnter() = Unit
+            override fun onShift() = Unit
+            override fun onSuggestion(value: String) = Unit
+            override fun onLayerChanged(layer: KeyboardLayer) = Unit
+        }
+
+        dispatch(
+            view,
+            MotionEvent.ACTION_DOWN,
+            backspace.centerX(),
+            backspace.centerY(),
+            eventTime = 0L,
+        )
+        assertEquals(
+            "Backspace must respond immediately on press",
+            1,
+            deletions,
+        )
+
+        SystemClock.sleep(520L)
+        assertTrue(
+            "Holding Backspace must repeatedly delete rather than waiting for release",
+            deletions >= 2,
+        )
+
+        dispatch(
+            view,
+            MotionEvent.ACTION_UP,
+            backspace.centerX(),
+            backspace.centerY(),
+            eventTime = 540L,
+        )
+        val deletionsAtRelease = deletions
+        SystemClock.sleep(180L)
+
+        assertEquals(
+            "Backspace repeat must stop immediately after release",
+            deletionsAtRelease,
             deletions,
         )
     }
