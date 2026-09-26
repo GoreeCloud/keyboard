@@ -265,6 +265,7 @@ class KeyboardSettingsActivity : Activity() {
 
         return ScrollView(this).apply {
             isFillViewport = true
+            clipToPadding = true
             setBackgroundColor(palette.canvasArgb)
             addView(
                 root,
@@ -273,6 +274,12 @@ class KeyboardSettingsActivity : Activity() {
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                 ),
             )
+            ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+                val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                view.setPadding(0, bars.top, 0, bars.bottom)
+                insets
+            }
+            ViewCompat.requestApplyInsets(this)
         }
     }
 
