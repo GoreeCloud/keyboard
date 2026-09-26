@@ -26,6 +26,13 @@ class QuillLexiconTest {
         assertTrue("clipboard" in words)
         assertTrue("wifi" in words)
         assertTrue("basic" in words)
+        assertTrue("icon" in words)
+        assertTrue("toolbar" in words)
+        assertTrue("glyph" in words)
+        assertTrue("grammar" in words)
+        assertTrue("prediction" in words)
+        assertTrue("gesture" in words)
+        assertTrue("haptic" in words)
     }
 
     @Test
