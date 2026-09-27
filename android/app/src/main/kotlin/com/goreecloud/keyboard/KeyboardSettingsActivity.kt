@@ -35,6 +35,7 @@ class KeyboardSettingsActivity : Activity() {
     private lateinit var palette: GlazeKeyboardTokens.Palette
     private var setupStep: Int = 0
     private var setupWizardActive: Boolean = false
+    private var setupReplay: Boolean = false
     private var accentColor: Int = 0xFF2563EB.toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +54,7 @@ class KeyboardSettingsActivity : Activity() {
         if (setupPreferences.isComplete()) {
             setContentView(buildContent())
         } else {
+            setupStep = setupPreferences.currentStep()
             renderSetupWizard()
         }
     }
@@ -103,11 +105,20 @@ class KeyboardSettingsActivity : Activity() {
             setPadding(0, dp(20), 0, 0)
         }
 
-        if (setupStep > 0) {
+        if (setupStep > 0 || setupReplay) {
             navigation.addView(
                 actionButton(getString(R.string.keyboard_setup_back)) {
-                    setupStep -= 1
-                    renderSetupWizard()
+                    if (setupStep > 0) {
+                        setupStep -= 1
+                        if (!setupReplay) {
+                            setupPreferences.setCurrentStep(setupStep)
+                        }
+                        renderSetupWizard()
+                    } else {
+                        setupReplay = false
+                        setupWizardActive = false
+                        setContentView(buildContent())
+                    }
                 },
                 LinearLayout.LayoutParams(0, dp(56), 1f).apply {
                     marginEnd = dp(8)
@@ -124,11 +135,17 @@ class KeyboardSettingsActivity : Activity() {
                 },
             ) {
                 if (setupStep == 4 - 1) {
-                    setupPreferences.markComplete()
+                    if (!setupReplay) {
+                        setupPreferences.markComplete()
+                    }
+                    setupReplay = false
                     setupWizardActive = false
                     setContentView(buildContent())
                 } else {
                     setupStep += 1
+                    if (!setupReplay) {
+                        setupPreferences.setCurrentStep(setupStep)
+                    }
                     renderSetupWizard()
                 }
             },
@@ -686,6 +703,7 @@ class KeyboardSettingsActivity : Activity() {
         root.addView(actionButton(
             label = getString(R.string.keyboard_settings_run_setup),
             onClick = {
+                setupReplay = true
                 setupStep = 0
                 renderSetupWizard()
             },
