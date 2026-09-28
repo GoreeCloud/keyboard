@@ -59,7 +59,7 @@ internal class KeyboardClipboardPanelView(
             row().apply {
                 addView(
                     chip("Keyboard", callbacks.onClose),
-                    LinearLayout.LayoutParams(dp(92), dp(44)),
+                    LinearLayout.LayoutParams(dp(92), dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP)),
                 )
                 addView(
                     TextView(context).apply {
@@ -74,7 +74,7 @@ internal class KeyboardClipboardPanelView(
                 )
                 addView(
                     chip("Clear", callbacks.onClearUnpinned),
-                    LinearLayout.LayoutParams(dp(76), dp(44)),
+                    LinearLayout.LayoutParams(dp(76), dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP)),
                 )
             },
             matchWidth(),
@@ -105,7 +105,7 @@ internal class KeyboardClipboardPanelView(
                             onClick = { callbacks.onPolicyChanged(policy) },
                             selected = snapshot.policy == policy,
                         ),
-                        LinearLayout.LayoutParams(0, dp(42), 1f).apply {
+                        LinearLayout.LayoutParams(0, dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP), 1f).apply {
                             if (policy != ClipboardAppPolicy.BLOCK) marginEnd = dp(6)
                         },
                     )
@@ -134,7 +134,7 @@ internal class KeyboardClipboardPanelView(
                         if (snapshot.historyEnabled) "Disable" else "Enable",
                         { callbacks.onHistoryEnabledChanged(!snapshot.historyEnabled) },
                     ),
-                    LinearLayout.LayoutParams(dp(86), dp(40)),
+                    LinearLayout.LayoutParams(dp(86), dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP)),
                 )
             },
             matchWidth(),
@@ -147,7 +147,7 @@ internal class KeyboardClipboardPanelView(
                     chip("Allow once", callbacks.onAllowOnce),
                     matchWidth().apply {
                         topMargin = dp(8)
-                        height = dp(44)
+                        height = dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP)
                     },
                 )
             }
@@ -268,14 +268,14 @@ internal class KeyboardClipboardPanelView(
                     if (!entry.sensitive) {
                         addView(
                             chip("Paste", { callbacks.onPaste(entry.id, false) }),
-                            LinearLayout.LayoutParams(0, dp(40), 1f).apply {
+                            LinearLayout.LayoutParams(0, dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP), 1f).apply {
                                 marginEnd = dp(5)
                             },
                         )
                     }
                     addView(
                         chip("Paste once", { callbacks.onPaste(entry.id, true) }),
-                        LinearLayout.LayoutParams(0, dp(40), 1f),
+                        LinearLayout.LayoutParams(0, dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP), 1f),
                     )
                 },
                 matchWidth(),
@@ -289,21 +289,21 @@ internal class KeyboardClipboardPanelView(
                                 if (entry.pinned) "Unpin" else "Pin",
                                 { callbacks.onTogglePin(entry.id) },
                             ),
-                            LinearLayout.LayoutParams(0, dp(40), 1f).apply {
+                            LinearLayout.LayoutParams(0, dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP), 1f).apply {
                                 marginEnd = dp(5)
                             },
                         )
                         if (entry.id != "__system_clipboard__") {
                             addView(
                                 chip("Edit", { callbacks.onEditSaved(entry.id, entry.text) }),
-                                LinearLayout.LayoutParams(0, dp(40), 1f).apply {
+                                LinearLayout.LayoutParams(0, dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP), 1f).apply {
                                     marginEnd = dp(5)
                                 },
                             )
                         }
                         addView(
                             chip("Delete", { callbacks.onDelete(entry.id) }),
-                            LinearLayout.LayoutParams(0, dp(40), 1f),
+                            LinearLayout.LayoutParams(0, dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP), 1f),
                         )
                     },
                     matchWidth().apply { topMargin = dp(6) },
@@ -321,6 +321,7 @@ internal class KeyboardClipboardPanelView(
             contentDescription = "Paste detected " + item.type.label + ": " + item.value
             setTextColor(palette.onSurfaceArgb)
             setPadding(dp(10), dp(7), dp(10), dp(7))
+            minimumHeight = dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP)
             background = rounded(palette.canvasArgb, palette.lineArgb, 12)
             setOnClickListener { callbacks.onPasteText(item.value) }
         }
