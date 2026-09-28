@@ -35,6 +35,16 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 27, 2026 — Project specification and project-record migration staged
+
+- Added repository-native `PROJECT-SPECIFICATIONS.md` and `PROJECT-RECORD.md` on the documentation migration branch.
+- Incorporated the newer repository `SPECIFICATIONS.md` baseline and migrated the complete verified `Project Specification — Keyboard.docx` v1.0 requirement/provenance source without allowing stale Drive statements to override newer GitHub implementation evidence.
+- Reconciled current project authority to `GoreeCloud/keyboard`, updated README and planned-feature references, and retired the competing root `SPECIFICATIONS.md` on the migration branch after incorporation.
+- The Drive project specification is frozen migration input only and remains protected until accepted-main readback and migration verification permit permanent removal.
+- If separate historical specification retention is required, archive it to the appropriate Dropbox archive directory rather than Google Drive.
+- No implementation, Glaze conformance, release, production, Seal, or Anchor lifecycle promotion is implied.
+
+
 ### September 25, 2026 — Platform Contract 2.0 Weave control-plane migration
 - Migrated the repository manifest from legacy Platform Contract 0.4 lifecycle vocabulary to Contract 2.0.
 - Classified the current Keyboard line as **Weave** because integration, stabilization, accessibility hardening, physical-device acceptance, platform-system migration, and release-completeness work now dominate over initial construction.
