@@ -1,5 +1,11 @@
 # GoreeCloud Keyboard — Changelogs
 
+## 2026-09-28 — sensitive-editor feedback hardening candidate
+
+- Added a tested key-feedback policy that suppresses keypress sounds in sensitive/password editors even when sound is enabled for ordinary fields.
+- Reapplies the fail-closed sound state across editor-session start/reset paths.
+- Preserves independent haptic preference behavior and makes no production privacy/security acceptance claim.
+
 **Record type:** Authoritative repository changelog index and current change history  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Weave / nonconformant; deployment state: development  
