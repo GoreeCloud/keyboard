@@ -75,7 +75,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             view.setKeyHeightPreference(typingSettings.keyHeight)
             view.setToolbarStyle(typingSettings.toolbarStyle)
             view.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
-            view.setKeyPressSoundEnabled(typingSettings.keyPressSoundEnabled)
+            view.setKeyPressSoundEnabled(
+                KeyboardKeyFeedbackPolicy.keyPressSoundEnabled(
+                    typingSettings,
+                    sensitiveInput,
+                ),
+            )
             view.setEmojiToolbarEnabled(typingSettings.emojiToolbarEnabled)
             view.setLongPressHintsEnabled(typingSettings.longPressHintsEnabled)
             view.setLongPressDelay(typingSettings.longPressDelay)
@@ -120,7 +125,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         keyboardView?.setKeyHeightPreference(typingSettings.keyHeight)
         keyboardView?.setToolbarStyle(typingSettings.toolbarStyle)
         keyboardView?.setKeyPressHapticsEnabled(typingSettings.hapticFeedbackEnabled)
-        keyboardView?.setKeyPressSoundEnabled(typingSettings.keyPressSoundEnabled)
+        keyboardView?.setKeyPressSoundEnabled(
+            KeyboardKeyFeedbackPolicy.keyPressSoundEnabled(
+                typingSettings,
+                sensitiveInput,
+            ),
+        )
         keyboardView?.setEmojiToolbarEnabled(typingSettings.emojiToolbarEnabled)
         keyboardView?.setLongPressHintsEnabled(typingSettings.longPressHintsEnabled)
         keyboardView?.setLongPressDelay(typingSettings.longPressDelay)
@@ -642,6 +652,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
             keyboardView?.setNumberRowVisible(
                 KeyboardNumberRowPolicy.isVisible(typingSettings, sensitiveInput),
             )
+            keyboardView?.setKeyPressSoundEnabled(false)
             return
         }
 
@@ -659,6 +670,12 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         keyboardView?.setSwipeTypingEnabled(
             !EditorSuggestionPolicy.shouldSuppressGestureTyping(inputType) &&
                 typingSettings.swipeTypingEnabled,
+        )
+        keyboardView?.setKeyPressSoundEnabled(
+            KeyboardKeyFeedbackPolicy.keyPressSoundEnabled(
+                typingSettings,
+                sensitiveInput,
+            ),
         )
         clipboardController.updateEditor(
             packageName = info.packageName,
@@ -686,6 +703,7 @@ class KeyboardService : InputMethodService(), KeyboardView.Listener {
         keyboardView?.setLayer(KeyboardLayer.LETTERS)
         keyboardView?.setShifted(false)
         keyboardView?.setSwipeTypingEnabled(false)
+        keyboardView?.setKeyPressSoundEnabled(false)
         keyboardView?.setSuggestions(emptyList())
     }
 
