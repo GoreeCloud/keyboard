@@ -35,6 +35,12 @@ Together these six files preserve the complete non-empty Drive chronology, inclu
 
 ## Current repository changelog
 
+### September 28, 2026 — setup replay recreation continuity
+- Voluntary setup replay now saves its replay mode and current wizard step in Activity instance state, so Android activity recreation returns an experienced user to the same replay step instead of silently returning to ordinary Settings.
+- Genuine first-use progress continues to use the existing persistent setup preferences; replay state remains temporary and does not invalidate prior setup completion.
+- Added Android runtime coverage that starts replay from completed Settings, advances to step 2, recreates the Activity, and requires the replay wizard to remain on step 2.
+- This remains Draft / Weave Development work pending fresh exact-head Android CI and representative-device configuration-change acceptance.
+
 ### September 26, 2026 — Launcher crash recovery and dual-API first-run validation / 0.1.22-dev
 - Records representative-device rejection of 0.1.21 because **GoreeCloud Keyboard Dev 0.1.21** could stop immediately when the launcher/setup app opened.
 - Preserves the 0.1.21 IME-surface recovery, first-run preference wizard, expanded Clipboard manager, encrypted saved-clip editing, Pinned/Recent collections, and local smart-content detection while treating its physical-device launcher result as failed evidence.
