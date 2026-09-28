@@ -1,5 +1,9 @@
 # GoreeCloud Keyboard — Planned Features
 
+## 2026-09-28 candidate continuation
+
+Draft PR #97 now also fails closed on audible keypress feedback in sensitive/password editors. The ordinary-field sound preference remains available, while sensitive-editor sessions suppress key sounds through a tested policy. Physical-device/OEM/editor acceptance and the broader Privacy Shield/Wardveil gates remain open.
+
 **Record type:** Repository planned/open feature inventory  
 **Repository:** `GoreeCloud/keyboard`  
 **Lifecycle:** Weave / nonconformant; deployment state: development  
