@@ -13,7 +13,7 @@
 This file carries forward material planned, partial, blocked, deferred, acceptance-gated, or future capability obligations from:
 - the retired former root `FEATURE-ROADMAP.md` preserved through Git history;
 - retired legacy Drive `FEATURE-ROADMAP.docx` (`1D6Y8Tjv3fcqF6KMmcMKugqG7QmvmnzMt`), whose migrated dispositions are preserved below;
-- current repository `README.md`, `FEATURES.md`, `SPECIFICATIONS.md`, `NOTES.md`, and Platform Contract evidence; and
+- current repository `README.md`, `FEATURES.md`, `PROJECT-SPECIFICATIONS.md`, `PROJECT-RECORD.md`, `NOTES.md`, and Platform Contract evidence; and
 - verified authoritative `main`.
 
 The retired Drive roadmap's repository name `GoreeCloud/goreecloud-keyboard` was stale. Current repository identity is `GoreeCloud/keyboard`, as verified by live GitHub state and the accepted Platform Contract 2.0 declaration.
@@ -104,6 +104,8 @@ Every legacy Drive roadmap identifier is accounted for below.
 | FR-025 | Remains the exact-revision representative-test/signing/recovery/release/production/Anchor gate. |
 
 ## Repository-governance obligations
+
+- Do not create, edit, update, re-save, maintain, or archive a Keyboard project specification in Google Drive. The migration source is frozen until verified repository migration permits permanent removal; any separate historical archive belongs in the appropriate Dropbox archive directory.
 
 - Do not recreate `FEATURE-ROADMAP.md`.
 - Do not recreate, synchronize, mirror, back up, or maintain a Keyboard roadmap or changelog in Google Drive.
