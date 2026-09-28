@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
+import android.os.Build
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
@@ -395,6 +396,10 @@ internal class KeyboardClipboardPanelView(
             isClickable = true
             isFocusable = true
             contentDescription = label
+            isSelected = selected
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                stateDescription = if (selected) "Selected" else "Not selected"
+            }
             setTextColor(if (selected) Color.WHITE else palette.onSurfaceArgb)
             typeface = Typeface.create(
                 "sans-serif-medium",
