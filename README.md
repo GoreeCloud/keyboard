@@ -38,9 +38,20 @@ Feature richness must remain substantive. A feature is not considered implemente
 
 Private on-device recents are a convenience cache, not a general learned-language or usage-profile system. Any broader persistence, synchronization, backup, personalization, downloadable model, clipboard, voice, or remote-content behavior requires separate Privacy Shield, Wardveil Security, Everkeep, Identity, Mesh, user-control, retention, and implementation acceptance as applicable.
 
+## Project authority
+
+- `PROJECT-SPECIFICATIONS.md` — authoritative project requirements, architecture, privacy/security obligations, accepted scope, and lifecycle gates.
+- `PROJECT-RECORD.md` — significant project history, governance transitions, migration evidence, and dated acceptance evidence.
+- `IMPLEMENTED-FEATURES.md` — evidence-backed implemented capability inventory.
+- `PLANNED-FEATURES.md` — open, partial, blocked, deferred, and acceptance-gated work.
+- `CHANGELOGS.md` — repository/change chronology and migrated historical changelog index.
+
+Project specifications are maintained in GitHub. The former Google Drive project specification is a frozen migration source only and is not a parallel authority.
+
 ## Documentation
 
-- `SPECIFICATIONS.md` — canonical repository product/source specification and acceptance boundaries.
+- `PROJECT-SPECIFICATIONS.md` — canonical repository product/source specification and acceptance boundaries.
+- `PROJECT-RECORD.md` — significant project history, governance transitions, and migration evidence.
 - `FEATURES.md` — implemented versus planned capability inventory.
 - `BENEFITS.md` — product benefits grounded in current architecture.
 - `COMPETITIVE-OBJECTIVES.md` — product-quality objectives and evidence discipline.
