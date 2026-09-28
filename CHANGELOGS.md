@@ -1,5 +1,12 @@
 # GoreeCloud Keyboard — Changelogs
 
+## September 28, 2026 — Clipboard interaction-floor refinement
+
+The Keyboard-side Clipboard panel now uses the shared **48 dp** minimum interaction target for its close/clear controls, per-app policy choices, history enable/disable action, Paste/Paste Once, Pin/Unpin, Edit, Delete, and related chips. Compact visual treatment is preserved while the actual touch/accessibility surface no longer drops to the previous 40–44 dp heights. Focused policy coverage locks the minimum target.
+
+This changes presentation geometry only. Clipboard read authority, Ask/Allow/Paste-only/Block policy, sensitive-item non-persistence, encryption, retention, learning exclusion, backup/export exclusion, and network/privacy boundaries are unchanged. Representative physical-device touch/TalkBack/Switch Access acceptance remains open.
+
+
 ## 2026-09-28 — sensitive-editor feedback hardening candidate
 
 - Added a tested key-feedback policy that suppresses keypress sounds in sensitive/password editors even when sound is enabled for ordinary fields.
