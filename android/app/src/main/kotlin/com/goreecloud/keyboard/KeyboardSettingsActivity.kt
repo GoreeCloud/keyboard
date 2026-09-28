@@ -44,6 +44,11 @@ class KeyboardSettingsActivity : Activity() {
         learningStore = KeyboardLearningStore(this)
         setupPreferences = KeyboardSetupPreferences(this)
         palette = currentPalette()
+        setupReplay = savedInstanceState?.getBoolean(STATE_SETUP_REPLAY, false) ?: false
+        setupStep = savedInstanceState
+            ?.getInt(STATE_SETUP_STEP, 0)
+            ?.coerceIn(0, SETUP_STEP_COUNT - 1)
+            ?: 0
 
         window.statusBarColor = palette.canvasArgb
         window.navigationBarColor = palette.canvasArgb
@@ -51,12 +56,22 @@ class KeyboardSettingsActivity : Activity() {
             if (isDarkAppearance()) 0
             else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 
-        if (setupPreferences.isComplete()) {
+        if (setupReplay) {
+            renderSetupWizard()
+        } else if (setupPreferences.isComplete()) {
             setContentView(buildContent())
         } else {
             setupStep = setupPreferences.currentStep()
             renderSetupWizard()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(STATE_SETUP_REPLAY, setupReplay && setupWizardActive)
+        if (setupWizardActive) {
+            outState.putInt(STATE_SETUP_STEP, setupStep)
+        }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onResume() {
@@ -86,7 +101,7 @@ class KeyboardSettingsActivity : Activity() {
         }, matchWidth())
 
         root.addView(TextView(this).apply {
-            text = getString(R.string.keyboard_setup_progress, setupStep + 1, 4)
+            text = getString(R.string.keyboard_setup_progress, setupStep + 1, SETUP_STEP_COUNT)
             textSize = 13f
             setTextColor(palette.onSurfaceMutedArgb)
             setPadding(0, dp(4), 0, dp(18))
@@ -128,13 +143,13 @@ class KeyboardSettingsActivity : Activity() {
 
         navigation.addView(
             actionButton(
-                if (setupStep == 4 - 1) {
+                if (setupStep == SETUP_STEP_COUNT - 1) {
                     getString(R.string.keyboard_setup_finish)
                 } else {
                     getString(R.string.keyboard_setup_continue)
                 },
             ) {
-                if (setupStep == 4 - 1) {
+                if (setupStep == SETUP_STEP_COUNT - 1) {
                     if (!setupReplay) {
                         setupPreferences.markComplete()
                     }
@@ -1110,4 +1125,10 @@ class KeyboardSettingsActivity : Activity() {
 
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
+
+    private companion object {
+        const val STATE_SETUP_REPLAY = "keyboard_setup_replay"
+        const val STATE_SETUP_STEP = "keyboard_setup_step"
+        const val SETUP_STEP_COUNT = 4
+    }
 }
