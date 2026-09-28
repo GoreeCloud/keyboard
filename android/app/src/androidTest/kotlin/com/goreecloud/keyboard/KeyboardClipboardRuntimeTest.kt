@@ -3,6 +3,8 @@ package com.goreecloud.keyboard
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
@@ -97,6 +99,56 @@ class KeyboardClipboardRuntimeTest {
 
         assertTrue("Ask state should render a policy/prompt surface", panel.childCount >= 4)
         assertEquals(0, allowed)
+    }
+
+    @Test
+    fun clipboardPolicyChipsExposeSelectedAccessibilityState() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val panel = KeyboardClipboardPanelView(
+            context = context,
+            callbacks = KeyboardClipboardPanelView.Callbacks(
+                onClose = {},
+                onPaste = { _, _ -> },
+                onPasteText = {},
+                onTogglePin = {},
+                onDelete = {},
+                onEditSaved = { _, _ -> },
+                onClearUnpinned = {},
+                onHistoryEnabledChanged = {},
+                onPolicyChanged = {},
+                onAllowOnce = {},
+            ),
+        )
+        panel.render(
+            KeyboardClipboardSnapshot(
+                packageName = "example.app",
+                policy = ClipboardAppPolicy.ASK,
+                historyEnabled = false,
+                retention = ClipboardRetention.TEN_MINUTES,
+                entries = emptyList(),
+                blockedReason = "This application is set to Ask.",
+                requiresAuthorization = true,
+            ),
+        )
+
+        val policyViews = findTextViews(panel)
+            .filter { it.text?.toString() in setOf("Allow", "Ask", "Paste only", "Block") }
+        assertEquals(4, policyViews.size)
+        assertTrue(policyViews.single { it.text.toString() == "Ask" }.isSelected)
+        assertTrue(
+            policyViews
+                .filterNot { it.text.toString() == "Ask" }
+                .none { it.isSelected },
+        )
+    }
+
+    private fun findTextViews(root: View): List<TextView> = buildList {
+        if (root is TextView) add(root)
+        if (root is ViewGroup) {
+            for (index in 0 until root.childCount) {
+                addAll(findTextViews(root.getChildAt(index)))
+            }
+        }
     }
 
     private fun render(view: KeyboardView) {
