@@ -1,5 +1,12 @@
 # GoreeCloud Keyboard — Implemented Features
 
+## September 28, 2026 — Clipboard policy selected-state accessibility
+
+Current-app Clipboard policy chips now expose Android selected state in addition to their visual treatment. Android 11+ also receives explicit **Selected / Not selected** state descriptions, so assistive technology can identify the active Allow / Ask / Paste only / Block policy without relying on color. Android runtime coverage verifies exactly one policy chip is selected for the current snapshot.
+
+Exact candidate head `98dfc186ba87d10874842b4fcaf7eded091de47c` passed Platform Contract and Android CI, including build plus configured emulator lanes. Clipboard authority, Ask-session lifetime, encrypted-history behavior, sensitive-item handling, retention, learning exclusion, backup/export exclusion, and network/privacy boundaries are unchanged. Representative physical-device TalkBack/Switch Access acceptance remains open.
+
+
 ## September 28, 2026 — Clipboard interaction-floor refinement
 
 The Keyboard-side Clipboard panel now uses the shared **48 dp** minimum interaction target for its close/clear controls, per-app policy choices, history enable/disable action, Paste/Paste Once, Pin/Unpin, Edit, Delete, and related chips. Compact visual treatment is preserved while the actual touch/accessibility surface no longer drops to the previous 40–44 dp heights. Focused policy coverage locks the minimum target.
