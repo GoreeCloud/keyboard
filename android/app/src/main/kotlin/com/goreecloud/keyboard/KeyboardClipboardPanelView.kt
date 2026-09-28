@@ -70,7 +70,7 @@ internal class KeyboardClipboardPanelView(
                         gravity = Gravity.CENTER_VERTICAL
                         setPadding(dp(14), 0, 0, 0)
                     },
-                    LinearLayout.LayoutParams(0, dp(44), 1f),
+                    LinearLayout.LayoutParams(0, dp(KeyboardClipboardPresentationPolicy.INTERACTION_TARGET_DP), 1f),
                 )
                 addView(
                     chip("Clear", callbacks.onClearUnpinned),
