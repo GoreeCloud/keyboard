@@ -1,5 +1,8 @@
 # GoreeCloud Keyboard
 
+
+> **Repository migration:** Active Keyboard development has moved to [GoreeCloud/android-app-defaults](https://github.com/GoreeCloud/android-app-defaults) under `apps/keyboard/`. This standalone repository is retained for historical Git provenance; do not start new product development here.
+
 GoreeCloud Keyboard is an original, native GoreeCloud keyboard implementation. The current implemented platform is Android through a first-party input-method service and rendering surface. Apple-platform support remains product direction and is not claimed as currently implemented.
 
 ## Current Weave-stage Development foundation
