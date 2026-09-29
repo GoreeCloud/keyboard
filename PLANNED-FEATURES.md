@@ -1,5 +1,9 @@
 # GoreeCloud Keyboard — Planned Features
 
+## 2026-09-29 setup replay continuation
+
+Draft PR #97 now makes voluntary setup replay semantically explicit: replay uses a distinct review title, its first-step exit control says **Close replay**, and instrumentation verifies that closing replay preserves completed first-use state. This is a local guidance/accessibility correction only; exact-head CI and representative-device/TalkBack/Switch Access review remain separate gates.
+
 ## 2026-09-28 candidate continuation
 
 Draft PR #97 now also fails closed on audible keypress feedback in sensitive/password editors and exposes the current Clipboard per-app policy as a real Android selected state rather than a color-only cue. Runtime coverage verifies the selected Allow / Ask / Paste only / Block chip semantics. Exact candidate head `98dfc186ba87d10874842b4fcaf7eded091de47c` passed Platform Contract and Android CI; physical-device/OEM/editor, TalkBack/Switch Access, and the broader Privacy Shield/Wardveil gates remain open.
