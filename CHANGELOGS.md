@@ -1,5 +1,11 @@
 # GoreeCloud Keyboard — Changelogs
 
+## September 29, 2026 — setup replay wording correction candidate
+
+The existing voluntary setup replay now identifies itself as **Review GoreeCloud Keyboard setup** instead of reusing the mandatory first-use title. At replay step 1, the exit control is explicitly labeled **Close replay** rather than **Back**, matching its actual behavior. Instrumentation verifies closing replay returns to Settings while preserving completed first-use state.
+
+This changes guidance wording and navigation clarity only. It does not reset setup, change Keyboard activation/selection state, enable learning, alter Clipboard authority, add network access, or expand runtime permissions. Fresh exact-head validation and representative-device accessibility review remain required.
+
 ## September 28, 2026 — Clipboard policy selected-state accessibility
 
 Current-app Clipboard policy chips now expose Android selected state in addition to their visual treatment. Android 11+ also receives explicit **Selected / Not selected** state descriptions, so assistive technology can identify the active Allow / Ask / Paste only / Block policy without relying on color. Android runtime coverage verifies exactly one policy chip is selected for the current snapshot.
