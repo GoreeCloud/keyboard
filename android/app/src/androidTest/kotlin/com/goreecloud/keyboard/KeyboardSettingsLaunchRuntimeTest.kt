@@ -49,9 +49,51 @@ class KeyboardSettingsLaunchRuntimeTest {
                 assertNotNull(
                     findText(
                         activity.window.decorView,
-                        activity.getString(R.string.keyboard_setup_title),
+                        activity.getString(R.string.keyboard_setup_replay_title),
                     ),
                 )
+            }
+        }
+    }
+
+    @Test
+    fun setupReplayFirstStepHasExplicitCloseAndPreservesCompletion() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val preferences = context.getSharedPreferences("goreecloud_keyboard_setup", Context.MODE_PRIVATE)
+        preferences.edit()
+            .putBoolean("complete", true)
+            .putInt("step", 0)
+            .commit()
+
+        ActivityScenario.launch(KeyboardSettingsActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val replay = findText(
+                    activity.window.decorView,
+                    activity.getString(R.string.keyboard_settings_run_setup),
+                )
+                assertNotNull(replay)
+                replay!!.performClick()
+
+                assertNotNull(
+                    findText(
+                        activity.window.decorView,
+                        activity.getString(R.string.keyboard_setup_replay_title),
+                    ),
+                )
+                val closeReplay = findText(
+                    activity.window.decorView,
+                    activity.getString(R.string.keyboard_setup_close_replay),
+                )
+                assertNotNull(closeReplay)
+                closeReplay!!.performClick()
+
+                assertNotNull(
+                    findText(
+                        activity.window.decorView,
+                        activity.getString(R.string.keyboard_settings_run_setup),
+                    ),
+                )
+                assertEquals(true, preferences.getBoolean("complete", false))
             }
         }
     }
