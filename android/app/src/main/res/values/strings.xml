@@ -99,6 +99,7 @@
     <string name="keyboard_settings_android_settings">Android keyboard settings</string>
 
     <string name="keyboard_setup_title">Set up GoreeCloud Keyboard</string>
+    <string name="keyboard_setup_replay_title">Review GoreeCloud Keyboard setup</string>
     <string name="keyboard_setup_progress">Step %1$d of %2$d</string>
     <string name="keyboard_setup_welcome_heading">Get your keyboard ready</string>
     <string name="keyboard_setup_welcome_summary">Enable GoreeCloud Keyboard, choose it as your active keyboard, then select your preferred typing and clipboard settings.</string>
@@ -120,6 +121,7 @@
     <string name="keyboard_setup_finish_summary">You can change these preferences later in GoreeCloud Keyboard settings.</string>
     <string name="keyboard_setup_finish_status">Keyboard: %1$s\nCurrent selection: %2$s</string>
     <string name="keyboard_setup_back">Back</string>
+    <string name="keyboard_setup_close_replay">Close replay</string>
     <string name="keyboard_setup_continue">Continue</string>
     <string name="keyboard_setup_finish">Finish setup</string>
     <string name="keyboard_settings_run_setup">Run setup wizard again</string>
