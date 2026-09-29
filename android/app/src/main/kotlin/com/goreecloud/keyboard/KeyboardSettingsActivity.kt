@@ -94,7 +94,10 @@ class KeyboardSettingsActivity : Activity() {
         }
 
         root.addView(TextView(this).apply {
-            text = getString(R.string.keyboard_setup_title)
+            text = getString(
+                if (setupReplay) R.string.keyboard_setup_replay_title
+                else R.string.keyboard_setup_title,
+            )
             textSize = 28f
             typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             setTextColor(palette.onSurfaceArgb)
@@ -122,7 +125,15 @@ class KeyboardSettingsActivity : Activity() {
 
         if (setupStep > 0 || setupReplay) {
             navigation.addView(
-                actionButton(getString(R.string.keyboard_setup_back)) {
+                actionButton(
+                    getString(
+                        if (setupReplay && setupStep == 0) {
+                            R.string.keyboard_setup_close_replay
+                        } else {
+                            R.string.keyboard_setup_back
+                        },
+                    ),
+                ) {
                     if (setupStep > 0) {
                         setupStep -= 1
                         if (!setupReplay) {
