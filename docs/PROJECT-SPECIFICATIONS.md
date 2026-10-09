@@ -3,7 +3,7 @@
 > **Record:** Repository-authoritative project specification  
 > **Repository:** `GoreeCloud/keyboard`  
 > **Owner:** GoreeCloud  
-> **State:** Bootstrap / documentation-only in this repository at the 2026-10-09 verification checkpoint; implementation not established  
+> **State:** `main` remains documentation/governance only; [Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2) contains a build-verified upstream source candidate. Not merged, device-qualified or released  
 > **Product direction:** Android-first, privacy-first, Fork-to-Native investigation using FlorisBoard as the proposed upstream starting point, with a GoreeCloud-native end state  
 > **Last reviewed:** 2026-10-09  
 > **Authority:** This file defines project-specific requirements. GoreeCloud governing Instructions, Policies, Standards, Rules, and applicable platform contracts take precedence. See [project record](PROJECT-RECORD.md).
@@ -14,10 +14,12 @@ Build a distinctively GoreeCloud, lightweight, secure, accessible, high-quality 
 
 **Verified repository baseline (2026-10-09):** the default branch contains `README.md` and `PLANNED-FEATURES.md` before these canonical records are added. No Android application code, builds, platform integration, acceptance tests, or release artifacts were present in that inspected tree. Historical implementation statements about a different repository must not be transferred into this repository as present-tense facts.
 
+**Later verified candidate state (2026-10-09):** the default branch still has no Android application implementation, but [Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2) contains staged source code and build/security checks. The original bootstrap paragraph above is retained as historical evidence, not the current whole-repository state. See [Privacy and Security Review](PRIVACY-REVIEW.md) for the source-backed limitations and remaining acceptance gates.
+
 ## 2. Implementation strategy and source boundaries
 
 - **Owner-directed starting direction:** investigate a controlled fork of FlorisBoard, preserve lawful license notices and provenance, inventory useful upstream functionality, and progressively rebuild product-defining components to GoreeCloud-native architecture and Glaze interaction standards.
-- **Current fork status:** not yet implemented or verified in `GoreeCloud/keyboard`; no upstream commit, dependency inventory, accepted license baseline, or source-import result has been established here.
+- **Current fork status:** a pinned FlorisBoard source snapshot from upstream `fe1241f4921b3eae923571ff7a3e113a7e10d677` has been imported into [Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2), with source provenance recorded in the candidate. Android debug CI passed at candidate commit `f791fa05cca4be2ee84c5e84cb5b25066223a8e9` ([run](https://github.com/GoreeCloud/keyboard/actions/runs/37965243310)); more recent branch changes require their own validation. The import is **not accepted as native GoreeCloud implementation**. Full source/dependency, bundled asset, license, privacy, security and feature-preservation reviews remain open.
 - **Mandatory decision gate:** audit FlorisBoard source, license and dependencies, current maintenance and security posture, Android compatibility, available tests, useful behaviors, accessibility, and the cost/risk of a fork versus native implementation. Document the concrete reason for any temporary Fork-to-Native approach and its bounded exit plan.
 - **Feature/UI preservation gate:** before replacing inherited components, show that required functionality, user data, accessibility, input semantics, performance, privacy, and recovery are preserved or improved, with compatible regression evidence.
 - **Product identity:** GoreeCloud application identifiers, terminology, visual identity, original icons and Glaze presentation must replace the upstream-facing shell as appropriate without misrepresenting provenance or violating license/trademark requirements.
@@ -114,7 +116,7 @@ Do not infer release, APK availability, production readiness or Anchor/Stable st
 6. **Ecosystem and platform expansion:** independently accepted integrations, optional encrypted sync and platform-specific companion implementations.
 7. **Release qualification:** complete evidence matrix, device testing, privacy/security audits, updates, recovery and release approval.
 
-Stages are ordering guidance, not claims that they have started or shipped. Maintain regression coverage and upstream security review throughout any fork transition. Record material architecture and migration decisions in [PROJECT-RECORD.md](PROJECT-RECORD.md); track implementation obligations through the governed GoreeCloud task-management process.
+Stages are ordering guidance, not claims that an individual stage has shipped or been accepted. Maintain regression coverage and upstream security review throughout any fork transition. Record material architecture and migration decisions in [PROJECT-RECORD.md](PROJECT-RECORD.md); track implementation obligations through the governed GoreeCloud task-management process.
 
 ## 10. Document control
 
