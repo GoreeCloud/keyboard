@@ -1,0 +1,122 @@
+name: Android candidate build
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/android-candidate.yml"
+      - "scripts/**"
+      - "app/**"
+      - "lib/**"
+      - "libnative/**"
+      - "utils/**"
+      - "gradle/**"
+      - "gradlew"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keyboard-android-candidate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-build:
+    name: Validate and assemble Android candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Configure JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify IME privacy boundaries
+        run: |
+          python3 -m unittest discover -s scripts/tests -p "test_*.py"
+          python3 scripts/verify-ime-boundaries.py
+
+      - name: Configure Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Install declared compile SDK
+        run: sdkmanager --channel=3 "platforms;android-37.0"
+
+      - name: Verify Android 37 platform compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$sdk"
+          test -f "$sdk/platforms/android-37.0/android.jar"
+          if [ ! -e "$sdk/platforms/android-37" ]; then
+            ln -s android-37.0 "$sdk/platforms/android-37"
+          fi
+          test -f "$sdk/platforms/android-37/android.jar"
+
+      - name: Exercise fail-closed Development signing configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No real signing secrets exist or are injected in this CI job.
+          if env -u GOREECLOUD_KEYBOARD_DEV_KEYSTORE_PATH \
+                 -u GOREECLOUD_KEYBOARD_DEV_STORE_PASSWORD \
+                 -u GOREECLOUD_KEYBOARD_DEV_KEY_ALIAS \
+                 -u GOREECLOUD_KEYBOARD_DEV_KEY_PASSWORD \
+                 ./gradlew :app:help -PgoreecloudDevelopmentBuild=true --no-daemon > /tmp/keyboard-dev-negative.log 2>&1; then
+            echo "Development signing unexpectedly accepted missing credentials."
+            exit 1
+          fi
+          grep -F "Protected GoreeCloud Development signing environment is incomplete" /tmp/keyboard-dev-negative.log
+          # Exercise the conditional variant configuration only. This file is
+          # NOT a signing key; do NOT assemble or upload a Development APK here.
+          placeholder="$(mktemp)"
+          chmod 600 "$placeholder"
+          trap 'rm -f "$placeholder"' EXIT
+          GOREECLOUD_KEYBOARD_DEV_KEYSTORE_PATH="$placeholder" \
+          GOREECLOUD_KEYBOARD_DEV_STORE_PASSWORD="disposable-test-only" \
+          GOREECLOUD_KEYBOARD_DEV_KEY_ALIAS="disposable-test-only" \
+          GOREECLOUD_KEYBOARD_DEV_KEY_PASSWORD="disposable-test-only" \
+            ./gradlew :app:tasks --all -PgoreecloudDevelopmentBuild=true --no-daemon > /tmp/keyboard-dev-positive.log 2>&1 || {
+              tail -n 80 /tmp/keyboard-dev-positive.log
+              exit 1
+            }
+          grep -F "assembleDevelopment" /tmp/keyboard-dev-positive.log || {
+            tail -n 80 /tmp/keyboard-dev-positive.log
+            exit 1
+          }
+
+      - name: Compile and unit-test Android candidate
+        run: ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Verify final merged debug manifest
+        run: python3 scripts/verify-merged-manifests.py
+
+      - name: Inspect APK metadata
+        run: python3 scripts/verify-apk-metadata.py
+
+      - name: Preserve ephemeral debug APK for bounded device validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyboard-candidate-debug-${{ github.sha }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Candidate boundary notice
+        if: always()
+        run: echo "Import CI is build evidence only; it does not qualify release, privacy, accessibility, signing, or GoreeCloud platform conformance."
