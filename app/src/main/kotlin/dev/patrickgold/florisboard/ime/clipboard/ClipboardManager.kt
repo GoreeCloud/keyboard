@@ -229,6 +229,9 @@ class ClipboardManager(
      * Adds a new item to the clipboard history (if enabled).
      */
     private fun insertOrMoveBeginning(newItem: ClipboardItem) {
+        // Never persist clips explicitly marked sensitive by the source app.
+        // The primary clipboard remains usable for immediate user-directed paste.
+        if (newItem.isSensitive) return
         if (prefs.clipboard.historyEnabled.get()) {
             val historyElement = currentHistory.all.firstOrNull { item ->
                 item.type == ItemType.TEXT && item.text == newItem.text && item.isSensitive == newItem.isSensitive
@@ -288,6 +291,8 @@ class ClipboardManager(
     }
 
     fun insertClip(item: ClipboardItem) {
+        // Central guard also covers restore/import and direct insertion paths.
+        if (item.isSensitive) return
         ioScope.launch {
             val id = clipHistoryDao?.insert(item)
             item.id = id ?: 0
