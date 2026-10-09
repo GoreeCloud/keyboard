@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/android-candidate.yml"
       - "scripts/**"
+      - "config/**"
+      - "docs/PRIVACY-REVIEW.md"
       - "app/**"
       - "lib/**"
       - "libnative/**"
