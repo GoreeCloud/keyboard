@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import java.nio.file.Files
 import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -124,7 +125,7 @@ configure<ApplicationExtension> {
                 }
                 val signingFile = file(path)
                 require(signingFile.isFile
-                    && !java.nio.file.Files.isSymbolicLink(signingFile.toPath())
+                    && !Files.isSymbolicLink(signingFile.toPath())
                     && !signingFile.canonicalPath.startsWith(rootProject.projectDir.canonicalPath + File.separator)) {
                     "Development signing keystore must be a private file outside the source repository"
                 }

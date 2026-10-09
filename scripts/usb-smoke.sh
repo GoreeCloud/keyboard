@@ -61,8 +61,8 @@ test -n "$(adb -s "$serial" shell pm path "$candidate" | tr -d '\r')" || {
   echo "Candidate package did not register" >&2
   exit 1
 }
-adb -s "$serial" shell ime list -s | tr -d '\r' | grep -F "$candidate" >/dev/null || {
-  echo "Candidate input-method service did not register" >&2
+adb -s "$serial" shell dumpsys package "$candidate" | grep -F "android.view.InputMethod" >/dev/null || {
+  echo "Input-method intent filter was not registered with Android package manager" >&2
   exit 1
 }
 test "$(adb -s "$serial" shell settings get secure default_input_method | tr -d '\r')" = "$original_default" || {
