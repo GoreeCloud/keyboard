@@ -70,6 +70,9 @@ jobs:
       - name: Compile candidate debug APK
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
+      - name: Verify final merged debug manifest
+        run: python3 scripts/verify-merged-manifests.py
+
       - name: Candidate boundary notice
         if: always()
         run: echo "Import CI is build evidence only; it does not qualify release, privacy, accessibility, signing, or GoreeCloud platform conformance."

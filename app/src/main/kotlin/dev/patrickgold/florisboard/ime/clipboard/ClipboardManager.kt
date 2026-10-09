@@ -201,7 +201,12 @@ class ClipboardManager(
 
                 val isEqual = internalPrimaryClip?.isEqualTo(systemPrimaryClip) == true
                 if (!isEqual) {
-                    val item = ClipboardItem.fromClipData(appContext, systemPrimaryClip, cloneUri = true)
+                    val incoming = ClipboardItem.fromClipData(appContext, systemPrimaryClip, cloneUri = false)
+                    val item = if (prefs.clipboard.historyEnabled.get() && !incoming.isSensitive && incoming.uri != null) {
+                        ClipboardItem.fromClipData(appContext, systemPrimaryClip, cloneUri = true)
+                    } else {
+                        incoming
+                    }
                     primaryClip = item
                     insertOrMoveBeginning(item)
                 }
