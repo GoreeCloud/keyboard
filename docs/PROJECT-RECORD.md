@@ -58,3 +58,12 @@ The initial implementation, provenance, security, accessibility, and migration o
 ## 2026-10-09 — Android candidate build milestone
 
 [Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2) contains the pinned FlorisBoard source candidate. It remains unmerged. Exact-head [CI run 37963147776](https://github.com/GoreeCloud/keyboard/actions/runs/37963147776) passed Android candidate debug assembly and initial IME manifest checks at commit `4908c82`. Further backup privacy hardening and tests are being evaluated in Draft PR #2; release and platform acceptance remain pending.
+
+## 2026-10-09 — Merged manifest and current privacy gates
+
+- [Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2) remains **open, Draft and unmerged**. The default branch continues to hold governance/docs only, not the app source.
+- At revision `15e7bf0c8ea231ff28df03622958606866e57e33`, [CI run 37966844864](https://github.com/GoreeCloud/keyboard/actions/runs/37966844864) **passed** debug assembly, regression tests, Android source permissions, backup rules, and the *merged debug manifest* privacy gate. The candidate avoids unnecessary cloned clipboard media when history is off or the item is marked sensitive.
+- Later candidate revision `06f63f422ee8ab7ee473bab51252064dd8b112c3` adds an APK package/permissions check. Its [CI run 37967783880](https://github.com/GoreeCloud/keyboard/actions/runs/37967783880) was not complete at the time of this documentation update. The 21-test local regression suite passed before this later revision was pushed.
+- [Glaze V1.7 Keyboard adoption](GLAZE-ADOPTION.md) now records the accepted v1.7.0 consumer target and v1.6.0 rollback baseline, while explicitly leaving native conformance unverified.
+- Physical-device qualification, Kotlin/Android instrumentation, complete clipboard privacy, license and dependency audit, platform integration, protected Development signing, recovery/upgrade behavior and release acceptance remain **open**.
+
