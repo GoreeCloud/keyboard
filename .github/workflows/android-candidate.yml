@@ -53,6 +53,18 @@ jobs:
       - name: Install declared compile SDK
         run: sdkmanager --channel=3 "platforms;android-37.0"
 
+      - name: Verify Android 37 platform compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$sdk"
+          test -f "$sdk/platforms/android-37.0/android.jar"
+          if [ ! -e "$sdk/platforms/android-37" ]; then
+            ln -s android-37.0 "$sdk/platforms/android-37"
+          fi
+          test -f "$sdk/platforms/android-37/android.jar"
+
       - name: Compile candidate debug APK
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
