@@ -53,6 +53,8 @@ def verify_manifest(path: Path) -> list[str]:
     application = manifest.find("application")
     if application is None:
         return errors + ["No <application> element."]
+    if application.attrib.get(A + "allowBackup") != "false":
+        errors.append("Automatic Android backup must explicitly be disabled for this IME candidate.")
     if application.attrib.get(A + "usesCleartextTraffic") == "true":
         errors.append("Cleartext application traffic must not be enabled.")
     if A + "sharedUserId" in manifest.attrib:
@@ -83,14 +85,54 @@ def verify_manifest(path: Path) -> list[str]:
     return errors
 
 
+
+def verify_backup_rules(root: Path) -> list[str]:
+    """Require explicit exclusion from both cloud and device-transfer backups.
+
+    Manifest allowBackup=false alone is not sufficient on all Android 12+
+    device-to-device transfer implementations. These checks intentionally
+    fail closed until an approved GoreeCloud-controlled recovery path exists.
+    """
+    errors: list[str] = []
+    configurations = (
+        ("app/src/main/res/xml/backup_rules.xml", "full-backup-content", ("full-backup-content",)),
+        ("app/src/main/res/xml-v31/backup_rules.xml", "data-extraction-rules", ("cloud-backup", "device-transfer")),
+    )
+    for relative_path, expected_root, sections in configurations:
+        path = root / relative_path
+        try:
+            document = ET.parse(path).getroot()
+        except (OSError, ET.ParseError) as exc:
+            errors.append(f"{relative_path}: invalid backup rules: {exc}")
+            continue
+        if document.tag != expected_root:
+            errors.append(f"{relative_path}: expected <{expected_root}> root.")
+            continue
+        if document.findall(".//include"):
+            errors.append(f"{relative_path}: automatic inclusion in backups is forbidden.")
+        for section_name in sections:
+            section = document if section_name == expected_root else document.find(section_name)
+            if section is None:
+                errors.append(f"{relative_path}: missing <{section_name}>.")
+                continue
+            exclusions = section.findall("exclude")
+            if not any(
+                node.attrib.get("domain") == "root" and node.attrib.get("path") == "."
+                for node in exclusions
+            ):
+                errors.append(f"{relative_path}: <{section_name}> must exclude the full root.")
+    return errors
+
+
 def main() -> int:
     errors = verify_manifest(MANIFEST)
+    errors.extend(verify_backup_rules(ROOT))
     if errors:
         print("Android IME static boundary check FAILED:", file=sys.stderr)
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1
-    print("Android IME static boundary check PASSED (source manifest only).")
+    print("Android IME static boundary check PASSED (manifest and backup rules only).")
     return 0
 
 
