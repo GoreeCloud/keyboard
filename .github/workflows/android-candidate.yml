@@ -76,6 +76,15 @@ jobs:
       - name: Inspect APK metadata
         run: python3 scripts/verify-apk-metadata.py
 
+      - name: Preserve ephemeral debug APK for bounded device validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyboard-candidate-debug-${{ github.sha }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
       - name: Candidate boundary notice
         if: always()
         run: echo "Import CI is build evidence only; it does not qualify release, privacy, accessibility, signing, or GoreeCloud platform conformance."
