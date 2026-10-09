@@ -1,0 +1,55 @@
+name: Android candidate build
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/android-candidate.yml"
+      - "app/**"
+      - "lib/**"
+      - "libnative/**"
+      - "utils/**"
+      - "gradle/**"
+      - "gradlew"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keyboard-android-candidate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-build:
+    name: Validate and assemble Android candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Configure JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configure Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install declared Android SDK
+        run: sdkmanager "platforms;android-37"
+
+      - name: Compile candidate debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Candidate boundary notice
+        if: always()
+        run: echo "Import CI is build evidence only; it does not qualify release, privacy, accessibility, signing, or GoreeCloud platform conformance."
