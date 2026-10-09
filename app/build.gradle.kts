@@ -28,6 +28,19 @@ plugins {
     alias(libs.plugins.kotlinx.kover)
 }
 
+// GoreeCloud Development distribution is opt-in and intentionally absent from
+// ordinary CI/debug builds. Keys are supplied via local protected environment.
+val goreecloudDevelopmentBuild = providers.gradleProperty("goreecloudDevelopmentBuild")
+    .map { it.toBooleanStrict() }.orElse(false).get()
+val goreecloudDevelopmentVersionCode = if (goreecloudDevelopmentBuild) {
+    val reserved = file("../config/development-version-code.txt").readText().trim().toInt()
+    val base = providers.gradleProperty("projectVersionCode").get().toInt()
+    require(reserved > base) { "Reserved Development versionCode must exceed upstream baseline" }
+    reserved
+} else {
+    null
+}
+
 val projectVersionName = providers.gradleProperty("projectVersionName").get()
 val projectVersionNameSuffix = projectVersionName.substringAfter("-", "").let { suffix ->
     if (suffix.isNotEmpty()) {
@@ -68,7 +81,7 @@ configure<ApplicationExtension> {
         applicationId = "com.goreecloud.keyboard.florisbridge"
         minSdk = providers.gradleProperty("projectMinSdk").get().toInt()
         targetSdk = providers.gradleProperty("projectTargetSdk").get().toInt()
-        versionCode = providers.gradleProperty("projectVersionCode").get().toInt()
+        versionCode = goreecloudDevelopmentVersionCode ?: providers.gradleProperty("projectVersionCode").get().toInt()
         versionName = projectVersionName.substringBefore("-")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -98,6 +111,31 @@ configure<ApplicationExtension> {
         compose = true
     }
 
+    signingConfigs {
+        if (goreecloudDevelopmentBuild) {
+            create("goreecloudDevelopment") {
+                val path = providers.environmentVariable("GOREECLOUD_KEYBOARD_DEV_KEYSTORE_PATH").orNull
+                val storePass = providers.environmentVariable("GOREECLOUD_KEYBOARD_DEV_STORE_PASSWORD").orNull
+                val alias = providers.environmentVariable("GOREECLOUD_KEYBOARD_DEV_KEY_ALIAS").orNull
+                val keyPass = providers.environmentVariable("GOREECLOUD_KEYBOARD_DEV_KEY_PASSWORD").orNull
+                require(!path.isNullOrBlank() && !storePass.isNullOrBlank()
+                    && !alias.isNullOrBlank() && !keyPass.isNullOrBlank()) {
+                    "Protected GoreeCloud Development signing environment is incomplete"
+                }
+                val signingFile = file(path)
+                require(signingFile.isFile
+                    && !java.nio.file.Files.isSymbolicLink(signingFile.toPath())
+                    && !signingFile.canonicalPath.startsWith(rootProject.projectDir.canonicalPath + File.separator)) {
+                    "Development signing keystore must be a private file outside the source repository"
+                }
+                storeFile = signingFile
+                storePassword = storePass
+                keyAlias = alias
+                keyPassword = keyPass
+            }
+        }
+    }
+
     buildTypes {
         named("debug") {
             applicationIdSuffix = ".debug"
@@ -105,6 +143,18 @@ configure<ApplicationExtension> {
 
             isDebuggable = true
             isJniDebuggable = false
+        }
+
+        if (goreecloudDevelopmentBuild) {
+            create("development") {
+                initWith(getByName("debug"))
+                applicationIdSuffix = ".dev"
+                versionNameSuffix = "-development"
+                isDebuggable = false
+                isJniDebuggable = false
+                signingConfig = signingConfigs.getByName("goreecloudDevelopment")
+                matchingFallbacks += listOf("debug")
+            }
         }
 
         create("beta") {
