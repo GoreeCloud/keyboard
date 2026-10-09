@@ -63,7 +63,9 @@ configure<ApplicationExtension> {
     }
 
     defaultConfig {
-        applicationId = "dev.patrickgold.florisboard"
+        // Temporary bridge identity prevents overwriting installed FlorisBoard.
+        // Not an approved production GoreeCloud package or release-signing identity.
+        applicationId = "com.goreecloud.keyboard.florisbridge"
         minSdk = providers.gradleProperty("projectMinSdk").get().toInt()
         targetSdk = providers.gradleProperty("projectTargetSdk").get().toInt()
         versionCode = providers.gradleProperty("projectVersionCode").get().toInt()
