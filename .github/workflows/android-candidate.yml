@@ -42,12 +42,12 @@ jobs:
           java-version: "17"
 
       - name: Configure Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           packages: "platform-tools"
 
       - name: Install declared compile SDK
-        run: sdkmanager --channel=3 "platforms;android-37"
+        run: sdkmanager --channel=3 "platforms;android-37.0"
 
       - name: Compile candidate debug APK
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
