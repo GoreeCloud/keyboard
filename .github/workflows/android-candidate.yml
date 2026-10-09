@@ -43,9 +43,8 @@ jobs:
 
       - name: Configure Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Install declared Android SDK
-        run: sdkmanager "platforms;android-37"
+        with:
+          packages: "platform-tools platforms;android-37"
 
       - name: Compile candidate debug APK
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
