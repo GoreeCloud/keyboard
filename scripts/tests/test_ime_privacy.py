@@ -54,6 +54,21 @@ class ManifestPrivacyTests(unittest.TestCase):
         self.assertTrue(any('INTERNET' in x
                             for x in self.check(manifest_xml(permission='android.permission.INTERNET'))))
 
+    def test_cleartext_traffic_rejected(self):
+        xml = manifest_xml().replace('android:allowBackup="false"', 'android:allowBackup="false" android:usesCleartextTraffic="true"')
+        self.assertTrue(any('Cleartext' in error for error in self.check(xml)))
+
+    def test_sdk23_network_permission_rejected(self):
+        xml = manifest_xml().replace('<application', '<uses-permission-sdk-23 android:name="android.permission.INTERNET"/><application')
+        self.assertTrue(any('INTERNET' in error for error in self.check(xml)))
+
+    def test_second_ime_service_rejected(self):
+        xml = manifest_xml()
+        service = xml.split('<service', 1)[1].split('</service>', 1)[0]
+        second = '<service' + service.replace('.KeyboardService', '.SecondKeyboardService') + '</service>'
+        xml = xml.replace('</application>', second + '</application>')
+        self.assertTrue(any('found 2' in error for error in self.check(xml)))
+
     def test_ime_binding_is_mandatory(self):
         xml = manifest_xml().replace('android.permission.BIND_INPUT_METHOD', 'android.permission.NORMAL')
         self.assertTrue(any('BIND_INPUT_METHOD' in x for x in self.check(xml)))
