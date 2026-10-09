@@ -5,6 +5,7 @@ GoreeCloud Keyboard is a privacy-first input-platform project owned by GoreeClou
 ## Project documentation
 
 - [Project specifications](docs/PROJECT-SPECIFICATIONS.md) — canonical requirements, scope, architecture targets, privacy/security boundaries, nine platform-system evaluation and acceptance gates.
+- [Privacy and security review](docs/PRIVACY-REVIEW.md) — evidence and outstanding release blockers for the unmerged candidate.
 - [Project record](docs/PROJECT-RECORD.md) — dated decisions, repository evidence, history, and outstanding verification boundaries.
 - [Complete Features and Capabilities](PLANNED-FEATURES.md) — all 41 product areas and 772 enumerated feature entries from the owner-directed catalog.
 
