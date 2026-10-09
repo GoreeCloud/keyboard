@@ -54,3 +54,7 @@ Update this ledger for significant verified changes, decisions, migrations, inci
 ## 2026-10-09 — Bootstrap work tracked
 
 The initial implementation, provenance, security, accessibility, and migration obligations are tracked in [GitHub issue #1](https://github.com/GoreeCloud/keyboard/issues/1). The issue was verified **open**, not completed. It does not establish an accepted fork, tested Android build or release.
+
+## 2026-10-09 — Android candidate build milestone
+
+[Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2) contains the pinned FlorisBoard source candidate. It remains unmerged. Exact-head [CI run 37963147776](https://github.com/GoreeCloud/keyboard/actions/runs/37963147776) passed Android candidate debug assembly and initial IME manifest checks at commit `4908c82`. Further backup privacy hardening and tests are being evaluated in Draft PR #2; release and platform acceptance remain pending.
