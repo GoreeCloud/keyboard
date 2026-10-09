@@ -1,6 +1,8 @@
 name: Android candidate build
 
 on:
+  push:
+    branches: [feat/florisboard-import-20261009]
   pull_request:
     branches: [main]
     paths:
