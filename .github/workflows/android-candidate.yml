@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/android-candidate.yml"
+      - "scripts/verify-ime-boundaries.py"
       - "app/**"
       - "lib/**"
       - "libnative/**"
@@ -40,6 +41,9 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+
+      - name: Verify IME privacy boundaries
+        run: python3 scripts/verify-ime-boundaries.py
 
       - name: Configure Android SDK
         uses: android-actions/setup-android@v4
