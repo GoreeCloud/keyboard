@@ -90,8 +90,14 @@ jobs:
           GOREECLOUD_KEYBOARD_DEV_STORE_PASSWORD="disposable-test-only" \
           GOREECLOUD_KEYBOARD_DEV_KEY_ALIAS="disposable-test-only" \
           GOREECLOUD_KEYBOARD_DEV_KEY_PASSWORD="disposable-test-only" \
-            ./gradlew :app:tasks -PgoreecloudDevelopmentBuild=true --no-daemon > /tmp/keyboard-dev-positive.log 2>&1
-          grep -F "assembleDevelopment" /tmp/keyboard-dev-positive.log
+            ./gradlew :app:tasks --all -PgoreecloudDevelopmentBuild=true --no-daemon > /tmp/keyboard-dev-positive.log 2>&1 || {
+              tail -n 80 /tmp/keyboard-dev-positive.log
+              exit 1
+            }
+          grep -F "assembleDevelopment" /tmp/keyboard-dev-positive.log || {
+            tail -n 80 /tmp/keyboard-dev-positive.log
+            exit 1
+          }
 
       - name: Compile and unit-test Android candidate
         run: ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon --stacktrace
