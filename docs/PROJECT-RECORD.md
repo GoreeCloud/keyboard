@@ -50,3 +50,7 @@ Existing historical project documentation requires separate review before its co
 | Release | Not evidenced | Exact-revision build, protected signing, upgrade/recovery and release authorization |
 
 Update this ledger for significant verified changes, decisions, migrations, incidents and acceptance events. Use `CHANGELOGS.md` for release-facing changes when applicable. Never treat a documented target as a shipped feature.
+
+## 2026-10-09 — Bootstrap work tracked
+
+The initial implementation, provenance, security, accessibility, and migration obligations are tracked in [GitHub issue #1](https://github.com/GoreeCloud/keyboard/issues/1). The issue was verified **open**, not completed. It does not establish an accepted fork, tested Android build or release.
