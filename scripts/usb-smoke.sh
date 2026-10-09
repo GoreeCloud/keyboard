@@ -10,9 +10,13 @@ fi
 serial="$1"
 apk="$2"
 expected_sha="$3"
+trusted_digest_file="$(cd "$(dirname "$0")/.." && pwd)/config/usb-smoke-approved-artifact.sha256"
 candidate="com.goreecloud.keyboard.florisbridge.debug"
 system_package="com.goreecloud.keyboard"
 
+test -r "$trusted_digest_file" || { echo "Trusted USB artifact digest not available" >&2; exit 2; }
+approved_sha="$(head -n 1 "$trusted_digest_file" | tr -d "\r")"
+test "$expected_sha" = "$approved_sha" || { echo "Requested APK has no source-reviewed USB approval" >&2; exit 2; }
 test -s "$apk" || { echo "APK not found or empty" >&2; exit 2; }
 command -v sha256sum >/dev/null || { echo "SHA-256 utility unavailable" >&2; exit 2; }
 actual_sha="$(sha256sum "$apk" | cut -d " " -f 1)"

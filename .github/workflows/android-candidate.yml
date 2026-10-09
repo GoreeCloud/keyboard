@@ -67,6 +67,32 @@ jobs:
           fi
           test -f "$sdk/platforms/android-37/android.jar"
 
+      - name: Exercise fail-closed Development signing configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No real signing secrets exist or are injected in this CI job.
+          if env -u GOREECLOUD_KEYBOARD_DEV_KEYSTORE_PATH \
+                 -u GOREECLOUD_KEYBOARD_DEV_STORE_PASSWORD \
+                 -u GOREECLOUD_KEYBOARD_DEV_KEY_ALIAS \
+                 -u GOREECLOUD_KEYBOARD_DEV_KEY_PASSWORD \
+                 ./gradlew :app:help -PgoreecloudDevelopmentBuild=true --no-daemon > /tmp/keyboard-dev-negative.log 2>&1; then
+            echo "Development signing unexpectedly accepted missing credentials."
+            exit 1
+          fi
+          grep -F "Protected GoreeCloud Development signing environment is incomplete" /tmp/keyboard-dev-negative.log
+          # Exercise the conditional variant configuration only. This file is
+          # NOT a signing key; do NOT assemble or upload a Development APK here.
+          placeholder="$(mktemp)"
+          chmod 600 "$placeholder"
+          trap 'rm -f "$placeholder"' EXIT
+          GOREECLOUD_KEYBOARD_DEV_KEYSTORE_PATH="$placeholder" \
+          GOREECLOUD_KEYBOARD_DEV_STORE_PASSWORD="disposable-test-only" \
+          GOREECLOUD_KEYBOARD_DEV_KEY_ALIAS="disposable-test-only" \
+          GOREECLOUD_KEYBOARD_DEV_KEY_PASSWORD="disposable-test-only" \
+            ./gradlew :app:tasks -PgoreecloudDevelopmentBuild=true --no-daemon > /tmp/keyboard-dev-positive.log 2>&1
+          grep -F "assembleDevelopment" /tmp/keyboard-dev-positive.log
+
       - name: Compile and unit-test Android candidate
         run: ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon --stacktrace
 
