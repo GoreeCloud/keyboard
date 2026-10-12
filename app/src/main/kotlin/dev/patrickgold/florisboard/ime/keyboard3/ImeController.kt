@@ -139,35 +139,31 @@ class ImeController(
         if (event == null) {
             return false
         }
+        // Android delivers a new ACTION_DOWN for each hardware key repeat.
+        // Delete on every down rather than on release so holding Backspace/Delete
+        // works and a single press still deletes exactly one unit.
+        if (event.isCtrlPressed || event.isAltPressed || event.isMetaPressed) return false
         return when (keyCode) {
+            KeyEvent.KEYCODE_DEL -> {
+                updateStateBlocking { emitBackspace() }
+                true
+            }
+            KeyEvent.KEYCODE_FORWARD_DEL -> {
+                updateStateBlocking { emitForwardDelete() }
+                true
+            }
             // TODO KeyEvent.KEYCODE_SPACE (auto-commit candidate)
-            KeyEvent.KEYCODE_DEL -> true
-            KeyEvent.KEYCODE_FORWARD_DEL -> true
             // TODO KeyEvent.KEYCODE_SHIFT_LEFT, KeyEvent.KEYCODE_SHIFT_RIGHT
             else -> false
         }
     }
 
     fun onHardwareKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        if (event == null) {
-            return false
-        }
-        return when (keyCode) {
-            KeyEvent.KEYCODE_DEL -> {
-                updateStateBlocking {
-                    emitBackspace()
-                }
-                true
-            }
-            KeyEvent.KEYCODE_FORWARD_DEL -> {
-                updateStateBlocking {
-                    emitForwardDelete()
-                }
-                true
-            }
-            // TODO KeyEvent.KEYCODE_SHIFT_LEFT, KeyEvent.KEYCODE_SHIFT_RIGHT
-            else -> false
-        }
+        if (event == null) return false
+        // The matching key-up must be consumed without deleting twice.
+        // Modifier shortcuts remain available to the host editor.
+        if (event.isCtrlPressed || event.isAltPressed || event.isMetaPressed) return false
+        return keyCode == KeyEvent.KEYCODE_DEL || keyCode == KeyEvent.KEYCODE_FORWARD_DEL
     }
 
     fun snapshotState(): ImeState = activeState.value

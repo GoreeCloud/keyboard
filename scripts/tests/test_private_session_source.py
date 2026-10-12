@@ -12,6 +12,23 @@ NLP = ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/ime/nlp/NlpManager
 
 
 class PrivateSessionSourceTests(unittest.TestCase):
+    def test_hardware_delete_repeats_on_key_down_without_double_deleting_on_release(self):
+        src = CONTROLLER.read_text(encoding="utf-8")
+        down = src.split("fun onHardwareKeyDown(", 1)[1].split(
+            "fun onHardwareKeyUp(", 1
+        )[0]
+        up = src.split("fun onHardwareKeyUp(", 1)[1].split(
+            "fun snapshotState(", 1
+        )[0]
+        self.assertIn("KeyEvent.KEYCODE_DEL -> {", down)
+        self.assertIn("KeyEvent.KEYCODE_FORWARD_DEL -> {", down)
+        self.assertIn("emitBackspace()", down)
+        self.assertIn("emitForwardDelete()", down)
+        self.assertIn("return keyCode == KeyEvent.KEYCODE_DEL", up)
+        self.assertNotIn("emitBackspace()", up)
+        self.assertNotIn("emitForwardDelete()", up)
+        self.assertIn("event.isCtrlPressed || event.isAltPressed || event.isMetaPressed", down)
+
     def test_numeric_password_field_is_private_input(self):
         src = CONTROLLER.read_text(encoding="utf-8")
         number_branch = src.split("InputAttributes.Type.NUMBER -> {", 1)[1].split(

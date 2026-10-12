@@ -96,3 +96,7 @@ The initial implementation, provenance, security, accessibility, and migration o
 ## 2026-10-11 — Sensitive-input stabilization candidate
 
 On the existing draft FlorisBoard import branch, identified a privacy-flag propagation defect: NLP provider calls hard-coded `isPrivateSession=false`, while numeric password fields were not assigned the password key variation. Candidate source changes address both behaviors with regression checks. Treat this as an unaccepted code change until its exact-head CI and required device/data-flow tests are verified; this does not alter release or Stable status.
+
+
+### 2026-10-12 — Physical keyboard deletion repeat candidate (development branch)
+Physical hardware Backspace and Forward Delete now perform their edit on ACTION_DOWN (including Android-generated key repeats) rather than waiting for release, enabling held-key deletion. The matching ACTION_UP is consumed without an extra delete, while Ctrl/Alt/Meta combinations defer to the host editor instead of interpreting them as plain character deletion. Static regression tests cover the routing. Android compile and hardware-key device acceptance remain separate gates; this does not establish release readiness.
