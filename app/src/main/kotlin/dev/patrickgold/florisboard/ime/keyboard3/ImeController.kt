@@ -447,11 +447,16 @@ class ImeController(
             if (state.content.selection.isNotCollapsed()) {
                 emitBackspace()
             } else {
+                val afterCursor = state.content.surroundingText.textAfter
+                // InputConnection deletion counts UTF-16 code units; never
+                // split a surrogate pair representing one Unicode code point.
+                val charsToDelete = if (afterCursor.isEmpty()) {
+                    1 // Preserve the host editor's ability to delete beyond our cached context.
+                } else {
+                    Character.charCount(Character.codePointAt(afterCursor, 0))
+                }
                 val newSurroundingText = state.content.surroundingText.copy(
-                    textAfter = state.content.surroundingText.textAfter.let { text ->
-                        // TODO unicode
-                        if (text.isEmpty()) text else text.substring(1)
-                    },
+                    textAfter = if (afterCursor.isEmpty()) afterCursor else afterCursor.substring(charsToDelete),
                 )
                 state = state.copy(
                     content = state.content.copy(
@@ -460,7 +465,7 @@ class ImeController(
                 )
                 state.editor.deleteSurroundingText(
                     charsBefore = 0,
-                    charsAfter = 1, // TODO
+                    charsAfter = charsToDelete,
                 )
             }
         }

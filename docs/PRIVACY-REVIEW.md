@@ -26,6 +26,10 @@ Source hardening removes raw editor/surrounding/composition text and clipboard p
 
 Input-start, input-view start/finish, full input finish and extracting-view editor resets synchronously clear displayed suggestions and invalidate delayed provider results. An atomic request generation rejects responses from superseded text requests; candidate assembly checks its originating editor identity before publishing. Glide/direct suggestion insertion also checks password editor status. Static tests verify lifecycle hooks and invalidation; actual fast editor switches, keyboard visibility transitions, and rapid typing still require representative-device acceptance.
 
+## Candidate assembly lifecycle protection — follow-up candidate
+
+Asynchronous clipboard candidate assembly now uses one editor/content snapshot, captures the request generation, and verifies generation, editor identity, password-key variation, and incognito state under the suggestion lock immediately before publication. This blocks a stale assembly that completes after editor transition or privacy change from reappearing in the smartbar. Local source regression checks exercise these invariants; fast typing and input-switch runtime behavior remain unverified.
+
 ## Unverified or pending; blocks acceptance
 
 - [ ] Threat-model keystroke, composing text, clipboard, suggestions, learning dictionaries, logs, caches, diagnostics, and crashes. Establish precise sensitive-editor classification.

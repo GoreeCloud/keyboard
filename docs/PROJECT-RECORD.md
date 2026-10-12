@@ -100,3 +100,7 @@ On the existing draft FlorisBoard import branch, identified a privacy-flag propa
 
 ### 2026-10-12 — Physical keyboard deletion repeat candidate (development branch)
 Physical hardware Backspace and Forward Delete now perform their edit on ACTION_DOWN (including Android-generated key repeats) rather than waiting for release, enabling held-key deletion. The matching ACTION_UP is consumed without an extra delete, while Ctrl/Alt/Meta combinations defer to the host editor instead of interpreting them as plain character deletion. Static regression tests cover the routing. Android compile and hardware-key device acceptance remain separate gates; this does not establish release readiness.
+
+
+### 2026-10-12 — Unicode-safe forward deletion candidate (development branch)
+Forward Delete now removes a full Unicode code point rather than a single UTF-16 code unit, preventing supplementary characters such as many emoji from being split during forward deletion. The same code-unit count is applied to the internal surrounding-text snapshot and the Android input connection. If the cached text is empty, the existing one-character host-editor fallback is preserved. Source regression is present; grapheme-cluster behavior (joined emoji, combining marks), actual device typing, and Android compilation remain separate acceptance requirements.

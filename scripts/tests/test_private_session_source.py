@@ -29,6 +29,16 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertNotIn("emitForwardDelete()", up)
         self.assertIn("event.isCtrlPressed || event.isAltPressed || event.isMetaPressed", down)
 
+    def test_forward_delete_preserves_unicode_surrogate_pairs(self):
+        src = CONTROLLER.read_text(encoding="utf-8")
+        delete = src.split("fun emitForwardDelete() {", 1)[1].split(
+            "override fun", 1
+        )[0]
+        self.assertIn("Character.charCount(Character.codePointAt(afterCursor, 0))", delete)
+        self.assertIn("afterCursor.substring(charsToDelete)", delete)
+        self.assertIn("charsAfter = charsToDelete", delete)
+        self.assertNotIn("text.substring(1)", delete)
+
     def test_numeric_password_field_is_private_input(self):
         src = CONTROLLER.read_text(encoding="utf-8")
         number_branch = src.split("InputAttributes.Type.NUMBER -> {", 1)[1].split(
@@ -91,7 +101,20 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertIn("suggestionRequestVersion.get() != requestVersion", src)
         self.assertIn("suggestionRequestVersion.incrementAndGet()", src)
         self.assertIn("activeCandidates = emptyList()", src)
-        self.assertIn("imeController.snapshotState().editor !== state.editor", src)
+        self.assertIn("currentState.editor !== state.editor", src)
+
+    def test_candidate_assembly_guards_request_generation_and_privacy(self):
+        src = NLP.read_text(encoding="utf-8")
+        assembly = src.split("private fun assembleCandidates() {", 1)[1].split(
+            "fun autoExpandCollapseSmartbarActions(", 1
+        )[0]
+        self.assertIn("val assemblyVersion = suggestionRequestVersion.get()", assembly)
+        self.assertIn("content = state.content,", assembly)
+        self.assertIn("suggestionRequestVersion.get() != assemblyVersion", assembly)
+        self.assertIn("currentState.editor !== state.editor", assembly)
+        self.assertIn("currentState.flags.keyVariation != state.flags.keyVariation", assembly)
+        self.assertIn("currentState.flags.isIncognitoMode != isPrivateSession", assembly)
+        self.assertIn("internalSuggestionsGuard.withLock {", assembly)
 
     def test_providers_never_receive_hardcoded_public_session(self):
         src = NLP.read_text(encoding="utf-8")

@@ -303,6 +303,7 @@ class NlpManager(context: Context) {
     }
 
     private fun assembleCandidates() {
+        val assemblyVersion = suggestionRequestVersion.get()
         val state = imeController.snapshotState()
         val isPrivateSession = state.flags.isIncognitoMode
         val isPasswordEditor = state.flags.keyVariation == KeyVariation.PASSWORD
@@ -312,7 +313,7 @@ class NlpManager(context: Context) {
                 isSuggestionOn() -> {
                     clipboardSuggestionProvider.suggest(
                         subtype = Subtype.DEFAULT,
-                        content = imeController.snapshotState().content,
+                        content = state.content,
                         maxCandidateCount = 8,
                         allowPossiblyOffensive = !prefs.suggestion.blockPossiblyOffensive.get(),
                         isPrivateSession = isPrivateSession,
@@ -326,10 +327,18 @@ class NlpManager(context: Context) {
                 }
                 else -> emptyList()
             }
-            // A previously queued assembly must not publish into a different editor.
-            if (imeController.snapshotState().editor !== state.editor) return@runBlocking
-            activeCandidates = candidates
-            autoExpandCollapseSmartbarActions(candidates, NlpInlineAutofill.suggestions.value)
+            // Suppress stale assemblies when an editor or its privacy state changes
+            // while a clipboard provider is calculating candidates.
+            internalSuggestionsGuard.withLock {
+                val currentState = imeController.snapshotState()
+                if (suggestionRequestVersion.get() != assemblyVersion ||
+                    currentState.editor !== state.editor ||
+                    currentState.flags.keyVariation != state.flags.keyVariation ||
+                    currentState.flags.isIncognitoMode != isPrivateSession
+                ) return@withLock
+                activeCandidates = candidates
+                autoExpandCollapseSmartbarActions(candidates, NlpInlineAutofill.suggestions.value)
+            }
         }
     }
 
