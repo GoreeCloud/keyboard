@@ -41,6 +41,15 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertIn("return false", down)
         self.assertIn("handledHardwareDeleteKeys.add(keyCode)", down)
 
+    def test_nlp_provider_teardown_releases_active_state(self):
+        src = NLP.read_text(encoding="utf-8")
+        wrapper = src.split("private class ProviderInstanceWrapper", 1)[1]
+        create = wrapper.split("suspend fun createIfNecessary()", 1)[1].split("suspend fun preload(", 1)[0]
+        destroy = wrapper.split("suspend fun destroyIfNecessary()", 1)[1].split("inner class ClipboardSuggestionProvider", 1)[0]
+        self.assertIn("isInstanceAlive.getAndSet(true)", create)
+        self.assertIn("isInstanceAlive.getAndSet(false)", destroy)
+        self.assertNotIn("getAndSet(true)", destroy)
+
     def test_hardware_delete_release_tracking_is_reset_on_editor_lifecycle(self):
         src = CONTROLLER.read_text(encoding="utf-8")
         service = (ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/FlorisImeService.kt").read_text()

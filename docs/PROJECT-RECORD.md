@@ -111,3 +111,6 @@ Hardware Backspace/Forward Delete now track only physical keys whose key-down wa
 
 ### 2026-10-12 — Hardware modifier-change repeat correction
 A held physical Delete key can acquire Ctrl/Alt/Meta during subsequent Android key repeats. A modified repeat now clears any previously handled plain-key down before delegating to the host editor; this ensures its later key-up is not intercepted by the keyboard. Plain Delete/Backspace auto-repeat and lifecycle clearing remain unchanged. Static regression coverage added; real hardware-key acceptance still pending.
+
+### 2026-10-12 — NLP provider lifecycle teardown
+Provider teardown now resets its active-state flag so a later subtype preload can reinitialize the provider. A static regression check exercises the expected create/destroy state contracts; Android build and device lifecycle validation remain required.

@@ -386,7 +386,7 @@ class NlpManager(context: Context) {
         }
 
         suspend fun destroyIfNecessary() {
-            if (isInstanceAlive.getAndSet(true)) provider.destroy()
+            if (isInstanceAlive.getAndSet(false)) provider.destroy()
         }
     }
 
