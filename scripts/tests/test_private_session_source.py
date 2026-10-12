@@ -24,10 +24,20 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertIn("KeyEvent.KEYCODE_FORWARD_DEL -> {", down)
         self.assertIn("emitBackspace()", down)
         self.assertIn("emitForwardDelete()", down)
-        self.assertIn("return keyCode == KeyEvent.KEYCODE_DEL", up)
+        self.assertIn("return handledHardwareDeleteKeys.remove(keyCode)", up)
+        self.assertIn("handledHardwareDeleteKeys.add(keyCode)", down)
+        self.assertNotIn("event.isCtrlPressed", up)
         self.assertNotIn("emitBackspace()", up)
         self.assertNotIn("emitForwardDelete()", up)
         self.assertIn("event.isCtrlPressed || event.isAltPressed || event.isMetaPressed", down)
+
+    def test_hardware_delete_release_tracking_is_reset_on_editor_lifecycle(self):
+        src = CONTROLLER.read_text(encoding="utf-8")
+        service = (ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/FlorisImeService.kt").read_text()
+        self.assertIn("private val handledHardwareDeleteKeys = mutableSetOf<Int>()", src)
+        self.assertIn("fun clearHardwareDeleteTracking()", src)
+        self.assertIn("handledHardwareDeleteKeys.clear()", src)
+        self.assertGreaterEqual(service.count("imeController.clearHardwareDeleteTracking()"), 4)
 
     def test_forward_delete_preserves_unicode_surrogate_pairs(self):
         src = CONTROLLER.read_text(encoding="utf-8")

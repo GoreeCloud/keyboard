@@ -356,6 +356,7 @@ class FlorisImeService : LifecycleInputMethodService() {
     override fun onStartInput(info: EditorInfo?, restarting: Boolean) {
         flogInfo { "IME editor transition" }
         super.onStartInput(info, restarting)
+        imeController.clearHardwareDeleteTracking()
         nlpManager.clearSuggestions()
         if (info == null) return
     }
@@ -363,6 +364,7 @@ class FlorisImeService : LifecycleInputMethodService() {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         flogInfo { "IME editor transition" }
         super.onStartInputView(info, restarting)
+        imeController.clearHardwareDeleteTracking()
         if (info == null) return
         currentInputConnection?.requestCursorUpdates(ImeEditor.CURSOR_UPDATES)
         val ic = WeakReference(currentInputConnection)
@@ -397,6 +399,7 @@ class FlorisImeService : LifecycleInputMethodService() {
     override fun onFinishInputView(finishingInput: Boolean) {
         flogInfo { "finishing=$finishingInput" }
         super.onFinishInputView(finishingInput)
+        imeController.clearHardwareDeleteTracking()
         currentInputConnection?.requestCursorUpdates(0)
         imeController.updateStateBlocking {
             handleFinishInputView()
@@ -407,6 +410,7 @@ class FlorisImeService : LifecycleInputMethodService() {
     override fun onFinishInput() {
         flogInfo { "(no args)" }
         super.onFinishInput()
+        imeController.clearHardwareDeleteTracking()
         nlpManager.clearSuggestions()
         NlpInlineAutofill.clearInlineSuggestions()
     }

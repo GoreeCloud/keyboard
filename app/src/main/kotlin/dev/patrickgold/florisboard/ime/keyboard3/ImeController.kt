@@ -88,6 +88,11 @@ class ImeController(
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val breakIterators = BreakIterators()
     private val expectedContentQueue = ExpectedContentQueue()
+    private val handledHardwareDeleteKeys = mutableSetOf<Int>()
+
+    fun clearHardwareDeleteTracking() {
+        handledHardwareDeleteKeys.clear()
+    }
 
     val activeTouchModelOptions = combine<Any, TouchModelOptions>(
         prefs.keyboard.numberRow.asFlow(),
@@ -145,10 +150,12 @@ class ImeController(
         if (event.isCtrlPressed || event.isAltPressed || event.isMetaPressed) return false
         return when (keyCode) {
             KeyEvent.KEYCODE_DEL -> {
+                handledHardwareDeleteKeys.add(keyCode)
                 updateStateBlocking { emitBackspace() }
                 true
             }
             KeyEvent.KEYCODE_FORWARD_DEL -> {
+                handledHardwareDeleteKeys.add(keyCode)
                 updateStateBlocking { emitForwardDelete() }
                 true
             }
@@ -160,10 +167,9 @@ class ImeController(
 
     fun onHardwareKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
         if (event == null) return false
-        // The matching key-up must be consumed without deleting twice.
-        // Modifier shortcuts remain available to the host editor.
-        if (event.isCtrlPressed || event.isAltPressed || event.isMetaPressed) return false
-        return keyCode == KeyEvent.KEYCODE_DEL || keyCode == KeyEvent.KEYCODE_FORWARD_DEL
+        // Consume key-up only when its plain key-down was processed by the IME.
+        // Shortcut keys remain delegated even if modifiers change before release.
+        return handledHardwareDeleteKeys.remove(keyCode)
     }
 
     fun snapshotState(): ImeState = activeState.value

@@ -104,3 +104,6 @@ Physical hardware Backspace and Forward Delete now perform their edit on ACTION_
 
 ### 2026-10-12 — Unicode-safe forward deletion candidate (development branch)
 Forward Delete now removes a full Unicode code point rather than a single UTF-16 code unit, preventing supplementary characters such as many emoji from being split during forward deletion. The same code-unit count is applied to the internal surrounding-text snapshot and the Android input connection. If the cached text is empty, the existing one-character host-editor fallback is preserved. Source regression is present; grapheme-cluster behavior (joined emoji, combining marks), actual device typing, and Android compilation remain separate acceptance requirements.
+
+### 2026-10-12 — Hardware delete key release pairing (development candidate)
+Hardware Backspace/Forward Delete now track only physical keys whose key-down was actually handled, consume only their corresponding key-up, and clear the pairing on editor lifecycle transitions. Shortcut combinations delegated to host editors retain their key-up, including modifier-state changes between down and up. Source regression tests are included; hardware keyboard and device behavior still require acceptance.
