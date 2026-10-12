@@ -34,6 +34,25 @@ class ClipboardPinnedCleanupTests(unittest.TestCase):
         self.assertIn('WHERE NOT isPinned', source)
         self.assertIn("fun deleteAllUnpinned()", source)
 
+    def test_conditional_delete_only_releases_image_after_row_is_removed(self):
+        source = MANAGER.read_text(encoding="utf-8")
+        block = source.split("fun deleteClip(", 1)[1].split("fun pinClip(", 1)[0]
+        self.assertIn("val dao = clipHistoryDao ?: return@launch", block)
+        self.assertIn("dao.deleteIfUnpinned(item.id)", block)
+        self.assertIn("dao.delete(item.id)", block)
+        self.assertIn("if (removedRows <= 0) return@launch", block)
+        self.assertIn("appContext.contentResolver.delete(uri, null, null)", block)
+        self.assertLess(
+            block.index("if (removedRows <= 0) return@launch"),
+            block.index("appContext.contentResolver.delete(uri, null, null)"),
+        )
+
+    def test_database_reports_actual_deletion_count(self):
+        source = DATABASE.read_text(encoding="utf-8")
+        self.assertIn("fun deleteIfUnpinned(id: Long): Int", source)
+        self.assertIn("fun delete(id: Long): Int", source)
+        self.assertIn("AND not isPinned", source)
+
 
 if __name__ == "__main__":
     unittest.main()
