@@ -47,6 +47,8 @@ class PrivateSessionSourceTests(unittest.TestCase):
         create = wrapper.split("suspend fun createIfNecessary()", 1)[1].split("suspend fun preload(", 1)[0]
         destroy = wrapper.split("suspend fun destroyIfNecessary()", 1)[1].split("inner class ClipboardSuggestionProvider", 1)[0]
         self.assertIn("isInstanceAlive.getAndSet(true)", create)
+        self.assertIn("isInstanceAlive.set(false)", create)
+        self.assertIn("throw t", create)
         self.assertIn("isInstanceAlive.getAndSet(false)", destroy)
         self.assertNotIn("getAndSet(true)", destroy)
 

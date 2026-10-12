@@ -378,7 +378,15 @@ class NlpManager(context: Context) {
         private var isInstanceAlive = AtomicBoolean(false)
 
         suspend fun createIfNecessary() {
-            if (!isInstanceAlive.getAndSet(true)) provider.create()
+            if (!isInstanceAlive.getAndSet(true)) {
+                try {
+                    provider.create()
+                } catch (t: Throwable) {
+                    // A failed or cancelled initialization must be retryable.
+                    isInstanceAlive.set(false)
+                    throw t
+                }
+            }
         }
 
         suspend fun preload(subtype: Subtype) {
