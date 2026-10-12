@@ -318,7 +318,9 @@ class ClipboardManager(
      */
     fun clearHistory() {
         ioScope.launch {
-            for (item in currentHistory.all) {
+            // Pinned items survive clearHistory in the database, so their
+            // image resources must survive too. Only release unpinned clips.
+            for (item in currentHistory.unpinned) {
                 item.close(appContext)
             }
             clipHistoryDao?.deleteAllUnpinned()
