@@ -22,6 +22,10 @@ The next candidate change suppresses autocomplete/suggestion candidates and auto
 
 Source hardening removes raw editor/surrounding/composition text and clipboard payloads from developer overlays and disables caching user words/spelling candidates in the in-memory debug overlay. Non-content selection, composition, IME and clipboard-presence indicators remain for troubleshooting. Source regression checks verify prohibited debug rendering/caching paths are absent; device screenshots, lifecycle behavior and a full log/diagnostics audit remain unverified.
 
+## Input-editor lifecycle candidate isolation — follow-up candidate
+
+Input-start, input-view start/finish, full input finish and extracting-view editor resets synchronously clear displayed suggestions and invalidate delayed provider results. An atomic request generation rejects responses from superseded text requests; candidate assembly checks its originating editor identity before publishing. Glide/direct suggestion insertion also checks password editor status. Static tests verify lifecycle hooks and invalidation; actual fast editor switches, keyboard visibility transitions, and rapid typing still require representative-device acceptance.
+
 ## Unverified or pending; blocks acceptance
 
 - [ ] Threat-model keystroke, composing text, clipboard, suggestions, learning dictionaries, logs, caches, diagnostics, and crashes. Establish precise sensitive-editor classification.

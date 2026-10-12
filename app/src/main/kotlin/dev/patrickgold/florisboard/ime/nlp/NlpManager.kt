@@ -45,6 +45,7 @@ import org.florisboard.lib.kotlin.collectLatestIn
 import org.k3lp.runtime.K3Content
 import org.k3lp.runtime.K3TextRange
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.properties.Delegates
 
 private const val BLANK_STR_PATTERN = "^\\s*$"
@@ -71,6 +72,8 @@ class NlpManager(context: Context) {
     private val providersForceSuggestionOn = mutableMapOf<String, Boolean>()
 
     private val internalSuggestionsGuard = Mutex()
+    // Monotonic generation invalidates slow provider responses on text/editor changes.
+    private val suggestionRequestVersion = AtomicLong()
     private var internalSuggestions by Delegates.observable(SystemClock.uptimeMillis() to listOf<SuggestionCandidate>()) { _, _, _ ->
         scope.launch { assembleCandidates() }
     }
@@ -200,6 +203,7 @@ class NlpManager(context: Context) {
             return
         }
         val reqTime = SystemClock.uptimeMillis()
+        val requestVersion = suggestionRequestVersion.incrementAndGet()
         val requestEditor = state.editor
         // Capture this request's privacy state before the asynchronous provider calls.
         val isPrivateSession = state.flags.isIncognitoMode
@@ -232,9 +236,11 @@ class NlpManager(context: Context) {
                 }
             }
             internalSuggestionsGuard.withLock {
-                // A late response from the previous editor must never enter the next editor.
-                if (imeController.snapshotState().editor !== requestEditor) return@withLock
-                if (internalSuggestions.first < reqTime) {
+                // A late response from an earlier request/editor must never enter the current one.
+                if (suggestionRequestVersion.get() != requestVersion ||
+                    imeController.snapshotState().editor !== requestEditor
+                ) return@withLock
+                if (internalSuggestions.first <= reqTime) {
                     internalSuggestions = reqTime to buildList {
                         addAll(emojiSuggestions)
                         addAll(suggestions)
@@ -245,16 +251,26 @@ class NlpManager(context: Context) {
     }
 
     fun suggestDirectly(suggestions: List<SuggestionCandidate>) {
-        val reqTime = SystemClock.uptimeMillis()
+        if (imeController.snapshotState().flags.keyVariation == KeyVariation.PASSWORD) {
+            clearSuggestions()
+            return
+        }
+        suggestionRequestVersion.incrementAndGet()
         runBlocking {
-            internalSuggestions = reqTime to suggestions
+            internalSuggestionsGuard.withLock {
+                internalSuggestions = SystemClock.uptimeMillis() to suggestions
+            }
         }
     }
 
     fun clearSuggestions() {
-        val reqTime = SystemClock.uptimeMillis()
+        // Hide old candidates synchronously, before the new editor can draw.
+        suggestionRequestVersion.incrementAndGet()
+        activeCandidates = emptyList()
         runBlocking {
-            internalSuggestions = reqTime to emptyList()
+            internalSuggestionsGuard.withLock {
+                internalSuggestions = SystemClock.uptimeMillis() to emptyList()
+            }
         }
     }
 
@@ -310,6 +326,8 @@ class NlpManager(context: Context) {
                 }
                 else -> emptyList()
             }
+            // A previously queued assembly must not publish into a different editor.
+            if (imeController.snapshotState().editor !== state.editor) return@runBlocking
             activeCandidates = candidates
             autoExpandCollapseSmartbarActions(candidates, NlpInlineAutofill.suggestions.value)
         }

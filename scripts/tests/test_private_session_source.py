@@ -57,6 +57,25 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertNotIn("debugOverlaySuggestionsInfos.put(", src)
         self.assertIn("fun addToDebugOverlay(", src)
 
+    def test_editor_lifecycle_resets_pending_suggestions(self):
+        service = (
+            ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/FlorisImeService.kt"
+        ).read_text(encoding="utf-8")
+        self.assertIn("override fun onStartInput(", service)
+        self.assertIn("override fun onStartInputView(", service)
+        self.assertIn("override fun onFinishInputView(", service)
+        self.assertIn("override fun onFinishInput()", service)
+        self.assertGreaterEqual(service.count("nlpManager.clearSuggestions()"), 5)
+
+    def test_outdated_async_request_cannot_restore_old_candidate(self):
+        src = NLP.read_text(encoding="utf-8")
+        self.assertIn("private val suggestionRequestVersion = AtomicLong()", src)
+        self.assertIn("val requestVersion = suggestionRequestVersion.incrementAndGet()", src)
+        self.assertIn("suggestionRequestVersion.get() != requestVersion", src)
+        self.assertIn("suggestionRequestVersion.incrementAndGet()", src)
+        self.assertIn("activeCandidates = emptyList()", src)
+        self.assertIn("imeController.snapshotState().editor !== state.editor", src)
+
     def test_providers_never_receive_hardcoded_public_session(self):
         src = NLP.read_text(encoding="utf-8")
         self.assertNotRegex(src, r"isPrivateSession\s*=\s*false\b")

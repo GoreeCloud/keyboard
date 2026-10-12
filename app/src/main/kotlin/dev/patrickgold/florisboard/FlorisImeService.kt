@@ -357,6 +357,7 @@ class FlorisImeService : LifecycleInputMethodService() {
     override fun onStartInput(info: EditorInfo?, restarting: Boolean) {
         flogInfo { "info=${info?.debugSummarize()} restarting=$restarting" }
         super.onStartInput(info, restarting)
+        nlpManager.clearSuggestions()
         if (info == null) return
     }
 
@@ -370,6 +371,7 @@ class FlorisImeService : LifecycleInputMethodService() {
         imeController.updateStateBlocking {
             handleStartInputView(ic, editorInfo)
         }
+        nlpManager.clearSuggestions()
     }
 
     override fun onEvaluateInputViewShown(): Boolean {
@@ -400,11 +402,13 @@ class FlorisImeService : LifecycleInputMethodService() {
         imeController.updateStateBlocking {
             handleFinishInputView()
         }
+        nlpManager.clearSuggestions()
     }
 
     override fun onFinishInput() {
         flogInfo { "(no args)" }
         super.onFinishInput()
+        nlpManager.clearSuggestions()
         NlpInlineAutofill.clearInlineSuggestions()
     }
 
@@ -453,6 +457,7 @@ class FlorisImeService : LifecycleInputMethodService() {
             imeController.updateStateBlocking {
                 handleStartInputView(ic, editorInfo)
             }
+            nlpManager.clearSuggestions()
         }
         when (prefs.keyboard.landscapeInputUiMode.get()) {
             LandscapeInputUiMode.DYNAMICALLY_SHOW -> super.onUpdateExtractingVisibility(info)
