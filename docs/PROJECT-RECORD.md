@@ -54,3 +54,7 @@ Update this ledger for significant verified changes, decisions, migrations, inci
 ## 2026-10-09 — Bootstrap work tracked
 
 The initial implementation, provenance, security, accessibility, and migration obligations are tracked in [GitHub issue #1](https://github.com/GoreeCloud/keyboard/issues/1). The issue was verified **open**, not completed. It does not establish an accepted fork, tested Android build or release.
+
+## 2026-10-11 — Sensitive-input stabilization candidate
+
+On the existing draft FlorisBoard import branch, identified a privacy-flag propagation defect: NLP provider calls hard-coded `isPrivateSession=false`, while numeric password fields were not assigned the password key variation. Candidate source changes address both behaviors with regression checks. Treat this as an unaccepted code change until its exact-head CI and required device/data-flow tests are verified; this does not alter release or Stable status.

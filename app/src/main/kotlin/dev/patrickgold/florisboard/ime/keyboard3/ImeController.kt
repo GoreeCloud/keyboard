@@ -195,7 +195,11 @@ class ImeController(
             val keyVariation: KeyVariation
             when (info.inputAttributes.type) {
                 InputAttributes.Type.NUMBER -> {
-                    keyVariation = KeyVariation.NORMAL
+                    keyVariation = if (info.inputAttributes.variation == InputAttributes.Variation.PASSWORD) {
+                        KeyVariation.PASSWORD
+                    } else {
+                        KeyVariation.NORMAL
+                    }
                     newTouchLayerId = ImeLayerIds.Numpad
                 }
                 InputAttributes.Type.PHONE -> {
@@ -274,14 +278,16 @@ class ImeController(
                         }
                     )
                     .withIncognitoMode(
-                        when (prefs.suggestion.incognitoMode.get()) {
-                            IncognitoMode.FORCE_OFF -> false
-                            IncognitoMode.FORCE_ON -> true
-                            IncognitoMode.DYNAMIC_ON_OFF -> {
-                                info.imeOptions.flagNoPersonalizedLearning ||
-                                    prefs.suggestion.forceIncognitoModeFromDynamic.get()
+                        // Sensitive editors are always private, regardless of the user-facing mode.
+                        keyVariation == KeyVariation.PASSWORD ||
+                            when (prefs.suggestion.incognitoMode.get()) {
+                                IncognitoMode.FORCE_OFF -> false
+                                IncognitoMode.FORCE_ON -> true
+                                IncognitoMode.DYNAMIC_ON_OFF -> {
+                                    info.imeOptions.flagNoPersonalizedLearning ||
+                                        prefs.suggestion.forceIncognitoModeFromDynamic.get()
+                                }
                             }
-                        }
                     )
             )
             resetContent(initialSelection, initialSurrounding)

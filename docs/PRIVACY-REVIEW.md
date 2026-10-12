@@ -10,6 +10,10 @@
 - On candidate commit `60df2ff7ef0b0ecd6ee20820b3c3edc5178b9c12`, GitHub Actions run [37973753809](https://github.com/GoreeCloud/keyboard/actions/runs/37973753809) completed successfully. This is **CI evidence only**, not a runtime data-flow audit.
 - Candidate packages use `com.goreecloud.keyboard.florisbridge` and variant suffixes rather than replacing an installed `com.goreecloud.keyboard`.
 
+## Sensitive-field stabilization on draft branch (2026-10-11)
+
+The source changes classify numeric PIN/password editors as password input, force those editors into private mode even when the user preference says otherwise, and forward the captured incognito/private-session flag into suggestion providers. Standalone spell-check requests use a conservative private-session flag because the active IME editor may not be authoritative for that request. Source regression assertions cover these safeguards. **Android compilation at the new commit, provider-learning behavior and physical-device negative tests remain subject to fresh evidence.**
+
 ## Unverified or pending; blocks acceptance
 
 - [ ] Threat-model keystroke, composing text, clipboard, suggestions, learning dictionaries, logs, caches, diagnostics, and crashes. Establish precise sensitive-editor classification.

@@ -165,7 +165,7 @@ class NlpManager(context: Context) {
             followingWords = followingWords,
             maxSuggestionCount = maxSuggestionCount,
             allowPossiblyOffensive = !prefs.suggestion.blockPossiblyOffensive.get(),
-            isPrivateSession = false// TODO keyboardManager.activeState.isIncognitoMode,
+            isPrivateSession = true, // Standalone spell checks have no trusted active editor context.
         )
     }
 
@@ -193,6 +193,8 @@ class NlpManager(context: Context) {
 
     fun suggest(subtype: Subtype, content: K3Content) {
         val reqTime = SystemClock.uptimeMillis()
+        // Capture this request's privacy state before the asynchronous provider calls.
+        val isPrivateSession = imeController.snapshotState().flags.isIncognitoMode
         scope.launch {
             val emojiSuggestions = when {
                 prefs.emoji.suggestionEnabled.get() -> {
@@ -201,7 +203,7 @@ class NlpManager(context: Context) {
                         content = content,
                         maxCandidateCount = prefs.emoji.suggestionCandidateMaxCount.get(),
                         allowPossiblyOffensive = !prefs.suggestion.blockPossiblyOffensive.get(),
-                        isPrivateSession = false // TODO keyboardManager.activeState.isIncognitoMode,
+                        isPrivateSession = isPrivateSession,
                     )
                 }
                 else -> emptyList()
@@ -216,7 +218,7 @@ class NlpManager(context: Context) {
                         content = content,
                         maxCandidateCount = 8,
                         allowPossiblyOffensive = !prefs.suggestion.blockPossiblyOffensive.get(),
-                        isPrivateSession = false // TODO keyboardManager.activeState.isIncognitoMode,
+                        isPrivateSession = isPrivateSession,
                     )
                 }
             }
@@ -273,6 +275,7 @@ class NlpManager(context: Context) {
     }
 
     private fun assembleCandidates() {
+        val isPrivateSession = imeController.snapshotState().flags.isIncognitoMode
         runBlocking {
             val candidates = when {
                 isSuggestionOn() -> {
@@ -281,7 +284,7 @@ class NlpManager(context: Context) {
                         content = imeController.snapshotState().content,
                         maxCandidateCount = 8,
                         allowPossiblyOffensive = !prefs.suggestion.blockPossiblyOffensive.get(),
-                        isPrivateSession = false // TODO keyboardManager.activeState.isIncognitoMode,
+                        isPrivateSession = isPrivateSession,
                     ).ifEmpty {
                         buildList {
                             internalSuggestionsGuard.withLock {
