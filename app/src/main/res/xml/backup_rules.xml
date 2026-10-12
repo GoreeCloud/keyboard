@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Privacy-first temporary default. No automatic Android backup until a
+     user-controlled, reviewed GoreeCloud backup/recovery contract exists. -->
+<full-backup-content>
+    <exclude domain="root" path="." />
+</full-backup-content>

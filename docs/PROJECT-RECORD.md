@@ -93,3 +93,24 @@ The initial implementation, provenance, security, accessibility, and migration o
 - **Latest source gate:** candidate commit `2d60141808e1f1973d95e6c50c433e33a12b202f` adds a reviewed artifact SHA-256 allowlist, a Development APK version/identity/permissions/certificate verifier, and CI checks that the Development signing path fails without credentials and configures with **test-only placeholders** without assembling a Development APK. The 30-test local Python suite and shell/YAML syntax checks passed. [CI run 37973358474](https://github.com/GoreeCloud/keyboard/actions/runs/37973358474) was in progress at record creation.
 - **Unaccepted:** no owner Development signing key has been provisioned, certified, or backed up; no update-compatible Development APK has been built, delivered, or used for upgrade-in-place; privacy/Glaze/license/accessibility/real typing and nine-platform-system gates remain open.
 
+## 2026-10-11 — Sensitive-input stabilization candidate
+
+On the existing draft FlorisBoard import branch, identified a privacy-flag propagation defect: NLP provider calls hard-coded `isPrivateSession=false`, while numeric password fields were not assigned the password key variation. Candidate source changes address both behaviors with regression checks. Treat this as an unaccepted code change until its exact-head CI and required device/data-flow tests are verified; this does not alter release or Stable status.
+
+
+### 2026-10-12 — Physical keyboard deletion repeat candidate (development branch)
+Physical hardware Backspace and Forward Delete now perform their edit on ACTION_DOWN (including Android-generated key repeats) rather than waiting for release, enabling held-key deletion. The matching ACTION_UP is consumed without an extra delete, while Ctrl/Alt/Meta combinations defer to the host editor instead of interpreting them as plain character deletion. Static regression tests cover the routing. Android compile and hardware-key device acceptance remain separate gates; this does not establish release readiness.
+
+
+### 2026-10-12 — Unicode-safe forward deletion candidate (development branch)
+Forward Delete now removes a full Unicode code point rather than a single UTF-16 code unit, preventing supplementary characters such as many emoji from being split during forward deletion. The same code-unit count is applied to the internal surrounding-text snapshot and the Android input connection. If the cached text is empty, the existing one-character host-editor fallback is preserved. Source regression is present; grapheme-cluster behavior (joined emoji, combining marks), actual device typing, and Android compilation remain separate acceptance requirements.
+
+### 2026-10-12 — Hardware delete key release pairing (development candidate)
+Hardware Backspace/Forward Delete now track only physical keys whose key-down was actually handled, consume only their corresponding key-up, and clear the pairing on editor lifecycle transitions. Shortcut combinations delegated to host editors retain their key-up, including modifier-state changes between down and up. Source regression tests are included; hardware keyboard and device behavior still require acceptance.
+
+
+### 2026-10-12 — Hardware modifier-change repeat correction
+A held physical Delete key can acquire Ctrl/Alt/Meta during subsequent Android key repeats. A modified repeat now clears any previously handled plain-key down before delegating to the host editor; this ensures its later key-up is not intercepted by the keyboard. Plain Delete/Backspace auto-repeat and lifecycle clearing remain unchanged. Static regression coverage added; real hardware-key acceptance still pending.
+
+### 2026-10-12 — NLP provider lifecycle teardown
+Provider teardown now resets its active-state flag so a later subtype preload can reinitialize the provider. A static regression check exercises the expected create/destroy state contracts; Android build and device lifecycle validation remain required.

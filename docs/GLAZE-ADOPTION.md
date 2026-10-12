@@ -1,8 +1,8 @@
 # GoreeCloud Keyboard — Glaze Adoption and Native UX Acceptance
 
-**Scope:** Android Input Method Editor and its Settings/onboarding surfaces  
-**Reference authority:** [GoreeCloud/glaze](https://github.com/GoreeCloud/glaze) protected `main`, evaluated 2026-10-09  
-**Current Glaze adoption target:** `1.7.0` (V1.7); **known-good rollback baseline:** `1.6.0` (V1.6)  
+**Scope:** Android Input Method Editor and its Settings/onboarding surfaces
+**Reference authority:** [GoreeCloud/glaze](https://github.com/GoreeCloud/glaze) protected `main`, evaluated 2026-10-09
+**Current Glaze adoption target:** `1.7.0` (V1.7); **known-good rollback baseline:** `1.6.0` (V1.6)
 **Status:** Design/engineering acceptance plan only. Keyboard is **not** Glaze-conformant yet.
 
 ## Exact version and lifecycle boundary

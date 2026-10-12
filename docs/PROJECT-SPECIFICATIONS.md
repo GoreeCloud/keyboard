@@ -3,7 +3,7 @@
 > **Record:** Repository-authoritative project specification  
 > **Repository:** `GoreeCloud/keyboard`  
 > **Owner:** GoreeCloud  
-> **State:** `main` remains documentation/governance only; [Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2) contains a build-verified upstream source candidate. Not merged, device-qualified or released  
+> **State:** `main` remains documentation/governance only; [Draft PR #2](https://github.com/GoreeCloud/keyboard/pull/2) contains a build-verified upstream source candidate. Not merged, device-qualified or released
 > **Product direction:** Android-first, privacy-first, Fork-to-Native investigation using FlorisBoard as the proposed upstream starting point, with a GoreeCloud-native end state  
 > **Last reviewed:** 2026-10-09  
 > **Authority:** This file defines project-specific requirements. GoreeCloud governing Instructions, Policies, Standards, Rules, and applicable platform contracts take precedence. See [project record](PROJECT-RECORD.md).
