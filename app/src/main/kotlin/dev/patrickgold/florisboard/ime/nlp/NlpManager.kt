@@ -44,7 +44,6 @@ import org.florisboard.lib.kotlin.guardedByLock
 import org.florisboard.lib.kotlin.collectLatestIn
 import org.k3lp.runtime.K3Content
 import org.k3lp.runtime.K3TextRange
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.properties.Delegates
 
@@ -375,16 +374,18 @@ class NlpManager(context: Context) {
     }
 
     private class ProviderInstanceWrapper(val provider: NlpProvider) {
-        private var isInstanceAlive = AtomicBoolean(false)
+        // A provider is only ready once create() has actually finished. Atomic
+        // flags let concurrent callers observe "alive" while initialization is
+        // still running, and skip the initialization they depend on.
+        private val lifecycleMutex = Mutex()
+        private var isInstanceAlive = false
 
         suspend fun createIfNecessary() {
-            if (!isInstanceAlive.getAndSet(true)) {
-                try {
+            lifecycleMutex.withLock {
+                if (!isInstanceAlive) {
+                    // A failure or cancellation leaves the provider retryable.
                     provider.create()
-                } catch (t: Throwable) {
-                    // A failed or cancelled initialization must be retryable.
-                    isInstanceAlive.set(false)
-                    throw t
+                    isInstanceAlive = true
                 }
             }
         }
@@ -394,7 +395,12 @@ class NlpManager(context: Context) {
         }
 
         suspend fun destroyIfNecessary() {
-            if (isInstanceAlive.getAndSet(false)) provider.destroy()
+            lifecycleMutex.withLock {
+                if (isInstanceAlive) {
+                    provider.destroy()
+                    isInstanceAlive = false
+                }
+            }
         }
     }
 

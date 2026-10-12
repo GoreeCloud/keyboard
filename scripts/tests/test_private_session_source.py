@@ -46,11 +46,14 @@ class PrivateSessionSourceTests(unittest.TestCase):
         wrapper = src.split("private class ProviderInstanceWrapper", 1)[1]
         create = wrapper.split("suspend fun createIfNecessary()", 1)[1].split("suspend fun preload(", 1)[0]
         destroy = wrapper.split("suspend fun destroyIfNecessary()", 1)[1].split("inner class ClipboardSuggestionProvider", 1)[0]
-        self.assertIn("isInstanceAlive.getAndSet(true)", create)
-        self.assertIn("isInstanceAlive.set(false)", create)
-        self.assertIn("throw t", create)
-        self.assertIn("isInstanceAlive.getAndSet(false)", destroy)
-        self.assertNotIn("getAndSet(true)", destroy)
+        self.assertIn("lifecycleMutex.withLock {", create)
+        self.assertIn("provider.create()", create)
+        self.assertLess(create.index("provider.create()"), create.index("isInstanceAlive = true"))
+        self.assertIn("lifecycleMutex.withLock {", destroy)
+        self.assertIn("provider.destroy()", destroy)
+        self.assertLess(destroy.index("provider.destroy()"), destroy.index("isInstanceAlive = false"))
+        self.assertNotIn("getAndSet(", create + destroy)
+        self.assertIn("private val lifecycleMutex = Mutex()", wrapper)
 
     def test_hardware_delete_release_tracking_is_reset_on_editor_lifecycle(self):
         src = CONTROLLER.read_text(encoding="utf-8")
