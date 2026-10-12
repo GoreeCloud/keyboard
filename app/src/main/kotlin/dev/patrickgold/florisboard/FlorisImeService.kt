@@ -62,7 +62,6 @@ import dev.patrickgold.florisboard.lib.devtools.flogError
 import dev.patrickgold.florisboard.lib.devtools.flogInfo
 import dev.patrickgold.florisboard.lib.devtools.flogWarning
 import dev.patrickgold.florisboard.lib.util.InputMethodUtils
-import dev.patrickgold.florisboard.lib.util.debugSummarize
 import dev.patrickgold.florisboard.lib.util.launchActivity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -355,14 +354,14 @@ class FlorisImeService : LifecycleInputMethodService() {
     }
 
     override fun onStartInput(info: EditorInfo?, restarting: Boolean) {
-        flogInfo { "info=${info?.debugSummarize()} restarting=$restarting" }
+        flogInfo { "IME editor transition" }
         super.onStartInput(info, restarting)
         nlpManager.clearSuggestions()
         if (info == null) return
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
-        flogInfo { "info=${info?.debugSummarize()} restarting=$restarting" }
+        flogInfo { "IME editor transition" }
         super.onStartInputView(info, restarting)
         if (info == null) return
         currentInputConnection?.requestCursorUpdates(ImeEditor.CURSOR_UPDATES)
@@ -528,12 +527,12 @@ class FlorisImeService : LifecycleInputMethodService() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        flogDebug { "onKeyDown(keyCode=$keyCode, event=$event)" }
+        flogDebug { "Hardware key down" }
         return imeController.onHardwareKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        flogDebug { "onKeyUp(keyCode=$keyCode, event=$event)" }
+        flogDebug { "Hardware key up" }
         return imeController.onHardwareKeyUp(keyCode, event) || super.onKeyUp(keyCode, event)
     }
 }

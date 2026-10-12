@@ -68,6 +68,14 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertIn("val requestEditor = state.editor", src)
         self.assertEqual(src.count("editor !== requestEditor"), 2)
 
+    def test_ime_service_does_not_log_editor_metadata_or_pressed_key_payloads(self):
+        service = (ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/FlorisImeService.kt").read_text()
+        self.assertNotIn("info?.debugSummarize()", service)
+        self.assertNotIn("keyCode=$keyCode", service)
+        self.assertNotIn("event=$event", service)
+        self.assertIn('flogDebug { "Hardware key down" }', service)
+        self.assertIn('flogDebug { "Hardware key up" }', service)
+
     def test_devtools_never_displays_raw_editor_or_clipboard_content(self):
         overlay = (
             ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/app/devtools/DevtoolsOverlay.kt"

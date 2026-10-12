@@ -30,6 +30,10 @@ Input-start, input-view start/finish, full input finish and extracting-view edit
 
 Asynchronous clipboard candidate assembly now uses one editor/content snapshot, captures the request generation, and verifies generation, editor identity, password-key variation, and incognito state under the suggestion lock immediately before publication. This blocks a stale assembly that completes after editor transition or privacy change from reappearing in the smartbar. Local source regression checks exercise these invariants; fast typing and input-switch runtime behavior remain unverified.
 
+## IME diagnostics minimization — development candidate
+
+Hardware key event logging no longer serializes keycodes or Android KeyEvent values, and input-start logging no longer serializes editor metadata. Source checks enforce these boundaries; device-level log verification is pending.
+
 ## Unverified or pending; blocks acceptance
 
 - [ ] Threat-model keystroke, composing text, clipboard, suggestions, learning dictionaries, logs, caches, diagnostics, and crashes. Establish precise sensitive-editor classification.
