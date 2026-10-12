@@ -28,15 +28,25 @@ class PrivateSessionSourceTests(unittest.TestCase):
             r"keyVariation == KeyVariation\.PASSWORD\s*\|\|\s*when",
         )
 
+    def test_password_fields_do_not_expose_suggestions(self):
+        src = NLP.read_text(encoding="utf-8")
+        self.assertIn("state.flags.keyVariation == KeyVariation.PASSWORD", src)
+        self.assertIn("isPasswordEditor -> emptyList()", src)
+        self.assertIn("if (isPrivateSession || !prefs.clipboard.suggestionEnabled.get())", src)
+        self.assertIn("if (imeController.snapshotState().flags.keyVariation == KeyVariation.PASSWORD) return null", src)
+
+    def test_late_suggestions_do_not_cross_editor_boundaries(self):
+        src = NLP.read_text(encoding="utf-8")
+        self.assertIn("val requestEditor = state.editor", src)
+        self.assertEqual(src.count("editor !== requestEditor"), 2)
+
     def test_providers_never_receive_hardcoded_public_session(self):
         src = NLP.read_text(encoding="utf-8")
         self.assertNotRegex(src, r"isPrivateSession\s*=\s*false\b")
         self.assertEqual(len(re.findall(r"^\s*isPrivateSession\s*=", src, re.M)), 4)
         self.assertIn("isPrivateSession = true,", src)
         self.assertEqual(src.count("isPrivateSession = isPrivateSession,"), 3)
-        self.assertEqual(
-            src.count("imeController.snapshotState().flags.isIncognitoMode"), 2
-        )
+        self.assertEqual(src.count("val isPrivateSession = state.flags.isIncognitoMode"), 2)
 
 
 if __name__ == "__main__":

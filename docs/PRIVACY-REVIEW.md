@@ -14,6 +14,10 @@
 
 The source changes classify numeric PIN/password editors as password input, force those editors into private mode even when the user preference says otherwise, and forward the captured incognito/private-session flag into suggestion providers. Standalone spell-check requests use a conservative private-session flag because the active IME editor may not be authoritative for that request. Source regression assertions cover these safeguards. **Android compilation at the new commit, provider-learning behavior and physical-device negative tests remain subject to fresh evidence.**
 
+## Password and private-session suggestion isolation — follow-up candidate
+
+The next candidate change suppresses autocomplete/suggestion candidates and auto-commit in password/PIN editors, prevents clipboard suggestion surfaces in incognito sessions, and rejects asynchronous NLP results from a previous editor after an editor switch. Static regression tests check these invariants. Build acceptance and on-device tests for editor switching, clipboard behavior and privacy-sensitive text are still required before claiming protection in real user workflows.
+
 ## Unverified or pending; blocks acceptance
 
 - [ ] Threat-model keystroke, composing text, clipboard, suggestions, learning dictionaries, logs, caches, diagnostics, and crashes. Establish precise sensitive-editor classification.

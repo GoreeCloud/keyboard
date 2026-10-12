@@ -26,6 +26,7 @@ import dev.patrickgold.florisboard.ime.clipboard.provider.ItemType
 import dev.patrickgold.florisboard.ime.core.Subtype
 import dev.patrickgold.florisboard.ime.media.emoji.EmojiSuggestionProvider
 import dev.patrickgold.florisboard.ime.nlp.latin.LatinLanguageProvider
+import dev.patrickgold.florisboard.ime.text.key.KeyVariation
 import dev.patrickgold.florisboard.inferFlorisApplication
 import dev.patrickgold.florisboard.lib.util.NetworkUtils
 import dev.patrickgold.florisboard.subtypeManager
@@ -192,10 +193,18 @@ class NlpManager(context: Context) {
             || providerForcesSuggestionOn(subtypeManager.activeSubtype)
 
     fun suggest(subtype: Subtype, content: K3Content) {
+        val state = imeController.snapshotState()
+        if (state.flags.keyVariation == KeyVariation.PASSWORD) {
+            // Never offer predictions based on password/PIN editor contents.
+            clearSuggestions()
+            return
+        }
         val reqTime = SystemClock.uptimeMillis()
+        val requestEditor = state.editor
         // Capture this request's privacy state before the asynchronous provider calls.
-        val isPrivateSession = imeController.snapshotState().flags.isIncognitoMode
+        val isPrivateSession = state.flags.isIncognitoMode
         scope.launch {
+            if (imeController.snapshotState().editor !== requestEditor) return@launch
             val emojiSuggestions = when {
                 prefs.emoji.suggestionEnabled.get() -> {
                     emojiSuggestionProvider.suggest(
@@ -223,6 +232,8 @@ class NlpManager(context: Context) {
                 }
             }
             internalSuggestionsGuard.withLock {
+                // A late response from the previous editor must never enter the next editor.
+                if (imeController.snapshotState().editor !== requestEditor) return@withLock
                 if (internalSuggestions.first < reqTime) {
                     internalSuggestions = reqTime to buildList {
                         addAll(emojiSuggestions)
@@ -248,6 +259,7 @@ class NlpManager(context: Context) {
     }
 
     fun getAutoCommitCandidate(): SuggestionCandidate? {
+        if (imeController.snapshotState().flags.keyVariation == KeyVariation.PASSWORD) return null
         return activeCandidates.firstOrNull { it.isEligibleForAutoCommit }
     }
 
@@ -275,9 +287,12 @@ class NlpManager(context: Context) {
     }
 
     private fun assembleCandidates() {
-        val isPrivateSession = imeController.snapshotState().flags.isIncognitoMode
+        val state = imeController.snapshotState()
+        val isPrivateSession = state.flags.isIncognitoMode
+        val isPasswordEditor = state.flags.keyVariation == KeyVariation.PASSWORD
         runBlocking {
             val candidates = when {
+                isPasswordEditor -> emptyList()
                 isSuggestionOn() -> {
                     clipboardSuggestionProvider.suggest(
                         subtype = Subtype.DEFAULT,
@@ -368,7 +383,8 @@ class NlpManager(context: Context) {
             isPrivateSession: Boolean,
         ): List<SuggestionCandidate> {
             // Check if enabled
-            if (!prefs.clipboard.suggestionEnabled.get()) return emptyList()
+            // Never surface clipboard material in private/incognito sessions.
+            if (isPrivateSession || !prefs.clipboard.suggestionEnabled.get()) return emptyList()
 
             val text = buildString {
                 // TODO hack
