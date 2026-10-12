@@ -336,9 +336,10 @@ class NlpManager(context: Context) {
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun addToDebugOverlay(word: String, info: SpellingResult) {
-        debugOverlaySuggestionsInfos.put(System.currentTimeMillis(), word to info)
-        debugOverlayVersion.update { it + 1 }
+        // Intentionally do not store user-entered text or spelling candidates.
+        // Developer diagnostics may be visible in screen recordings and reports.
     }
 
     fun clearDebugOverlay() {

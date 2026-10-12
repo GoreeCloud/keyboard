@@ -46,16 +46,11 @@ import dev.patrickgold.florisboard.ime.nlp.NlpInlineAutofill
 import dev.patrickgold.florisboard.ime.theme.LocalThemeController
 import dev.patrickgold.florisboard.ime.theme.ThemeController
 import dev.patrickgold.florisboard.inferFlorisApplication
-import dev.patrickgold.florisboard.lib.FlorisLocale
-import dev.patrickgold.florisboard.nlpManager
 import dev.patrickgold.jetpref.datastore.model.collectAsState
 import org.florisboard.lib.android.AndroidVersion
 import org.florisboard.lib.snygg.SnyggMissingSchemaException
-import java.text.SimpleDateFormat
-import java.util.*
 
 private val CardBackground = Color.Black.copy(0.6f)
-private val DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss", FlorisLocale.default().base)
 
 @Composable
 fun DevtoolsOverlay(modifier: Modifier = Modifier) {
@@ -106,7 +101,7 @@ private fun DevtoolsClipboardOverlay() {
         val primaryClip by clipboardManager.primaryClipFlow.collectAsState()
         Text(
             modifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp),
-            text = primaryClip.toString(),
+            text = if (primaryClip == null) "Clipboard is empty" else "Clipboard item present (content redacted)",
             color = Color.White,
         )
     }
@@ -128,53 +123,15 @@ private fun DevtoolsInputStateOverlay() {
         DevtoolsSubGroup(title = "EditorContent") {
             DevtoolsText(text = "Selection:   { start=${content.selection.start}, end=${content.selection.end} }")
             DevtoolsText(text = "Composition: { start=${content.composition?.start}, end=${content.composition?.end} }")
-            DevtoolsText(text = "Before: \"${content.surroundingText.textBefore}\"")
-            DevtoolsText(text = "Selected: \"${content.surroundingText.textSelected}\"")
-            DevtoolsText(text = "After: \"${content.surroundingText.textAfter}\"")
-            DevtoolsText(text = "Composition Text: ${content.compositionText}")
+            DevtoolsText(text = "Surrounding and composing text redacted for privacy.")
         }
     }
 }
 
 @Composable
 private fun DevtoolsSpellingOverlay() {
-    val context = LocalContext.current
-    val nlpManager by context.nlpManager()
-
-    val debugOverlayVersion by nlpManager.debugOverlayVersion.collectAsState()
-    val suggestionsInfos = remember(debugOverlayVersion) { nlpManager.debugOverlaySuggestionsInfos.snapshot() }
-
-    val sortedEntries = suggestionsInfos.entries.sortedByDescending { it.key }
-    DevtoolsOverlayBox(title = "Spelling overlay (${sortedEntries.size})") {
-        for ((timestamp, wordInfoPair) in sortedEntries) {
-            val (word, info) = wordInfoPair
-            val suggestions = info.suggestions()
-            Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-                val date = DateFormat.format(Date(timestamp))
-                Text(
-                    text = "$date - \"$word\"",
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                )
-                val details = buildString {
-                    appendLine("isTypo: ${info.isTypo} | isGrammarError: ${info.isGrammarError}")
-                    if (info.isTypo || info.isGrammarError) {
-                        appendLine("providing corrections list of size n=${suggestions.size}")
-                        for ((n, suggestion) in suggestions.withIndex()) {
-                            append("  [$n] = string[${suggestion.length}] { \"")
-                            append(suggestion)
-                            appendLine("\" }")
-                        }
-                    }
-                }.prependIndent("  ")
-                Text(
-                    text = details,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
-                )
-            }
-        }
+    DevtoolsOverlayBox(title = "Spelling overlay") {
+        DevtoolsText(text = "Typed words and spelling candidates are not retained in diagnostics.")
     }
 }
 

@@ -41,6 +41,22 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertIn("val requestEditor = state.editor", src)
         self.assertEqual(src.count("editor !== requestEditor"), 2)
 
+    def test_devtools_never_displays_raw_editor_or_clipboard_content(self):
+        overlay = (
+            ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/app/devtools/DevtoolsOverlay.kt"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("primaryClip.toString()", overlay)
+        self.assertNotIn("${content.surroundingText.", overlay)
+        self.assertNotIn("${content.compositionText}", overlay)
+        self.assertNotIn("wordInfoPair", overlay)
+        self.assertIn("content redacted", overlay)
+        self.assertIn("Spelling overlay", overlay)
+
+    def test_spellcheck_words_not_cached_for_diagnostics(self):
+        src = NLP.read_text(encoding="utf-8")
+        self.assertNotIn("debugOverlaySuggestionsInfos.put(", src)
+        self.assertIn("fun addToDebugOverlay(", src)
+
     def test_providers_never_receive_hardcoded_public_session(self):
         src = NLP.read_text(encoding="utf-8")
         self.assertNotRegex(src, r"isPrivateSession\s*=\s*false\b")

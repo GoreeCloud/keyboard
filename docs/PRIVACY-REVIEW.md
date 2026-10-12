@@ -18,6 +18,10 @@ The source changes classify numeric PIN/password editors as password input, forc
 
 The next candidate change suppresses autocomplete/suggestion candidates and auto-commit in password/PIN editors, prevents clipboard suggestion surfaces in incognito sessions or from source-marked sensitive clipboard entries, and rejects asynchronous NLP results from a previous editor after an editor switch. Static regression tests check these invariants. Build acceptance and on-device tests for editor switching, clipboard behavior and privacy-sensitive text are still required before claiming protection in real user workflows.
 
+## Developer diagnostics minimization — follow-up candidate
+
+Source hardening removes raw editor/surrounding/composition text and clipboard payloads from developer overlays and disables caching user words/spelling candidates in the in-memory debug overlay. Non-content selection, composition, IME and clipboard-presence indicators remain for troubleshooting. Source regression checks verify prohibited debug rendering/caching paths are absent; device screenshots, lifecycle behavior and a full log/diagnostics audit remain unverified.
+
 ## Unverified or pending; blocks acceptance
 
 - [ ] Threat-model keystroke, composing text, clipboard, suggestions, learning dictionaries, logs, caches, diagnostics, and crashes. Establish precise sensitive-editor classification.
