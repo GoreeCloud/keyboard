@@ -147,7 +147,13 @@ class ImeController(
         // Android delivers a new ACTION_DOWN for each hardware key repeat.
         // Delete on every down rather than on release so holding Backspace/Delete
         // works and a single press still deletes exactly one unit.
-        if (event.isCtrlPressed || event.isAltPressed || event.isMetaPressed) return false
+        if (event.isCtrlPressed || event.isAltPressed || event.isMetaPressed) {
+            // A modifier may be pressed after the first plain-key DOWN.
+            // Invalidate that key's handled-down ownership when a subsequent
+            // modified repeat is handed back to the host editor.
+            handledHardwareDeleteKeys.remove(keyCode)
+            return false
+        }
         return when (keyCode) {
             KeyEvent.KEYCODE_DEL -> {
                 handledHardwareDeleteKeys.add(keyCode)

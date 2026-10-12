@@ -107,3 +107,7 @@ Forward Delete now removes a full Unicode code point rather than a single UTF-16
 
 ### 2026-10-12 — Hardware delete key release pairing (development candidate)
 Hardware Backspace/Forward Delete now track only physical keys whose key-down was actually handled, consume only their corresponding key-up, and clear the pairing on editor lifecycle transitions. Shortcut combinations delegated to host editors retain their key-up, including modifier-state changes between down and up. Source regression tests are included; hardware keyboard and device behavior still require acceptance.
+
+
+### 2026-10-12 — Hardware modifier-change repeat correction
+A held physical Delete key can acquire Ctrl/Alt/Meta during subsequent Android key repeats. A modified repeat now clears any previously handled plain-key down before delegating to the host editor; this ensures its later key-up is not intercepted by the keyboard. Plain Delete/Backspace auto-repeat and lifecycle clearing remain unchanged. Static regression coverage added; real hardware-key acceptance still pending.

@@ -31,6 +31,16 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertNotIn("emitForwardDelete()", up)
         self.assertIn("event.isCtrlPressed || event.isAltPressed || event.isMetaPressed", down)
 
+    def test_modifier_repeat_releases_hardware_key_ownership(self):
+        src = CONTROLLER.read_text(encoding="utf-8")
+        down = src.split("fun onHardwareKeyDown(", 1)[1].split(
+            "fun onHardwareKeyUp(", 1
+        )[0]
+        self.assertIn("if (event.isCtrlPressed || event.isAltPressed || event.isMetaPressed) {", down)
+        self.assertIn("handledHardwareDeleteKeys.remove(keyCode)", down)
+        self.assertIn("return false", down)
+        self.assertIn("handledHardwareDeleteKeys.add(keyCode)", down)
+
     def test_hardware_delete_release_tracking_is_reset_on_editor_lifecycle(self):
         src = CONTROLLER.read_text(encoding="utf-8")
         service = (ROOT / "app/src/main/kotlin/dev/patrickgold/florisboard/FlorisImeService.kt").read_text()
