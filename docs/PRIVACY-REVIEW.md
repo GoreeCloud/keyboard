@@ -16,7 +16,7 @@ The source changes classify numeric PIN/password editors as password input, forc
 
 ## Password and private-session suggestion isolation — follow-up candidate
 
-The next candidate change suppresses autocomplete/suggestion candidates and auto-commit in password/PIN editors, prevents clipboard suggestion surfaces in incognito sessions, and rejects asynchronous NLP results from a previous editor after an editor switch. Static regression tests check these invariants. Build acceptance and on-device tests for editor switching, clipboard behavior and privacy-sensitive text are still required before claiming protection in real user workflows.
+The next candidate change suppresses autocomplete/suggestion candidates and auto-commit in password/PIN editors, prevents clipboard suggestion surfaces in incognito sessions or from source-marked sensitive clipboard entries, and rejects asynchronous NLP results from a previous editor after an editor switch. Static regression tests check these invariants. Build acceptance and on-device tests for editor switching, clipboard behavior and privacy-sensitive text are still required before claiming protection in real user workflows.
 
 ## Unverified or pending; blocks acceptance
 

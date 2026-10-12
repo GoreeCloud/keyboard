@@ -394,14 +394,14 @@ class NlpManager(context: Context) {
             }
             val currentItem = validateClipboardItem(clipboardManager.primaryClip, lastClipboardItemId, text)
                 ?: return emptyList()
+            // Source apps can mark copied secrets sensitive even in ordinary editors.
+            // Never promote those values into suggestion chips.
+            if (currentItem.isSensitive) return emptyList()
 
             return buildList {
                 val now = System.currentTimeMillis()
                 if ((now - currentItem.creationTimestampMs) < prefs.clipboard.suggestionTimeout.get() * 1000) {
                     add(ClipboardSuggestionCandidate(currentItem, sourceProvider = this@ClipboardSuggestionProvider, context = context))
-                    if (currentItem.isSensitive) {
-                        return@buildList
-                    }
                     if (currentItem.type == ItemType.TEXT) {
                         val text = currentItem.stringRepresentation()
                         val matches = buildList {

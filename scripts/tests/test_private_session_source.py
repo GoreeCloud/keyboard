@@ -33,6 +33,7 @@ class PrivateSessionSourceTests(unittest.TestCase):
         self.assertIn("state.flags.keyVariation == KeyVariation.PASSWORD", src)
         self.assertIn("isPasswordEditor -> emptyList()", src)
         self.assertIn("if (isPrivateSession || !prefs.clipboard.suggestionEnabled.get())", src)
+        self.assertIn("if (currentItem.isSensitive) return emptyList()", src)
         self.assertIn("if (imeController.snapshotState().flags.keyVariation == KeyVariation.PASSWORD) return null", src)
 
     def test_late_suggestions_do_not_cross_editor_boundaries(self):
