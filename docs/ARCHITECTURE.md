@@ -32,6 +32,8 @@ release or visual acceptance.
   classified as sensitive. Suggestions/learning remain entirely absent.
 - Backspace removes one Unicode code point, not always an entire perceived
   grapheme cluster (combining marks and ZWJ sequences need future tests).
+- Selected text is read transiently only on backspace to delete the selection;
+  it is not logged, retained, learned or transmitted.
 - External editor apps and the Android IME framework remain independent trust
   boundaries; this project does not guarantee protection from a compromised
   device or application.

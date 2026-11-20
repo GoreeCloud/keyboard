@@ -41,35 +41,37 @@ fun KeyboardSurface(
     val rows: List<List<KeySpec>> = when {
         context.kind == KeyboardKind.PHONE -> listOf(
             keys("123"), keys("456"), keys("789"),
-            listOf(KeySpec("*"), KeySpec("0"), KeySpec("#"), backspace())
+            listOf(switcher(), KeySpec("*"), KeySpec("0"), KeySpec("#"), backspace(), enter())
         )
         context.kind == KeyboardKind.NUMBERS -> listOf(
             keys("123"), keys("456"), keys("789"),
-            listOf(KeySpec("-"), KeySpec("0"), KeySpec("."), backspace())
+            listOf(switcher(), KeySpec("-"), KeySpec("0"), KeySpec("."), backspace(), enter())
         )
         layer == Layer.EMOJI -> listOf(
             listOf("😀", "😂", "🥰", "😍", "👍", "❤️").map { KeySpec(it) },
             listOf("🎉", "🔥", "✨", "🙏", "💯", "😊").map { KeySpec(it) },
             listOf("😎", "🤔", "😢", "🙌", "👋", "💚").map { KeySpec(it) },
-            listOf(KeySpec("ABC", action = KeyAction.Text(""), special = true), KeySpec("Space", weight = 3f, action = KeyAction.Space), backspace())
+            listOf(switcher(), KeySpec("ABC", special = true),
+                KeySpec("Space", weight = 3f, action = KeyAction.Space), backspace(), enter())
         )
         layer == Layer.SYMBOLS -> listOf(
             keys("1234567890"),
             keys("@#$%&*-+()"),
             keys("!?:;/'\"_="),
-            listOf(KeySpec("ABC", special = true), KeySpec(",", special = true),
-                KeySpec("Space", weight = 4f, action = KeyAction.Space), KeySpec(".", special = true), backspace())
+            listOf(switcher(), KeySpec("ABC", special = true), KeySpec(",", special = true),
+                KeySpec("Space", weight = 4f, action = KeyAction.Space), KeySpec(".", special = true),
+                backspace(), enter())
         )
         else -> listOf(
             keys("qwertyuiop", upper),
             keys("asdfghjkl", upper),
             listOf(KeySpec("⇧", description = "Shift", special = true)) +
                 keys("zxcvbnm", upper) + backspace(),
-            listOf(KeySpec("?123", special = true),
+            listOf(switcher(), KeySpec("?123", special = true),
                 KeySpec(if (context.kind == KeyboardKind.EMAIL) "@" else if (context.kind == KeyboardKind.URL) "/" else ","),
                 KeySpec("Space", weight = 4f, description = "Space", special = true, action = KeyAction.Space),
                 KeySpec(if (context.kind == KeyboardKind.EMAIL) ".com" else ".", special = true),
-                KeySpec("↵", description = "Enter", special = true, action = KeyAction.Enter))
+                enter())
         )
     }
 
@@ -118,7 +120,7 @@ fun KeyboardSurface(
                     }
                 }
             }
-            // Numeric/phone layout remains purposefully minimal; never auto-learns values.
+            // Numeric/phone layouts never auto-learn values. All modes offer editor actions.
         }
     }
 }
@@ -130,6 +132,8 @@ private fun keys(chars: String, upper: Boolean = false): List<KeySpec> =
     }
 
 private fun backspace() = KeySpec("⌫", description = "Backspace", special = true, action = KeyAction.Backspace)
+private fun enter() = KeySpec("↵", description = "Enter", special = true, action = KeyAction.Enter)
+private fun switcher() = KeySpec("🌐", description = "Switch keyboard", special = true, action = KeyAction.SwitchKeyboard)
 
 @Composable
 private fun RowScope.KeyboardKey(key: KeySpec, onClick: () -> Unit) {

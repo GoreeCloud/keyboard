@@ -26,7 +26,8 @@ object KeyboardPolicy {
         val kind = when {
             type == InputType.TYPE_CLASS_PHONE -> KeyboardKind.PHONE
             type == InputType.TYPE_CLASS_NUMBER || type == InputType.TYPE_CLASS_DATETIME -> KeyboardKind.NUMBERS
-            type == InputType.TYPE_CLASS_TEXT && variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS -> KeyboardKind.EMAIL
+            type == InputType.TYPE_CLASS_TEXT && (variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
+                variation == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS) -> KeyboardKind.EMAIL
             type == InputType.TYPE_CLASS_TEXT && variation == InputType.TYPE_TEXT_VARIATION_URI -> KeyboardKind.URL
             else -> KeyboardKind.LETTERS
         }
