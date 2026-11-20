@@ -18,7 +18,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      # ubuntu-latest already provides the Android SDK and sdkmanager.
+      # setup-android@v3 currently invokes removed legacy 'tools' SDK package.
       - name: Install pinned SDK platform
         run: sdkmanager "platforms;android-37.1" "build-tools;36.0.0"
       - name: Validate privacy manifest
