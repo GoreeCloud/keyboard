@@ -1,0 +1,15 @@
+# Android / Gradle outputs and local configuration
+.gradle/
+build/
+**/build/
+local.properties
+*.apk
+*.aab
+*.jks
+*.keystore
+*.hprof
+.idea/
+*.iml
+.DS_Store
+**/.cxx/
+captures/
