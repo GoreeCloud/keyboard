@@ -7,7 +7,8 @@ production keyboard or a validated replacement for SwiftKey/Gboard.
 ## Current development scope
 
 - Android `InputMethodService` with English (US) QWERTY typing, shift,
-  delete, space, punctuation, symbol/emoji modes and editor actions.
+  delete (including selected text), space, punctuation, symbol/emoji modes,
+  editor actions and a system keyboard-switch key.
 - Context-sensitive basic numeric, telephone, email and URL key layouts.
 - Native first-run activation screen and user-selectable UI accent.
 - Material 3 Expressive implementation from **GoreeCloud/gc-ui**, included

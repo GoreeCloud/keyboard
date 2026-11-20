@@ -5,6 +5,7 @@ import android.inputmethodservice.InputMethodService
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -106,7 +107,11 @@ class GoreeKeyboardService : InputMethodService(), LifecycleOwner,
             KeyAction.Space -> connection.commitText(" ", 1)
             KeyAction.Backspace -> {
                 // Code-point aware, so supplementary emoji are not split into invalid surrogates.
-                if (!connection.deleteSurroundingTextInCodePoints(1, 0)) {
+                // Preserve normal Android selection semantics, then delete one code point
+                // when the cursor has no selection. Selected text is transient and never saved.
+                if (!connection.getSelectedText(0).isNullOrEmpty()) {
+                    connection.commitText("", 1)
+                } else if (!connection.deleteSurroundingTextInCodePoints(1, 0)) {
                     connection.deleteSurroundingText(1, 0)
                 }
             }
@@ -119,7 +124,13 @@ class GoreeKeyboardService : InputMethodService(), LifecycleOwner,
                     if (!connection.performEditorAction(actionId)) connection.commitText("\n", 1)
                 } else connection.commitText("\n", 1)
             }
-            KeyAction.SwitchKeyboard -> switchToNextInputMethod(false)
+            KeyAction.SwitchKeyboard -> {
+                if (!switchToNextInputMethod(false)) {
+                    // Show system-owned picker if no next IME is configured.
+                    (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
+                        .showInputMethodPicker()
+                }
+            }
         }
     }
 

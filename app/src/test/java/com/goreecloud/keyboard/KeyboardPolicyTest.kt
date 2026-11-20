@@ -37,6 +37,12 @@ class KeyboardPolicyTest {
         ).kind)
     }
 
+    @Test fun webEmailLayoutIsRecognized() {
+        assertEquals(KeyboardKind.EMAIL, KeyboardPolicy.forEditor(
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS, 0
+        ).kind)
+    }
+
     @Test fun editorActionIsMasked() {
         assertEquals(EditorInfo.IME_ACTION_SEARCH, KeyboardPolicy.forEditor(
             InputType.TYPE_CLASS_TEXT, EditorInfo.IME_ACTION_SEARCH or EditorInfo.IME_FLAG_NO_ENTER_ACTION

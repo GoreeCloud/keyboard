@@ -3,7 +3,8 @@
 ## Implemented in source (subject to Android build and device acceptance)
 
 - Android `InputMethodService` + manifest registration / user activation
-- QWERTY English typing, shift, symbols, backspace, space and editor action
+- QWERTY English typing, shift, symbols, selection-aware backspace, space,
+  keyboard switcher and editor action
 - Simple number and phone-specific keyboard layouts
 - Emoji entry mode using platform Unicode glyphs
 - Compose-based setup/settings and Compose keyboard surface
